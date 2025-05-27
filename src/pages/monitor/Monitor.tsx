@@ -2,15 +2,38 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
-import LineChart from '@/components/ui/LineChart';
-import StatusBadge from '@/components/ui/StatusBadge';
-import ProvinceDropdown from '@/components/ui/ProvinceDropdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, AlertTriangle, Search } from 'lucide-react';
+import { Download, Clock, Search, ChevronDown, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
+// StatusBadge component since it's missing
+const StatusBadge = ({ status }: { status: 'normal' | 'overflow' | 'underflow' }) => {
+  const getStatusDetails = () => {
+    switch (status) {
+      case 'normal':
+        return { color: 'bg-green-100 text-green-800', icon: <CheckCircle className="w-3 h-3 text-green-600" /> };
+      case 'overflow':
+        return { color: 'bg-red-100 text-red-800', icon: <AlertCircle className="w-3 h-3 text-red-600" /> };
+      case 'underflow':
+        return { color: 'bg-yellow-100 text-yellow-800', icon: <AlertTriangle className="w-3 h-3 text-yellow-600" /> };
+      default:
+        return { color: 'bg-gray-100 text-gray-800', icon: null };
+    }
+  };
+
+  const { color, icon } = getStatusDetails();
+
+  return (
+    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
+      {icon}
+      <span className="ml-1 capitalize">{status}</span>
+    </div>
+  );
+};
+
 const Monitor = () => {
+  const [selectedRegion, setSelectedRegion] = useState('North');
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
   
   const getChartData = () => {
@@ -120,114 +143,244 @@ const Monitor = () => {
   ];
 
   return (
-    <MainLayout>
-      <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-        {/* Header with Province Dropdown and Search */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <ProvinceDropdown />
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input 
-                placeholder="Search..." 
-                className="pl-10 w-80 bg-white"
-              />
+    <MainLayout title={selectedRegion}>
+      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+        {/* Header with Region Selection */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/20 rounded-md px-3 py-1 cursor-pointer">
+              <span className="text-lg font-semibold text-yellow-500 dark:text-yellow-400">N</span>
+              <ChevronDown className="h-4 w-4 ml-2 text-yellow-500 dark:text-yellow-400" />
             </div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{selectedRegion}</h2>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              Export Data
-            </Button>
-            <div className="text-sm text-gray-500">Last updated: 2 minutes ago</div>
+
+          {/* Time Period Controls */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md">
+            <button
+              onClick={() => setTimeRange('D')}
+              className={`px-3 py-1 text-sm ${
+                timeRange === 'D' ? 'bg-blue-500 text-white rounded-md' : 'text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              D
+            </button>
+            <button
+              onClick={() => setTimeRange('M')}
+              className={`px-3 py-1 text-sm ${
+                timeRange === 'M' ? 'bg-blue-500 text-white rounded-md' : 'text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              M
+            </button>
+            <button
+              onClick={() => setTimeRange('Y')}
+              className={`px-3 py-1 text-sm ${
+                timeRange === 'Y' ? 'bg-blue-500 text-white rounded-md' : 'text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              Y
+            </button>
           </div>
         </div>
 
         {/* Real Time Monitoring Chart */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-xl font-semibold">Real time monitoring</CardTitle>
-              <p className="text-sm text-gray-500">Live water flow and pressure monitoring</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">{getTimeLabel()}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium">{currentValues.flow}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium">{currentValues.pressure}</span>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                {(['D', 'M', 'Y'] as const).map((period) => (
-                  <Button
-                    key={period}
-                    variant={timeRange === period ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setTimeRange(period)}
-                    className={`transition-all duration-300 ${timeRange === period ? 'bg-blue-500 hover:bg-blue-600 transform scale-105' : 'hover:scale-105'}`}
-                  >
-                    {period}
-                  </Button>
-                ))}
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg font-semibold">Real time monitoring</CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400">{getTimeLabel()}</span>
+                <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <LineChart 
-                data={chartData} 
-                lines={[
-                  { dataKey: 'water flow', stroke: '#3b82f6', name: 'water flow' },
-                  { dataKey: 'pressure', stroke: '#10b981', name: 'pressure' },
-                ]}
-              />
+          <CardContent className="p-4">
+            {/* Chart placeholder since we don't have Chart.js installed */}
+            <div className="w-full h-64 bg-gray-50 dark:bg-gray-800 rounded-md overflow-hidden relative">
+              <div className="w-full h-full flex items-center justify-center relative">
+                {/* Blue wave line */}
+                <svg viewBox="0 0 800 200" className="w-full h-full absolute">
+                  <path 
+                    d="M0,100 C100,80 200,120 300,100 C400,80 500,120 600,100 C700,80 800,120 900,100" 
+                    fill="none" 
+                    stroke="#3b82f6" 
+                    strokeWidth="2"
+                  />
+                  <circle cx="450" cy="100" r="4" fill="#3b82f6" />
+                </svg>
+                
+                {/* Green wave line */}
+                <svg viewBox="0 0 800 200" className="w-full h-full absolute">
+                  <path 
+                    d="M0,120 C100,100 200,140 300,120 C400,100 500,140 600,120 C700,100 800,140 900,120" 
+                    fill="none" 
+                    stroke="#22c55e" 
+                    strokeWidth="2"
+                  />
+                  <circle cx="450" cy="120" r="4" fill="#22c55e" />
+                </svg>
+              </div>
+              
+              {/* X-axis time labels */}
+              <div className="absolute bottom-2 left-0 right-0 flex justify-between px-6 text-xs text-gray-500">
+                <span>2h</span>
+                <span>4h</span>
+                <span>6h</span>
+                <span>8h</span>
+                <span>10h</span>
+                <span>12h</span>
+                <span>14h</span>
+                <span>16h</span>
+                <span>18h</span>
+                <span>20h</span>
+                <span>22h</span>
+                <span>24h</span>
+              </div>
+            </div>
+            
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-6 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-xs text-gray-700 dark:text-gray-300">water flow</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-xs text-gray-700 dark:text-gray-300">pressure</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-12 gap-6">
-          {/* History Table */}
-          <Card className="col-span-8">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold">History ({getHistoryLabel()})</CardTitle>
-                <p className="text-sm text-gray-500">Recent readings by area</p>
-              </div>
-              <Link to={`/readings/north`}>
-                <Button className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105">
-                  See more
-                </Button>
-              </Link>
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {/* Current Values */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Values</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-hidden rounded-lg border border-gray-200">
+              <div className="flex items-center justify-center gap-6">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{currentValues.flow.split(' ')[0]}</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">{currentValues.flow.split(' ')[1]}</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Water Flow</span>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-green-600 dark:text-green-400">{currentValues.pressure.split(' ')[0]}</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">{currentValues.pressure.split(' ')[1]}</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Pressure</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Average */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Average</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center gap-6">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600 dark:text-blue-400">24</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">cm³/h</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Water Flow</span>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-green-600 dark:text-green-400">44</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">kpa</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Pressure</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* System Status */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">System Status</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs text-green-600 dark:text-green-400">normal</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Data Collection Rate</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">99.8%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Device Connectivity</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">98.5%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Alert Response Time</span>
+                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">2.3 min</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">System Uptime</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">99.9%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* History and Critical Readings Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* History Table */}
+          <Card className="md:col-span-2">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg font-semibold">History ({getHistoryLabel()})</CardTitle>
+                <Link to="/history" className="text-sm text-blue-500 hover:underline">
+                  See more
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">N°</th>
-                      <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">
-                        {timeRange === 'Y' ? 'District' : 'Area'}
-                      </th>
-                      <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Waterflow</th>
-                      <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Pressure</th>
-                      <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Status</th>
+                  <thead>
+                    <tr className="border-b dark:border-gray-700">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">N°</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Area</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Waterflow</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Pressure</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody>
                     {historyData.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-200">
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.id}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.area}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.waterflow}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.pressure}</td>
-                        <td className="px-4 py-3">
+                      <tr key={item.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300">{item.id}</td>
+                        <td className="px-4 py-2 text-xs font-medium text-gray-900 dark:text-gray-300">{item.area}</td>
+                        <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300">{item.waterflow}</td>
+                        <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300">{item.pressure}</td>
+                        <td className="px-4 py-2">
                           <StatusBadge status={item.status as any} />
                         </td>
                       </tr>
@@ -239,37 +392,33 @@ const Monitor = () => {
           </Card>
           
           {/* Critical Readings */}
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                Critical readings
+          <Card className="md:col-span-1">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span>Critical readings</span>
               </CardTitle>
-              <p className="text-sm text-gray-500">Locations requiring attention</p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4">
               <div className="space-y-4">
                 {criticalReadings.map((reading, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-start gap-2 mb-3">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
-                      <span className="text-sm font-medium text-gray-900">{reading.location}</span>
+                  <div key={index} className="p-3 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 hover:shadow-sm transition-shadow duration-200">
+                    <div className="flex items-start gap-2 mb-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
+                      <span className="text-xs font-medium text-gray-900 dark:text-gray-200">{reading.location}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="grid grid-cols-2 gap-2 mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm text-gray-700">{reading.waterflow}</span>
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">{reading.waterflow}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-gray-700">{reading.pressure}</span>
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">{reading.pressure}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">Status:</span>
-                        <StatusBadge status={reading.status as any} />
-                      </div>
+                    <div className="flex justify-end">
+                      <StatusBadge status={reading.status as any} />
                     </div>
                   </div>
                 ))}

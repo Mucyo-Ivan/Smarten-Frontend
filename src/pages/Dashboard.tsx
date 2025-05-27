@@ -1,77 +1,93 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import LineChart from '@/components/ui/LineChart';
-import { ArrowRight, CheckCircle, MapPin, Eye } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal } from 'lucide-react';
 
 const Dashboard = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<'D' | 'M' | 'Y'>('D');
-
   const regions = [
     { 
       id: 'north', 
       name: 'North', 
       value: 20, 
       unit: 'cm³/h', 
-      bgColor: 'bg-yellow-100', 
+      bgColor: 'bg-yellow-50', 
+      textColor: 'text-yellow-500',
       iconBg: 'bg-yellow-500',
-      iconText: 'N'
+      iconText: 'N',
+      iconSrc: '/Smarten Assets/assets/North.svg'
     },
     { 
       id: 'south', 
       name: 'South', 
       value: 59, 
       unit: 'cm³/h', 
-      bgColor: 'bg-blue-100', 
+      bgColor: 'bg-blue-50', 
+      textColor: 'text-blue-500',
       iconBg: 'bg-blue-500',
-      iconText: 'S'
+      iconText: 'S',
+      iconSrc: '/Smarten Assets/assets/South.svg'
     },
     { 
       id: 'east', 
       name: 'East', 
       value: 100, 
       unit: 'cm³/h', 
-      bgColor: 'bg-orange-100', 
+      bgColor: 'bg-orange-50', 
+      textColor: 'text-orange-500',
       iconBg: 'bg-orange-500',
-      iconText: 'E'
+      iconText: 'E',
+      iconSrc: '/Smarten Assets/assets/East.svg'
     },
     { 
       id: 'west', 
       name: 'West', 
       value: 420, 
       unit: 'cm³/h', 
-      bgColor: 'bg-green-100', 
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-500', 
       iconBg: 'bg-green-500',
-      iconText: 'W'
+      iconText: 'W',
+      iconSrc: '/Smarten Assets/assets/West.svg'
     },
     { 
       id: 'kigali', 
       name: 'Kigali', 
       value: 120, 
       unit: 'cm³/h', 
-      bgColor: 'bg-purple-100', 
+      bgColor: 'bg-purple-50', 
+      textColor: 'text-purple-500',
       iconBg: 'bg-purple-500',
-      iconText: 'K'
+      iconText: 'K',
+      iconSrc: '/Smarten Assets/assets/Kigali.svg'
     },
   ];
 
-  const leakageData = [
-    { region: 'North', count: 20, color: 'bg-yellow-500', textColor: 'text-yellow-600' },
-    { region: 'South', count: 100, color: 'bg-blue-500', textColor: 'text-blue-600' },
-    { region: 'East', count: 150, color: 'bg-orange-500', textColor: 'text-orange-600' },
-    { region: 'West', count: 400, color: 'bg-green-500', textColor: 'text-green-600' },
-    { region: 'Kigali', count: 400, color: 'bg-purple-500', textColor: 'text-purple-600' },
-  ];
+  const leakageData = {
+    recent: {
+      waterLost: 20,
+      unit: 'cm³',
+      timeTaken: 20,
+      unit2: 'min',
+      location: 'Kigali, Kicukiro-Kamabuye',
+      status: 'Resolved'
+    },
+    stats: [
+      { region: 'North', count: 20, color: 'bg-yellow-500', textColor: 'text-yellow-600', iconSrc: '/Smarten Assets/assets/North.svg' },
+      { region: 'South', count: 100, color: 'bg-blue-500', textColor: 'text-blue-600', iconSrc: '/Smarten Assets/assets/South.svg' },
+      { region: 'East', count: 150, color: 'bg-orange-500', textColor: 'text-orange-600', iconSrc: '/Smarten Assets/assets/East.svg' },
+      { region: 'West', count: 400, color: 'bg-green-500', textColor: 'text-green-600', iconSrc: '/Smarten Assets/assets/West.svg' },
+      { region: 'Kigali', count: 400, color: 'bg-purple-500', textColor: 'text-purple-600', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+    ]
+  };
 
   const pressureData = [
-    { region: 'North', value: 20, unit: 'kPa', bgColor: 'bg-yellow-100', textColor: 'text-yellow-600', iconText: 'N' },
-    { region: 'South', value: 40, unit: 'kPa', bgColor: 'bg-blue-100', textColor: 'text-blue-600', iconText: 'S' },
-    { region: 'East', value: 90, unit: 'kPa', bgColor: 'bg-orange-100', textColor: 'text-orange-600', iconText: 'E' },
-    { region: 'West', value: 100, unit: 'kPa', bgColor: 'bg-green-100', textColor: 'text-green-600', iconText: 'W' },
-    { region: 'Kigali', value: 120, unit: 'kPa', bgColor: 'bg-purple-100', textColor: 'text-purple-600', iconText: 'K' },
+    { region: 'North', value: 20, unit: 'kPa', bgColor: 'bg-yellow-200', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
+    { region: 'South', value: 40, unit: 'kPa', bgColor: 'bg-blue-200', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
+    { region: 'East', value: 90, unit: 'kPa', bgColor: 'bg-orange-200', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
+    { region: 'West', value: 100, unit: 'kPa', bgColor: 'bg-green-200', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
+    { region: 'Kigali', value: 120, unit: 'kPa', bgColor: 'bg-purple-200', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
 
   const devices = [
@@ -83,93 +99,110 @@ const Dashboard = () => {
   ];
 
   const activities = [
-    { time: '07:30 AM', text: 'Leakage detected at Nyarugenge', type: 'alert', icon: '🚨' },
-    { time: '08:00 AM', text: 'Sudden rise in water flow at Kicukiro', type: 'warning', icon: '⚠️' },
-    { time: '04:20 PM', text: 'Sudden rise in water flow at Kicukiro', type: 'info', icon: '💧' },
+    { time: '07:30 AM', text: 'Leakage detected at Nyarugenge', type: 'alert' },
+    { time: '08:00 AM', text: 'Sudden rise in water flow at Kicukiro', type: 'warning' },
+    { time: '04:20 PM', text: 'Sudden rise in water flow at Kicukiro', type: 'info' },
   ];
 
   return (
-    <MainLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Overview</h1>
-        </div>
-
-        {/* Regional Stats */}
-        <div className="grid grid-cols-5 gap-6 mb-8">
+    <MainLayout title="Overview">
+      <div className="p-6 bg-white min-h-screen">
+        {/* Overview Region Stats */}
+        <div className="grid grid-cols-5 gap-4 mb-6">
           {regions.map((region) => (
-            <Link to={`/monitor/${region.id}`} key={region.id}>
-              <Card className={`${region.bgColor} border-0 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-8 h-8 ${region.iconBg} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-sm font-bold">{region.iconText}</span>
-                    </div>
-                    <span className="font-semibold text-gray-800">{region.name}</span>
+            <Link to={`/monitor/${region.id}`} key={region.id} className="no-underline">
+              <div className={`${region.bgColor} rounded-xl shadow-sm p-3 cursor-pointer`}>
+                <div className="flex items-center gap-1 mb-1">
+                  <div className={`w-5 h-5 ${region.iconBg} rounded-full flex items-center justify-center`}>
+                    <img src={region.iconSrc} alt={region.name} className="w-3 h-3 text-white" />
                   </div>
-                  <div className="mb-2">
-                    <span className="text-3xl font-bold text-gray-900">{region.value}</span>
-                    <span className="text-sm text-gray-600 ml-1">{region.unit}</span>
-                  </div>
-                  <div className="text-sm text-gray-600">Total Water Flow</div>
-                </CardContent>
-              </Card>
+                  <span className="text-xs font-medium">{region.name}</span>
+                </div>
+                <div className="text-center">
+                  <div className={`text-3xl font-semibold ${region.textColor} leading-tight`}>{region.value}</div>
+                  <div className="text-xs text-gray-500">cm³/h</div>
+                  <div className="text-xs text-gray-500">Total water Flow</div>
+                </div>
+              </div>
             </Link>
           ))}
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+        {/* Main Grid for Leakage, Stats and Pressure */}
+        <div className="grid grid-cols-3 gap-6 mb-6">
           {/* Leakage Detection */}
-          <Card className="col-span-5">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Leakage Detection</CardTitle>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Stats</span>
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-0">
+              <CardTitle className="text-base font-semibold">Leakage Detection</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="text-sm text-gray-500 mb-4 text-center">Recent</div>
+              <div className="flex justify-between px-2">
+                <div>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold">20</span>
+                    <span className="text-xs text-gray-500 ml-1">cm³</span>
+                  </div>
+                  <div className="text-sm text-gray-500 mt-2">water lost</div>
                 </div>
+                
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: '#1DA1F2'}}>
+                    <img src="/Smarten Assets/assets/two-arrows.png" alt="two arrows" className="w-5 h-5" />
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold">20</span>
+                    <span className="text-xs text-gray-500 ml-1">min</span>
+                  </div>
+                  <div className="text-sm text-gray-500 mt-2">Time taken</div>
+                </div>
+              </div>
+              
+              <div className="mt-5">
+                <div className="flex items-center gap-1 mb-3">
+                  <MapPin className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs text-gray-600">Kigali, Kicukiro-Kamashahi</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3 text-green-500" />
+                  <span className="text-xs text-green-500">Resolved</span>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <button className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md w-32 py-2 mx-auto block" style={{fontSize: '12px'}}>
+                  See more
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats */}
+          <Card className="border shadow-sm">
+            <CardHeader className="py-2 px-4 flex justify-center">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 text-gray-400 mr-1" />
+                <CardTitle className="text-sm font-medium text-gray-700">stats</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <div className="text-sm text-gray-600 mb-2">Recent</div>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-4xl font-bold text-gray-900">20</div>
-                  <div className="text-sm text-gray-600">cm³</div>
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white rounded-full"></div>
-                  </div>
-                  <div className="text-4xl font-bold text-gray-900">20</div>
-                  <div className="text-sm text-gray-600">min</div>
-                </div>
-                <div className="text-sm text-gray-600 mb-1">Water lost</div>
-                <div className="text-sm text-gray-600 mb-4">Time taken</div>
-                
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>Kigali, Kicukiro, kamatashi</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-green-600">Resolved</span>
-                </div>
-              </div>
-
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white mb-4">
-                See more
-              </Button>
-
-              <div className="space-y-3">
-                {leakageData.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 ${item.color} rounded-full`}></div>
-                      <span className="text-sm font-medium">{item.region}</span>
-                    </div>
+            <CardContent className="p-0">
+              <div className="space-y-2 p-2">
+                {leakageData.stats.map((stat, index) => (
+                  <div key={index} className="flex items-center justify-between py-3 px-4 rounded-2xl shadow-sm" style={{backgroundColor: index === 0 ? '#FEF08A' : index === 1 ? '#BFDBFE' : index === 2 ? '#FDBA74' : index === 3 ? '#A7F3D0' : '#E9D5FF'}}>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">{item.count} leakages</span>
-                      <ArrowRight className="w-4 h-4 text-blue-500" />
+                      <div className={`w-7 h-7 ${stat.color} rounded-full flex items-center justify-center`}>
+                        <img src={stat.iconSrc} alt={stat.region} className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium">{stat.region}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 mr-2">{stat.count} leakages</span>
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: index === 0 ? '#FACC15' : index === 1 ? '#60A5FA' : index === 2 ? '#FB923C' : index === 3 ? '#34D399' : '#C084FC'}}>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-white" />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -178,46 +211,61 @@ const Dashboard = () => {
           </Card>
 
           {/* Pressure */}
-          <Card className="col-span-3">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold">Pressure</CardTitle>
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-base font-semibold">Pressure</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                {pressureData.map((item, index) => (
-                  <div key={index} className={`${item.bgColor} rounded-lg p-4 text-center`}>
-                    <div className="w-8 h-8 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-600">{item.iconText}</span>
+            <CardContent className="p-3">
+              <div className="flex justify-center gap-2 mb-2">
+                {pressureData.slice(0, 3).map((item, index) => (
+                  <div key={index} className={`${item.bgColor} rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px'}}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center mb-0.5" style={{backgroundColor: index === 0 ? '#FACC15' : index === 1 ? '#60A5FA' : '#FB923C'}}>
+                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4 text-white" />
                     </div>
-                    <div className="text-lg font-bold text-gray-900 mb-1">{item.value}</div>
-                    <div className="text-xs text-gray-600">{item.unit}</div>
+                    <div className="text-lg font-bold text-black">
+                      {item.value}<span className="text-[10px]">kpa</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center gap-2">
+                {pressureData.slice(3, 5).map((item, index) => (
+                  <div key={index} className={`${item.bgColor} rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px'}}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center mb-0.5" style={{backgroundColor: index === 0 ? '#34D399' : '#C084FC'}}>
+                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="text-lg font-bold text-black">
+                      {item.value}<span className="text-[10px]">kpa</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Devices */}
-          <Card className="col-span-4">
-            <CardHeader className="pb-4">
+        {/* Devices Table */}
+        <div className="mb-6">
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-2">
               <CardTitle className="text-lg font-semibold">Devices</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-hidden">
+              <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="text-left">
-                      <th className="text-sm font-medium text-gray-600 pb-3">N°</th>
-                      <th className="text-sm font-medium text-gray-600 pb-3">Device Type</th>
-                      <th className="text-sm font-medium text-gray-600 pb-3">Total number</th>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left text-xs font-medium text-gray-500 pb-2">N°</th>
+                      <th className="text-left text-xs font-medium text-gray-500 pb-2">Device Type</th>
+                      <th className="text-left text-xs font-medium text-gray-500 pb-2">Total number</th>
                     </tr>
                   </thead>
                   <tbody>
                     {devices.map((device) => (
-                      <tr key={device.id} className="border-t border-gray-100">
-                        <td className="py-3 text-sm text-gray-900">{device.id}</td>
-                        <td className="py-3 text-sm text-gray-900">{device.type}</td>
-                        <td className="py-3 text-sm text-gray-900">{device.total.toLocaleString()}</td>
+                      <tr key={device.id} className="border-b border-gray-100">
+                        <td className="py-2 text-sm text-gray-900">{device.id}</td>
+                        <td className="py-2 text-sm text-gray-900">{device.type}</td>
+                        <td className="py-2 text-sm text-gray-900">{device.total.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -228,28 +276,30 @@ const Dashboard = () => {
         </div>
 
         {/* Activity History */}
-        <Card className="mt-6">
-          <CardHeader className="pb-4">
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold">Activity History</CardTitle>
-              <Button className="bg-blue-500 hover:bg-blue-600 text-white gap-2">
-                <Eye className="w-4 h-4" />
+              <Button className="bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 h-8 rounded-md">
                 See more
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4">
+            <div className="space-y-3">
               {activities.map((activity, index) => (
-                <div key={index} className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
-                    <span className="text-sm">{activity.icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-sm font-medium text-blue-600">{activity.time}</span>
+                <div key={index} className="flex items-start gap-2">
+                  <div className="relative">
+                    <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     </div>
-                    <p className="text-sm text-gray-700">{activity.text}</p>
+                    {index < activities.length - 1 && (
+                      <div className="absolute top-5 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-blue-100"></div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs text-blue-500 font-medium mb-1">{activity.time}</div>
+                    <div className="text-sm text-gray-700">{activity.text}</div>
                   </div>
                 </div>
               ))}
