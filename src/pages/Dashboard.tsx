@@ -12,8 +12,8 @@ const Dashboard = () => {
       name: 'North', 
       value: 20, 
       unit: 'cm³/h', 
-      bgColor: 'bg-yellow-50', 
-      textColor: 'text-yellow-500',
+      bgColor: 'bg-white', 
+      textColor: 'text-black',
       iconBg: 'bg-yellow-500',
       iconText: 'N',
       iconSrc: '/Smarten Assets/assets/North.svg'
@@ -23,8 +23,8 @@ const Dashboard = () => {
       name: 'South', 
       value: 59, 
       unit: 'cm³/h', 
-      bgColor: 'bg-blue-50', 
-      textColor: 'text-blue-500',
+      bgColor: 'bg-white', 
+      textColor: 'text-black',
       iconBg: 'bg-blue-500',
       iconText: 'S',
       iconSrc: '/Smarten Assets/assets/South.svg'
@@ -34,8 +34,8 @@ const Dashboard = () => {
       name: 'East', 
       value: 100, 
       unit: 'cm³/h', 
-      bgColor: 'bg-orange-50', 
-      textColor: 'text-orange-500',
+      bgColor: 'bg-white', 
+      textColor: 'text-black',
       iconBg: 'bg-orange-500',
       iconText: 'E',
       iconSrc: '/Smarten Assets/assets/East.svg'
@@ -45,8 +45,8 @@ const Dashboard = () => {
       name: 'West', 
       value: 420, 
       unit: 'cm³/h', 
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-500', 
+      bgColor: 'bg-white',
+      textColor: 'text-black', 
       iconBg: 'bg-green-500',
       iconText: 'W',
       iconSrc: '/Smarten Assets/assets/West.svg'
@@ -56,8 +56,8 @@ const Dashboard = () => {
       name: 'Kigali', 
       value: 120, 
       unit: 'cm³/h', 
-      bgColor: 'bg-purple-50', 
-      textColor: 'text-purple-500',
+      bgColor: 'bg-white', 
+      textColor: 'text-black',
       iconBg: 'bg-purple-500',
       iconText: 'K',
       iconSrc: '/Smarten Assets/assets/Kigali.svg'
@@ -105,23 +105,23 @@ const Dashboard = () => {
   ];
 
   return (
-    <MainLayout title="Overview">
-      <div className="p-6 bg-white min-h-screen">
-        {/* Overview Region Stats */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
+    <MainLayout>
+      <div className="bg-white min-h-screen">
+        <h1 className="text-xl font-semibold mb-2 ml-4 mt-1">Overview</h1>
+        <div className="grid grid-cols-5 gap-4 px-4 mb-6">
           {regions.map((region) => (
             <Link to={`/monitor/${region.id}`} key={region.id} className="no-underline">
-              <div className={`${region.bgColor} rounded-xl shadow-sm p-3 cursor-pointer`}>
-                <div className="flex items-center gap-1 mb-1">
-                  <div className={`w-5 h-5 ${region.iconBg} rounded-full flex items-center justify-center`}>
-                    <img src={region.iconSrc} alt={region.name} className="w-3 h-3 text-white" />
+              <div className="bg-white rounded-xl p-5 cursor-pointer" style={{boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', background: `linear-gradient(to bottom right, white, ${region.id === 'north' ? '#fffbeb' : region.id === 'south' ? '#eff6ff' : region.id === 'east' ? '#fff7ed' : region.id === 'west' ? '#f0fdf4' : '#faf5ff'}`}}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-8 h-8 ${region.iconBg} rounded-full flex items-center justify-center shadow-sm`}>
+                    <img src={region.iconSrc} alt={region.name} className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-xs font-medium">{region.name}</span>
+                  <span className="text-sm font-medium">{region.name}</span>
                 </div>
                 <div className="text-center">
-                  <div className={`text-3xl font-semibold ${region.textColor} leading-tight`}>{region.value}</div>
-                  <div className="text-xs text-gray-500">cm³/h</div>
-                  <div className="text-xs text-gray-500">Total water Flow</div>
+                  <div className="text-3xl font-bold text-black leading-tight mb-1">{region.value}</div>
+                  <div className="text-xs font-medium text-black">cm³/h</div>
+                  <div className="text-xs font-medium text-black">Total water Flow</div>
                 </div>
               </div>
             </Link>
@@ -148,7 +148,15 @@ const Dashboard = () => {
                 
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: '#1DA1F2'}}>
-                    <img src="/Smarten Assets/assets/two-arrows.png" alt="two arrows" className="w-5 h-5" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                      {/* Top arrow - pointing left */}
+                      <line x1="4" y1="9" x2="20" y2="9" stroke="white" strokeWidth="2" />
+                      <polyline points="8,5 4,9 8,13" stroke="white" strokeWidth="2" fill="none" />
+                      
+                      {/* Bottom arrow - pointing right */}
+                      <line x1="4" y1="15" x2="20" y2="15" stroke="white" strokeWidth="2" />
+                      <polyline points="16,11 20,15 16,19" stroke="white" strokeWidth="2" fill="none" />
+                    </svg>
                   </div>
                 </div>
                 

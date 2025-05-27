@@ -19,35 +19,38 @@ const Header = ({ title }: HeaderProps) => {
   const navigate = useNavigate();
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <div className="flex items-center gap-4">
-        {title && <h1 className="text-xl font-semibold text-gray-900">{title}</h1>}
-      </div>
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6">
+      {/* Empty div to remove logo from header */}
+      <div></div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input 
             type="text" 
             placeholder="Search..." 
-            className="pl-10 w-80 h-9 bg-gray-50 border-gray-200 rounded-md"
+            className="pl-10 w-72 h-8 bg-gray-50 border-gray-200 rounded-md text-sm"
           />
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="relative p-2">
-            <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">1</span>
+          <Button variant="ghost" size="sm" className="relative p-1">
+            <div className="relative">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <span className="absolute -top-2.5 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-[10px] font-medium text-white">1</span>
+              </span>
+            </div>
           </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-2 ml-4 cursor-pointer hover:bg-gray-50 rounded-md p-2">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">W</span>
+              <div className="flex items-center gap-2 ml-4 cursor-pointer hover:bg-gray-50 rounded-md p-1">
+                <div className="w-7 h-7 bg-[#3A8DDE] rounded-full flex items-center justify-center">
+                  <img src="/Smarten Assets/assets/WASAC 1.png" alt="WASAC" className="w-5 h-5" />
                 </div>
                 <span className="text-sm font-medium">WASAC</span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
