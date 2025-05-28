@@ -46,10 +46,10 @@ const SidebarNav = () => {
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 shadow-sm">
       <div className="p-6 border-b border-gray-100">
         <Link to="/dashboard" className="flex items-center">
-          <div className="flex items-center" style={{ marginRight: '-7px', position: 'relative', top: '-4px' }}>
+          <div className="flex items-center" style={{ marginRight: '0px', position: 'relative', top: '-4px' }}>
             <SmartenLogo className="w-12 h-12" />
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-[#0052a9]" style={{ fontWeight: 900, position: 'relative', top: '-2px', letterSpacing: '-0.5px' }}>SMARTEN</span>
+          <span className="text-2xl font-extrabold tracking-tight text-[#0052a9]" style={{ fontWeight: 900, position: 'relative', top: '0px', letterSpacing: '-0.5px' }}>SMARTEN</span>
         </Link>
       </div>
       

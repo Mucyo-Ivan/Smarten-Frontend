@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import SmartenLogo from '@/components/ui/SmartenLogo';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Index = () => {
   }, []);
 
   const handleNext = () => {
-    navigate('/dashboard');
+    navigate('/register');
   };
 
   return (
@@ -22,10 +23,10 @@ const Index = () => {
         {/* Logo */}
         <div className="flex flex-col items-center justify-center mb-2">
           <div className="flex items-center justify-center mb-2">
-            <div className="w-16 h-16 flex items-center justify-center">
-              <img src="/assets/water-droplet.svg" alt="Smarten Logo" className="w-full h-full" />
+            <div className="flex items-center" style={{ marginRight: '-2px' }}>
+              <SmartenLogo className="w-14 h-14" />
             </div>
-            <span className="text-3xl font-bold text-blue-500">SMARTEN</span>
+            <span className="text-3xl font-extrabold tracking-tight text-[#0052a9]" style={{ fontWeight: 900, letterSpacing: '-0.5px', position: 'relative', top: '1px' }}>SMARTEN</span>
           </div>
           
           {/* Title and Subtitle */}

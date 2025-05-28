@@ -1,530 +1,571 @@
-
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Download, Clock, Search, ChevronDown, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Clock, ChevronDown, Activity } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+// Import the SVG icon
+import GroupIcon from '../../../Smarten Assets/assets/Group.svg';
 
-// StatusBadge component since it's missing
-const StatusBadge = ({ status }: { status: 'normal' | 'overflow' | 'underflow' }) => {
+// StatusBadge component
+const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) => {
   const getStatusDetails = () => {
     switch (status) {
       case 'normal':
-        return { color: 'bg-green-100 text-green-800', icon: <CheckCircle className="w-3 h-3 text-green-600" /> };
-      case 'overflow':
-        return { color: 'bg-red-100 text-red-800', icon: <AlertCircle className="w-3 h-3 text-red-600" /> };
-      case 'underflow':
-        return { color: 'bg-yellow-100 text-yellow-800', icon: <AlertTriangle className="w-3 h-3 text-yellow-600" /> };
+        return { color: 'bg-green-500', text: 'normal' };
+      case 'warning':
+        return { color: 'bg-orange-500', text: 'warning' };
+      case 'critical':
+        return { color: 'bg-red-500', text: 'critical' };
       default:
-        return { color: 'bg-gray-100 text-gray-800', icon: null };
+        return { color: 'bg-gray-500', text: 'unknown' };
     }
   };
 
-  const { color, icon } = getStatusDetails();
+  const { color, text } = getStatusDetails();
 
   return (
-    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-      {icon}
-      <span className="ml-1 capitalize">{status}</span>
+    <div className="flex items-center gap-2">
+      <div className={`rounded-md px-2 py-1 text-xs font-medium text-white ${color}`}>
+        {text}
+      </div>
     </div>
   );
 };
 
 const Monitor = () => {
-  const [selectedRegion, setSelectedRegion] = useState('North');
+  const [selectedProvince, setSelectedProvince] = useState('North');
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
+  const [currentTime, setCurrentTime] = useState('16:00 PM');
+  const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
   
-  const getChartData = () => {
+  useEffect(() => {
+    // Update the current time every minute
+    const updateTime = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+      setCurrentTime(formattedTime);
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Generate chart data based on selected time range
+  const generateChartData = () => {
     if (timeRange === 'D') {
-      return [
-        { name: '2h', 'water flow': 20, pressure: 40 },
-        { name: '4h', 'water flow': 25, pressure: 42 },
-        { name: '6h', 'water flow': 15, pressure: 38 },
-        { name: '8h', 'water flow': 30, pressure: 44 },
-        { name: '10h', 'water flow': 22, pressure: 40 },
-        { name: '12h', 'water flow': 18, pressure: 39 },
-        { name: '14h', 'water flow': 24, pressure: 42 },
-        { name: '16h', 'water flow': 28, pressure: 44 },
-        { name: '18h', 'water flow': 26, pressure: 43 },
-        { name: '20h', 'water flow': 22, pressure: 41 },
-        { name: '22h', 'water flow': 20, pressure: 40 },
-        { name: '24h', 'water flow': 24, pressure: 42 },
-      ];
+      const data = [];
+      // Start with 0h
+      data.push({
+        time: '0h',
+        flow: Math.round(24 + 12 * Math.sin(0)),
+        pressure: Math.round(44 + 10 * Math.cos(0)),
+      });
+      
+      // Generate data points for hours 2h through 22h
+      for (let hour = 2; hour <= 22; hour += 2) {
+        const i = hour / 2;
+        const waterFlow = Math.round(24 + 12 * Math.sin((i / 12) * Math.PI * 4));
+        const pressure = Math.round(44 + 10 * Math.cos((i / 12) * Math.PI * 3));
+        data.push({
+          time: `${hour}h`,
+          flow: waterFlow,
+          pressure: pressure,
+        });
+      }
+      
+      // End with 24h
+      data.push({
+        time: '24h',
+        flow: Math.round(24 + 12 * Math.sin(Math.PI * 4)),
+        pressure: Math.round(44 + 10 * Math.cos(Math.PI * 3)),
+      });
+      
+      return data;
     } else if (timeRange === 'M') {
-      return [
-        { name: '1st week', 'water flow': 180, pressure: 420 },
-        { name: '2nd week', 'water flow': 200, pressure: 440 },
-        { name: '3rd week', 'water flow': 170, pressure: 400 },
-        { name: '4th week', 'water flow': 220, pressure: 460 },
-      ];
+      const data = [];
+      
+      // Add days 1-31 with just the number
+      for (let day = 1; day <= 31; day++) {
+        const waterFlow = Math.round(24 + 10 * Math.sin((day / 31) * Math.PI * 6));
+        const pressure = Math.round(44 + 12 * Math.cos((day / 31) * Math.PI * 5));
+        data.push({
+          time: `${day}`,
+          flow: waterFlow,
+          pressure: pressure,
+        });
+      }
+      
+      return data;
     } else {
-      return [
-        { name: 'Jan', 'water flow': 8760, pressure: 18400 },
-        { name: 'Feb', 'water flow': 9200, pressure: 19200 },
-        { name: 'Mar', 'water flow': 8800, pressure: 18800 },
-        { name: 'Apr', 'water flow': 9500, pressure: 20000 },
-        { name: 'May', 'water flow': 9200, pressure: 19500 },
-        { name: 'Jun', 'water flow': 8900, pressure: 18900 },
-        { name: 'Jul', 'water flow': 9800, pressure: 20500 },
-        { name: 'Aug', 'water flow': 9600, pressure: 20200 },
-        { name: 'Sep', 'water flow': 9100, pressure: 19100 },
-        { name: 'Oct', 'water flow': 9300, pressure: 19300 },
-        { name: 'Nov', 'water flow': 8700, pressure: 18700 },
-        { name: 'Dec', 'water flow': 9400, pressure: 19600 },
-      ];
+      const data = [];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      for (let i = 0; i < months.length; i++) {
+        const waterFlow = Math.round(24 + 8 * Math.sin((i / months.length) * Math.PI * 2));
+        const pressure = Math.round(44 + 6 * Math.cos((i / months.length) * Math.PI * 2));
+        data.push({
+          time: months[i],
+          flow: waterFlow,
+          pressure: pressure,
+        });
+      }
+      
+      return data;
     }
   };
 
-  const getTimeLabel = () => {
-    if (timeRange === 'D') return '16:00 PM';
-    if (timeRange === 'M') return '3rd week';
-    return 'August';
-  };
-
+  // Get current values based on time range
   const getCurrentValues = () => {
-    if (timeRange === 'D') return { flow: '24 cm³/h', pressure: '44 kpa' };
-    if (timeRange === 'M') return { flow: '220 cm³/h', pressure: '460 kpa' };
-    return { flow: '9.8K cm³/h', pressure: '20.5K kpa' };
+    return { flow: '24 cm³/h', pressure: '44 kpa' };
   };
-
-  const getHistoryLabel = () => {
-    if (timeRange === 'D') return 'past hour';
-    if (timeRange === 'M') return 'past week';
-    return 'past month';
-  };
-
-  const getHistoryData = () => {
-    if (timeRange === 'D') {
-      return [
-        { id: 1, area: 'Gicumbi', waterflow: '200cm³/s', pressure: '200kpa', status: 'normal' },
-        { id: 2, area: 'Musanze', waterflow: '200cm³/s', pressure: '200kpa', status: 'underflow' },
-        { id: 3, area: 'Gakenke', waterflow: '200cm³/s', pressure: '200kpa', status: 'overflow' },
-        { id: 4, area: 'Rulindo', waterflow: '200cm³/s', pressure: '200kpa', status: 'normal' },
-        { id: 5, area: 'Burera', waterflow: '200cm³/s', pressure: '200kpa', status: 'underflow' },
-      ];
-    } else if (timeRange === 'M') {
-      return [
-        { id: 1, area: 'Gicumbi', waterflow: '200cm³/s', pressure: '200kpa', status: 'normal' },
-        { id: 2, area: 'Musanze', waterflow: '200cm³/s', pressure: '200kpa', status: 'underflow' },
-        { id: 3, area: 'Gakenke', waterflow: '200cm³/s', pressure: '200kpa', status: 'overflow' },
-        { id: 4, area: 'Rulindo', waterflow: '200cm³/s', pressure: '200kpa', status: 'normal' },
-        { id: 5, area: 'Burera', waterflow: '200cm³/s', pressure: '200kpa', status: 'underflow' },
-      ];
-    } else {
-      return [
-        { id: 1, area: 'Gicumbi', waterflow: '200cm³/s', pressure: '200kpa', status: 'normal' },
-        { id: 2, area: 'Musanze', waterflow: '200cm³/s', pressure: '200kpa', status: 'underflow' },
-        { id: 3, area: 'Gakenke', waterflow: '200cm³/s', pressure: '200kpa', status: 'overflow' },
-        { id: 4, area: 'Rulindo', waterflow: '200cm³/s', pressure: '200kpa', status: 'normal' },
-        { id: 5, area: 'Burera', waterflow: '200cm³/s', pressure: '200kpa', status: 'underflow' },
-      ];
-    }
-  };
-
-  const chartData = getChartData();
-  const historyData = getHistoryData();
-  const currentValues = getCurrentValues();
   
-  const criticalReadings = [
-    {
-      location: 'North,Rulindo,Base',
-      waterflow: '24 cm³/h',
-      pressure: '44 kpa',
-      status: 'underflow'
-    },
-    {
-      location: 'Kigali,Kicukiro,Kamashashi',
-      waterflow: '24 cm³/h', 
-      pressure: '44 kpa',
-      status: 'overflow'
-    }
+  // Get past hour values
+  const getPastHourValues = () => {
+    return { flow: '22 cm³/h', pressure: '44 kpa' };
+  };
+  
+  // Get average values
+  const getAverageValues = () => {
+    return { flow: '24 cm³/h', pressure: '44 kpa' };
+  };
+  
+  // Provinces data for dropdown
+  const provinces = [
+    { id: 'north', name: 'North', color: 'bg-yellow-100', letter: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
+    { id: 'south', name: 'South', color: 'bg-blue-100', letter: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
+    { id: 'east', name: 'East', color: 'bg-green-100', letter: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
+    { id: 'west', name: 'West', color: 'bg-purple-100', letter: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
+    { id: 'kigali', name: 'Kigali', color: 'bg-red-100', letter: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
+  
+  // Get active province
+  const getActiveProvince = () => {
+    return provinces.find(p => p.name === selectedProvince) || provinces[0];
+  };
+
+  const chartData = generateChartData();
+  const currentValues = getCurrentValues();
+  const pastHourValues = getPastHourValues();
+  const averageValues = getAverageValues();
+  const activeProvince = getActiveProvince();
+
+  const handleProvinceSelect = (province: string) => {
+    setSelectedProvince(province);
+    setShowProvinceDropdown(false);
+  };
 
   return (
-    <MainLayout title={selectedRegion}>
-      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        {/* Header with Region Selection */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/20 rounded-md px-3 py-1 cursor-pointer">
-              <span className="text-lg font-semibold text-yellow-500 dark:text-yellow-400">N</span>
-              <ChevronDown className="h-4 w-4 ml-2 text-yellow-500 dark:text-yellow-400" />
-            </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{selectedRegion}</h2>
-          </div>
-
-          {/* Time Period Controls */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md">
-            <button
-              onClick={() => setTimeRange('D')}
-              className={`px-3 py-1 text-sm ${
-                timeRange === 'D' ? 'bg-blue-500 text-white rounded-md' : 'text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              D
-            </button>
-            <button
-              onClick={() => setTimeRange('M')}
-              className={`px-3 py-1 text-sm ${
-                timeRange === 'M' ? 'bg-blue-500 text-white rounded-md' : 'text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              M
-            </button>
-            <button
-              onClick={() => setTimeRange('Y')}
-              className={`px-3 py-1 text-sm ${
-                timeRange === 'Y' ? 'bg-blue-500 text-white rounded-md' : 'text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Y
-            </button>
-          </div>
-        </div>
-
-        {/* Real Time Monitoring Chart */}
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-lg font-semibold">Real time monitoring</CardTitle>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400">{getTimeLabel()}</span>
-                <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            {/* Chart placeholder since we don't have Chart.js installed */}
-            <div className="w-full h-64 bg-gray-50 dark:bg-gray-800 rounded-md overflow-hidden relative">
-              <div className="w-full h-full flex items-center justify-center relative">
-                {/* Blue wave line */}
-                <svg viewBox="0 0 800 200" className="w-full h-full absolute">
-                  <path 
-                    d="M0,100 C100,80 200,120 300,100 C400,80 500,120 600,100 C700,80 800,120 900,100" 
-                    fill="none" 
-                    stroke="#3b82f6" 
-                    strokeWidth="2"
-                  />
-                  <circle cx="450" cy="100" r="4" fill="#3b82f6" />
-                </svg>
+    <MainLayout title={selectedProvince}>
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left Column - Main Chart */}
+          <div className="md:col-span-2">
+            {/* Header with Province Selection and Time Period Controls */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2 cursor-pointer relative" onClick={() => setShowProvinceDropdown(!showProvinceDropdown)}>
+                <div className="h-8 w-8 flex items-center justify-center">
+                  <img src={activeProvince.iconSrc} alt={activeProvince.name} className="h-8 w-8 object-contain" />
+                </div>
+                <h2 className="text-lg font-semibold">{activeProvince.name}</h2>
+                <ChevronDown className="h-4 w-4 text-gray-500" />
                 
-                {/* Green wave line */}
-                <svg viewBox="0 0 800 200" className="w-full h-full absolute">
-                  <path 
-                    d="M0,120 C100,100 200,140 300,120 C400,100 500,140 600,120 C700,100 800,140 900,120" 
-                    fill="none" 
-                    stroke="#22c55e" 
-                    strokeWidth="2"
-                  />
-                  <circle cx="450" cy="120" r="4" fill="#22c55e" />
-                </svg>
-              </div>
-              
-              {/* X-axis time labels */}
-              <div className="absolute bottom-2 left-0 right-0 flex justify-between px-6 text-xs text-gray-500">
-                <span>2h</span>
-                <span>4h</span>
-                <span>6h</span>
-                <span>8h</span>
-                <span>10h</span>
-                <span>12h</span>
-                <span>14h</span>
-                <span>16h</span>
-                <span>18h</span>
-                <span>20h</span>
-                <span>22h</span>
-                <span>24h</span>
+                {/* Province Dropdown */}
+                {showProvinceDropdown && (
+                  <div className="absolute top-full left-0 mt-1 w-40 bg-white shadow-lg rounded-md z-10">
+                    {provinces.map(province => (
+                      <div 
+                        key={province.id}
+                        className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleProvinceSelect(province.name)}
+                      >
+                        <div className="h-6 w-6 flex items-center justify-center mr-2">
+                          <img src={province.iconSrc} alt={province.name} className="h-6 w-6 object-contain" />
+                        </div>
+                        <span className="text-sm">{province.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             
-            {/* Legend */}
-            <div className="flex items-center justify-center gap-6 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-xs text-gray-700 dark:text-gray-300">water flow</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-gray-700 dark:text-gray-300">pressure</span>
+            {/* Real Time Monitoring Chart Card */}
+            <Card className="mb-6 shadow-sm border border-gray-100">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-base font-medium">Real time monitoring</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">{currentTime}</span>
+                    <Clock className="w-4 h-4 text-gray-500" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 pb-4 px-4">
+                <div className="flex items-center justify-end mb-2">
+                  
+                  <div className="flex items-center justify-end gap-1 mb-4">
+                    <div
+                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium cursor-pointer ${
+                        timeRange === 'D' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                      }`}
+                      onClick={() => setTimeRange('D')}
+                    >
+                      D
+                    </div>
+                    <div
+                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium cursor-pointer ${
+                        timeRange === 'M' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                      }`}
+                      onClick={() => setTimeRange('M')}
+                    >
+                      M
+                    </div>
+                    <div
+                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium cursor-pointer ${
+                        timeRange === 'Y' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                      }`}
+                      onClick={() => setTimeRange('Y')}
+                    >
+                      Y
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Chart */}
+                <div className="w-full h-56 relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
+                      {/* Define gradients for the lines */}
+                      <defs>
+                        <linearGradient id="flowLineGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#0095ff" />
+                          <stop offset="100%" stopColor="#0095ff" />
+                        </linearGradient>
+                        <linearGradient id="pressureLineGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#10b981" />
+                          <stop offset="100%" stopColor="#10b981" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis 
+                        dataKey="time" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 9, fill: '#888' }}
+                        interval={0}
+                        tickFormatter={(value) => value}
+                      />
+                      <Tooltip 
+                        position={{ y: 60 }}
+                        coordinate={{ x: 100, y: 140 }}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        content={(props) => {
+                          const { active, payload, label } = props || {};
+                          if (active && payload && payload.length >= 2) {
+                            try {
+                              // Convert hour format (e.g., "8h") to time format (e.g., "8:00 AM")
+                              let formattedTime = currentTime;
+                              if (label) {
+                                const hourMatch = label.match(/^(\d+)h$/);
+                                if (hourMatch) {
+                                  const hour = parseInt(hourMatch[1]);
+                                  const ampm = hour >= 12 ? 'PM' : 'AM';
+                                  const hour12 = hour % 12 || 12;
+                                  formattedTime = `${hour12}:00 ${ampm}`;
+                                }
+                              }
+                              
+                              return (
+                                <div className="bg-white p-2 shadow-md rounded-md border border-gray-100">
+                                  <div className="flex justify-center items-center text-xs text-gray-500 mb-1">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    <span>{formattedTime}</span>
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                      <span>{payload[0]?.value || 0} cm³/h</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                      <span>{payload[1]?.value || 0} kpa</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            } catch (e) {
+                              console.error(e);
+                              return null;
+                            }
+                          }
+                          return null;
+                        }}
+                        wrapperStyle={{ zIndex: 100 }}
+                      />
+                      <Line 
+                        type="natural"
+                        dataKey="flow" 
+                        stroke="url(#flowLineGradient)" 
+                        strokeWidth={2} 
+                        dot={false}
+                        activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
+                        isAnimationActive={false}
+                        strokeOpacity={0.9}
+                      />
+                      <Line 
+                        type="natural"
+                        dataKey="pressure" 
+                        stroke="url(#pressureLineGradient)" 
+                        strokeWidth={2} 
+                        dot={false}
+                        activeDot={{ r: 4, fill: '#fff', stroke: '#10b981', strokeWidth: 2 }}
+                        isAnimationActive={false}
+                        strokeOpacity={0.9}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  
+                  {/* Legend indicators positioned at the bottom of the chart */}
+                  <div className="flex items-center justify-end space-x-6 absolute bottom-[-15px] right-4">
+                    <div className="flex items-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
+                      <span className="text-xs text-gray-600">water flow</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-2"></div>
+                      <span className="text-xs text-gray-600">pressure</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Right Column - Past Hour and Average */}
+          <div>
+            {/* Past Hour Card */}
+            <div className="bg-white mb-6 rounded-lg shadow-sm">
+              <div className="p-4">
+                <div className="flex flex-col mb-2">
+                  <div className="text-base font-medium mb-1">Past Hour</div>
+                  <div className="flex items-center">
+                    <Clock className="w-3 h-3 mr-1 text-gray-400" />
+                    <span className="text-xs text-gray-400">{currentTime}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center my-2 relative">
+                  {/* Blue Circle */}
+                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10">
+                    <div className="text-center">
+                      <span className="text-base font-medium">{pastHourValues.flow}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Connecting Line */}
+                  <div className="absolute w-8 h-4 bg-blue-400 z-0"></div>
+                  
+                  {/* Green Circle */}
+                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
+                    <div className="text-center">
+                      <span className="text-base font-medium">{pastHourValues.pressure}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center mt-3">
+                  <div className="flex items-center">
+                    <Activity className="w-4 h-4 mr-1 text-gray-600" />
+                    <span className="mr-1 text-xs font-bold text-gray-600">Status</span>
+                    <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full">
+                      normal
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {/* Current Values */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Values</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center gap-6">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{currentValues.flow.split(' ')[0]}</div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400">{currentValues.flow.split(' ')[1]}</div>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Water Flow</span>
-                </div>
+            
+            {/* Average Card */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-4">
+                <div className="text-base font-medium mb-3">Average</div>
                 
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="flex items-center justify-center my-2 relative">
+                  {/* Blue Circle */}
+                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10">
                     <div className="text-center">
-                      <div className="text-xl font-bold text-green-600 dark:text-green-400">{currentValues.pressure.split(' ')[0]}</div>
-                      <div className="text-xs text-green-600 dark:text-green-400">{currentValues.pressure.split(' ')[1]}</div>
+                      <span className="text-base font-medium">{averageValues.flow}</span>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Pressure</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Average */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Average</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center gap-6">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                  
+                  {/* Connecting Line */}
+                  <div className="absolute w-8 h-4 bg-blue-400 z-0"></div>
+                  
+                  {/* Green Circle */}
+                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
                     <div className="text-center">
-                      <div className="text-xl font-bold text-blue-600 dark:text-blue-400">24</div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400">cm³/h</div>
+                      <span className="text-base font-medium">{averageValues.pressure}</span>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Water Flow</span>
-                </div>
-                
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-green-600 dark:text-green-400">44</div>
-                      <div className="text-xs text-green-600 dark:text-green-400">kpa</div>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Pressure</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* System Status */}
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">System Status</CardTitle>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-green-600 dark:text-green-400">normal</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Data Collection Rate</span>
-                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">99.8%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Device Connectivity</span>
-                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">98.5%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Alert Response Time</span>
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">2.3 min</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">System Uptime</span>
-                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">99.9%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
-
-        {/* History and Critical Readings Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* History Table */}
-          <Card className="md:col-span-2">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg font-semibold">History ({getHistoryLabel()})</CardTitle>
-                <Link to="/history" className="text-sm text-blue-500 hover:underline">
-                  See more
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b dark:border-gray-700">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">N°</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Area</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Waterflow</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Pressure</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyData.map((item) => (
-                      <tr key={item.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300">{item.id}</td>
-                        <td className="px-4 py-2 text-xs font-medium text-gray-900 dark:text-gray-300">{item.area}</td>
-                        <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300">{item.waterflow}</td>
-                        <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300">{item.pressure}</td>
-                        <td className="px-4 py-2">
-                          <StatusBadge status={item.status as any} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+        
+        {/* History Section */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center">
+              <h2 className="text-lg font-medium">History</h2>
+              <span className="text-sm text-gray-500 ml-1">(past hour)</span>
+            </div>
+            <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md">
+              See more
+            </button>
+          </div>
           
-          {/* Critical Readings */}
-          <Card className="md:col-span-1">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <AlertTriangle className="w-4 h-4 text-red-500" />
-                <span>Critical readings</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                {criticalReadings.map((reading, index) => (
-                  <div key={index} className="p-3 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 hover:shadow-sm transition-shadow duration-200">
-                    <div className="flex items-start gap-2 mb-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
-                      <span className="text-xs font-medium text-gray-900 dark:text-gray-200">{reading.location}</span>
+          {/* History Table */}
+          <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-3 px-4 text-left text-sm font-medium">N°</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">District</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">Waterflow</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">Pressure</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-3 px-4 text-sm">1</td>
+                  <td className="py-3 px-4 text-sm">Gicumbi</td>
+                  <td className="py-3 px-4 text-sm">200cm³/s</td>
+                  <td className="py-3 px-4 text-sm">20kpa</td>
+                  <td className="py-3 px-4">
+                    <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                      normal
                     </div>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                        <span className="text-xs text-gray-600 dark:text-gray-400">{reading.waterflow}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                        <span className="text-xs text-gray-600 dark:text-gray-400">{reading.pressure}</span>
-                      </div>
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 px-4 text-sm">2</td>
+                  <td className="py-3 px-4 text-sm">Musanze</td>
+                  <td className="py-3 px-4 text-sm">200cm³/s</td>
+                  <td className="py-3 px-4 text-sm">20kpa</td>
+                  <td className="py-3 px-4">
+                    <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                      underflow
                     </div>
-                    <div className="flex justify-end">
-                      <StatusBadge status={reading.status as any} />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 px-4 text-sm">3</td>
+                  <td className="py-3 px-4 text-sm">Gasabo</td>
+                  <td className="py-3 px-4 text-sm">200cm³/s</td>
+                  <td className="py-3 px-4 text-sm">20kpa</td>
+                  <td className="py-3 px-4">
+                    <div className="bg-red-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                      overflow
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 px-4 text-sm">4</td>
+                  <td className="py-3 px-4 text-sm">Rulindo</td>
+                  <td className="py-3 px-4 text-sm">200cm³/s</td>
+                  <td className="py-3 px-4 text-sm">20kpa</td>
+                  <td className="py-3 px-4">
+                    <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                      normal
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 text-sm">5</td>
+                  <td className="py-3 px-4 text-sm">Burera</td>
+                  <td className="py-3 px-4 text-sm">200cm³/s</td>
+                  <td className="py-3 px-4 text-sm">20kpa</td>
+                  <td className="py-3 px-4">
+                    <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                      underflow
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                Past {timeRange === 'D' ? 'Hour' : timeRange === 'M' ? 'Week' : 'Month'}
-              </CardTitle>
-              <p className="text-sm text-gray-500">
-                {timeRange === 'D' ? '16:00 PM' : timeRange === 'M' ? '3rd week' : 'August'}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <div className="text-center">
-                        <div className="text-xl font-bold text-blue-600">
-                          {timeRange === 'D' ? '12' : timeRange === 'M' ? '44' : '44'}
-                        </div>
-                        <div className="text-xs text-blue-600">cm³/h</div>
-                      </div>
-                    </div>
+        
+        {/* Critical Readings Section */}
+        <div className="mt-8 mb-6">
+          <h2 className="text-lg font-medium mb-4">Critical readings</h2>
+          
+          <div className="space-y-4">
+            {/* Critical Item 1 */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex items-center mb-2">
+                <img src={GroupIcon} alt="Group Icon" className="w-5 h-5 mr-2" />
+                <span className="font-medium">North/Rulindo/Base</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span className="text-sm">24 cm³/h</span>
                   </div>
-                  
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <div className="text-center">
-                        <div className="text-xl font-bold text-green-600">
-                          {timeRange === 'D' ? '44' : timeRange === 'M' ? '44' : '44'}
-                        </div>
-                        <div className="text-xs text-green-600">kpa</div>
-                      </div>
-                    </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span className="text-sm">44 kpa</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <Activity className="w-3 h-3 mr-1 text-gray-400" />
+                  <span className="mr-1 text-xs text-gray-400">Status</span>
+                  <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full">
+                    underflow
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Average</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <div className="text-center">
-                        <div className="text-xl font-bold text-blue-600">24</div>
-                        <div className="text-xs text-blue-600">cm³/h</div>
-                      </div>
-                    </div>
+            </div>
+            
+            {/* Critical Item 2 */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex items-center mb-2">
+                <img src={GroupIcon} alt="Group Icon" className="w-5 h-5 mr-2" />
+                <span className="font-medium">Kigali/Kicukiro/Kamashashi</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span className="text-sm">24 cm³/h</span>
                   </div>
-                  
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <div className="text-center">
-                        <div className="text-xl font-bold text-green-600">44</div>
-                        <div className="text-xs text-green-600">kpa</div>
-                      </div>
-                    </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span className="text-sm">44 kpa</span>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">System Status</CardTitle>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-600">normal</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Data Collection Rate</span>
-                  <span className="text-sm text-green-600 font-medium">99.8%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Device Connectivity</span>
-                  <span className="text-sm text-green-600 font-medium">98.5%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Alert Response Time</span>
-                  <span className="text-sm text-blue-600 font-medium">2.3 min</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">System Uptime</span>
-                  <span className="text-sm text-green-600 font-medium">99.9%</span>
+                
+                <div className="flex items-center">
+                  <Activity className="w-3 h-3 mr-1 text-gray-400" />
+                  <span className="mr-1 text-xs text-gray-400">Status</span>
+                  <div className="bg-red-500 text-white text-xs px-3 py-0.5 rounded-full">
+                    overflow
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </MainLayout>

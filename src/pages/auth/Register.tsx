@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import SmartenLogo from '@/components/ui/SmartenLogo';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,10 +37,10 @@ const Register = () => {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-start mb-6">
-          <div className="w-8 h-8 flex items-center justify-center mr-2">
-            <img src="/assets/water-droplet.svg" alt="Smarten Logo" className="w-full h-full" />
+          <div className="flex items-center" style={{ marginRight: '4px' }}>
+            <SmartenLogo className="w-8 h-8" />
           </div>
-          <span className="text-xl font-bold text-blue-500">SMARTEN</span>
+          <span className="text-xl font-extrabold tracking-tight text-[#0052a9]" style={{ fontWeight: 900, letterSpacing: '-0.5px', position: 'relative', top: '1px' }}>SMARTEN</span>
         </div>
 
         {/* Header */}
