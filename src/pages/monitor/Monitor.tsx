@@ -250,6 +250,11 @@ const Monitor = () => {
                           <stop offset="0%" stopColor="#10b981" />
                           <stop offset="100%" stopColor="#10b981" />
                         </linearGradient>
+                        <linearGradient id="tooltipGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#0095ff" />
+                          <stop offset="50%" stopColor="#7bb8ff" />
+                          <stop offset="100%" stopColor="#10b981" />
+                        </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis 
@@ -295,6 +300,7 @@ const Monitor = () => {
                                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                       <span>{payload[1]?.value || 0} kpa</span>
                                     </div>
+                                    <div className="h-1 w-full mt-1 rounded-full" style={{ background: 'linear-gradient(to right, #0095ff, #7bb8ff, #10b981)' }}></div>
                                   </div>
                                 </div>
                               );
@@ -368,7 +374,7 @@ const Monitor = () => {
                   </div>
                   
                   {/* Connecting Line */}
-                  <div className="absolute w-8 h-4 bg-blue-400 z-0"></div>
+                  <div className="absolute w-8 h-4 z-0" style={{ background: 'linear-gradient(to right, #0095ff, #10b981)' }}></div>
                   
                   {/* Green Circle */}
                   <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
@@ -380,8 +386,8 @@ const Monitor = () => {
                 
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-gray-600" />
-                    <span className="mr-1 text-xs font-bold text-gray-600">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-black" />
+                    <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full">
                       normal
                     </div>
@@ -404,7 +410,7 @@ const Monitor = () => {
                   </div>
                   
                   {/* Connecting Line */}
-                  <div className="absolute w-8 h-4 bg-blue-400 z-0"></div>
+                  <div className="absolute w-8 h-4 z-0" style={{ background: 'linear-gradient(to right, #0095ff, #10b981)' }}></div>
                   
                   {/* Green Circle */}
                   <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
@@ -528,8 +534,8 @@ const Monitor = () => {
                 </div>
                 
                 <div className="flex items-center">
-                  <Activity className="w-3 h-3 mr-1 text-gray-400" />
-                  <span className="mr-1 text-xs text-gray-400">Status</span>
+                  <Activity className="w-3 h-3 mr-1 text-black" />
+                  <span className="mr-1 text-xs font-bold text-black">Status</span>
                   <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full">
                     underflow
                   </div>
@@ -557,8 +563,8 @@ const Monitor = () => {
                 </div>
                 
                 <div className="flex items-center">
-                  <Activity className="w-3 h-3 mr-1 text-gray-400" />
-                  <span className="mr-1 text-xs text-gray-400">Status</span>
+                  <Activity className="w-3 h-3 mr-1 text-black" />
+                  <span className="mr-1 text-xs font-bold text-black">Status</span>
                   <div className="bg-red-500 text-white text-xs px-3 py-0.5 rounded-full">
                     overflow
                   </div>
