@@ -89,12 +89,13 @@ const Monitor = () => {
     } else if (timeRange === 'M') {
       const data = [];
       
-      // Add days 1-31 with just the number
-      for (let day = 1; day <= 31; day++) {
-        const waterFlow = Math.round(24 + 10 * Math.sin((day / 31) * Math.PI * 6));
-        const pressure = Math.round(44 + 12 * Math.cos((day / 31) * Math.PI * 5));
+      // Add weeks instead of days
+      const weeks = ['1st week', '2nd week', '3rd week', '4th week'];
+      for (let i = 0; i < weeks.length; i++) {
+        const waterFlow = Math.round(24 + 10 * Math.sin((i / weeks.length) * Math.PI * 6));
+        const pressure = Math.round(44 + 12 * Math.cos((i / weeks.length) * Math.PI * 5));
         data.push({
-          time: `${day}`,
+          time: weeks[i],
           flow: waterFlow,
           pressure: pressure,
         });
@@ -264,6 +265,7 @@ const Monitor = () => {
                         tick={{ fontSize: 9, fill: '#888' }}
                         interval={0}
                         tickFormatter={(value) => value}
+                        padding={{ left: 30, right: 30 }}
                       />
                       <Tooltip 
                         position={{ y: 60 }}

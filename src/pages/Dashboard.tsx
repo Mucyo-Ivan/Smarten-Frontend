@@ -74,20 +74,20 @@ const Dashboard = () => {
       status: 'Resolved'
     },
     stats: [
-      { region: 'North', count: 20, color: 'bg-yellow-500', textColor: 'text-yellow-600', iconSrc: '/Smarten Assets/assets/North.svg' },
-      { region: 'South', count: 100, color: 'bg-blue-500', textColor: 'text-blue-600', iconSrc: '/Smarten Assets/assets/South.svg' },
-      { region: 'East', count: 150, color: 'bg-orange-500', textColor: 'text-orange-600', iconSrc: '/Smarten Assets/assets/East.svg' },
-      { region: 'West', count: 400, color: 'bg-green-500', textColor: 'text-green-600', iconSrc: '/Smarten Assets/assets/West.svg' },
-      { region: 'Kigali', count: 400, color: 'bg-purple-500', textColor: 'text-purple-600', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+      { region: 'North', count: 20, color: 'bg-yellow-100', textColor: 'text-yellow-500', iconSrc: '/Smarten Assets/assets/North.svg' },
+      { region: 'South', count: 100, color: 'bg-blue-50', textColor: 'text-blue-400', iconSrc: '/Smarten Assets/assets/South.svg' },
+      { region: 'East', count: 150, color: 'bg-orange-50', textColor: 'text-orange-400', iconSrc: '/Smarten Assets/assets/East.svg' },
+      { region: 'West', count: 400, color: 'bg-green-50', textColor: 'text-green-400', iconSrc: '/Smarten Assets/assets/West.svg' },
+      { region: 'Kigali', count: 400, color: 'bg-purple-50', textColor: 'text-purple-400', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
     ]
   };
 
-  const pressureData = [
-    { region: 'North', value: 20, unit: 'kPa', bgColor: 'bg-yellow-200', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
-    { region: 'South', value: 40, unit: 'kPa', bgColor: 'bg-blue-200', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
-    { region: 'East', value: 90, unit: 'kPa', bgColor: 'bg-orange-200', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
-    { region: 'West', value: 100, unit: 'kPa', bgColor: 'bg-green-200', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
-    { region: 'Kigali', value: 120, unit: 'kPa', bgColor: 'bg-purple-200', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+  const customerData = [
+    { region: 'North', value: 20, unit: 'users', bgColor: 'bg-yellow-50', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
+    { region: 'South', value: 20, unit: 'users', bgColor: 'bg-blue-50', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
+    { region: 'East', value: 20, unit: 'users', bgColor: 'bg-orange-50', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
+    { region: 'West', value: 20, unit: 'users', bgColor: 'bg-green-50', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
+    { region: 'Kigali', value: 20, unit: 'users', bgColor: 'bg-purple-50', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
 
   const devices = [
@@ -199,16 +199,16 @@ const Dashboard = () => {
             <CardContent className="p-0">
               <div className="space-y-2 p-2">
                 {leakageData.stats.map((stat, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 px-4 rounded-2xl shadow-sm" style={{backgroundColor: index === 0 ? '#FEF08A' : index === 1 ? '#BFDBFE' : index === 2 ? '#FDBA74' : index === 3 ? '#A7F3D0' : '#E9D5FF'}}>
+                  <div key={index} className="flex items-center justify-between py-3 px-4 rounded-2xl shadow-sm" style={{backgroundColor: index === 0 ? 'rgba(254, 240, 138, 0.25)' : index === 1 ? 'rgba(191, 219, 254, 0.25)' : index === 2 ? 'rgba(253, 186, 116, 0.25)' : index === 3 ? 'rgba(167, 243, 208, 0.25)' : 'rgba(233, 213, 255, 0.25)'}}>
                     <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 ${stat.color} rounded-full flex items-center justify-center`}>
-                        <img src={stat.iconSrc} alt={stat.region} className="w-4 h-4 text-white" />
+                      <div className="w-7 h-7 bg-white bg-opacity-90 rounded-full flex items-center justify-center border" style={{borderColor: index === 0 ? 'rgba(250, 204, 21, 0.4)' : index === 1 ? 'rgba(96, 165, 250, 0.4)' : index === 2 ? 'rgba(251, 146, 60, 0.4)' : index === 3 ? 'rgba(52, 211, 153, 0.4)' : 'rgba(192, 132, 252, 0.4)'}}>
+                        <img src={stat.iconSrc} alt={stat.region} className="w-4 h-4" />
                       </div>
                       <span className="text-sm font-medium">{stat.region}</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="text-sm text-gray-600 mr-2">{stat.count} leakages</span>
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: index === 0 ? '#FACC15' : index === 1 ? '#60A5FA' : index === 2 ? '#FB923C' : index === 3 ? '#34D399' : '#C084FC'}}>
+                      <span className="text-sm text-gray-700 mr-2">{stat.count} leakages</span>
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: index === 0 ? 'rgba(250, 204, 21, 0.6)' : index === 1 ? 'rgba(96, 165, 250, 0.6)' : index === 2 ? 'rgba(251, 146, 60, 0.6)' : index === 3 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(192, 132, 252, 0.6)'}}>
                         <ArrowUpRight className="w-3.5 h-3.5 text-white" />
                       </div>
                     </div>
@@ -221,29 +221,29 @@ const Dashboard = () => {
           {/* Pressure */}
           <Card className="border shadow-sm">
             <CardHeader className="pb-1">
-              <CardTitle className="text-base font-semibold">Pressure</CardTitle>
+              <CardTitle className="text-base font-semibold">Customers</CardTitle>
             </CardHeader>
             <CardContent className="p-3">
               <div className="flex justify-center gap-2 mb-2">
-                {pressureData.slice(0, 3).map((item, index) => (
-                  <div key={index} className={`${item.bgColor} rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px'}}>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center mb-0.5" style={{backgroundColor: index === 0 ? '#FACC15' : index === 1 ? '#60A5FA' : '#FB923C'}}>
-                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4 text-white" />
+                {customerData.slice(0, 3).map((item, index) => (
+                  <div key={index} className={`rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px', backgroundColor: index === 0 ? 'rgba(254, 240, 138, 0.25)' : index === 1 ? 'rgba(191, 219, 254, 0.25)' : 'rgba(253, 186, 116, 0.25)'}}>
+                    <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center mb-0.5 border" style={{borderColor: index === 0 ? 'rgba(250, 204, 21, 0.4)' : index === 1 ? 'rgba(96, 165, 250, 0.4)' : 'rgba(251, 146, 60, 0.4)'}}>
+                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4" />
                     </div>
                     <div className="text-lg font-bold text-black">
-                      {item.value}<span className="text-[10px]">kpa</span>
+                      {item.value}<span className="text-[10px] ml-0.5">{item.unit}</span>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="flex justify-center gap-2">
-                {pressureData.slice(3, 5).map((item, index) => (
-                  <div key={index} className={`${item.bgColor} rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px'}}>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center mb-0.5" style={{backgroundColor: index === 0 ? '#34D399' : '#C084FC'}}>
-                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4 text-white" />
+                {customerData.slice(3, 5).map((item, index) => (
+                  <div key={index} className={`rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px', backgroundColor: index === 0 ? 'rgba(167, 243, 208, 0.25)' : 'rgba(233, 213, 255, 0.25)'}}>
+                    <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center mb-0.5 border" style={{borderColor: index === 0 ? 'rgba(52, 211, 153, 0.4)' : 'rgba(192, 132, 252, 0.4)'}}>
+                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4" />
                     </div>
                     <div className="text-lg font-bold text-black">
-                      {item.value}<span className="text-[10px]">kpa</span>
+                      {item.value}<span className="text-[10px] ml-0.5">{item.unit}</span>
                     </div>
                   </div>
                 ))}
