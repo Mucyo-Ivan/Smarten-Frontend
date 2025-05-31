@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, ChevronDown } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 
 // StatusBadge component
 const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) => {
@@ -30,11 +30,37 @@ const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) 
   );
 };
 
+// Custom tooltip component for line chart
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 shadow-md rounded-md border border-gray-100">
+        <p className="text-gray-600 font-medium text-xs mb-2">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={`item-${index}`} className="flex items-center gap-2">
+            <div style={{ backgroundColor: entry.color }} className="w-2 h-2 rounded-full" />
+            <p style={{ color: entry.color }} className="text-sm font-medium">
+              {entry.dataKey === 'water flow' ? (
+                <span>{entry.value} cm³/h</span>
+              ) : (
+                <span>{entry.value} kpa</span>
+              )}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 const Monitor = () => {
   const [selectedProvince, setSelectedProvince] = useState('North');
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
   const [currentTime, setCurrentTime] = useState('16:00 PM');
   const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
+  const [activeDataPoint, setActiveDataPoint] = useState<number | null>(null);
+  const chartRef = useRef<any>(null);
   
   useEffect(() => {
     // Update the current time every minute
@@ -53,9 +79,31 @@ const Monitor = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Generate sinusoidal data to match the design exactly
+  // Recalculate values when province or time range changes
+  useEffect(() => {
+    // Reset active data point when changing provinces or time range
+    setActiveDataPoint(null);
+  }, [selectedProvince, timeRange]);
+  
+  // Generate dynamic data based on province and time range
   const getChartData = () => {
     const points = 12; // Number of data points for x-axis
+    
+    // Province-specific base values and multipliers
+    const provinceData = {
+      'North': { baseFlow: 24, basePressure: 44, flowMultiplier: 1.0, pressureMultiplier: 1.0 },
+      'South': { baseFlow: 28, basePressure: 42, flowMultiplier: 1.2, pressureMultiplier: 0.9 },
+      'East': { baseFlow: 22, basePressure: 40, flowMultiplier: 0.9, pressureMultiplier: 0.85 },
+      'West': { baseFlow: 26, basePressure: 46, flowMultiplier: 1.1, pressureMultiplier: 1.05 },
+      'Kigali': { baseFlow: 30, basePressure: 48, flowMultiplier: 1.3, pressureMultiplier: 1.1 }
+    };
+    
+    // Get values for current province
+    const { baseFlow, basePressure, flowMultiplier, pressureMultiplier } = 
+      provinceData[selectedProvince as keyof typeof provinceData];
+    
+    // Add small random variation based on province name to make each province's data unique
+    const provinceVariation = selectedProvince.charCodeAt(0) / 100;
     
     if (timeRange === 'D') {
       const data = [];
@@ -63,8 +111,14 @@ const Monitor = () => {
       for (let i = 0; i < points; i++) {
         const hour = i * 2;
         const hourLabel = `${hour}h`;
-        const waterFlow = Math.round(24 + 12 * Math.sin((i / points) * Math.PI * 4));
-        const pressure = Math.round(44 + 10 * Math.cos((i / points) * Math.PI * 3));
+        
+        // Different pattern for each province
+        const waterFlow = Math.round(baseFlow + (12 * flowMultiplier) * 
+          Math.sin((i / points) * Math.PI * (4 + provinceVariation)));
+          
+        const pressure = Math.round(basePressure + (10 * pressureMultiplier) * 
+          Math.cos((i / points) * Math.PI * (3 + provinceVariation)));
+          
         data.push({
           name: hourLabel,
           'water flow': waterFlow,
@@ -73,19 +127,36 @@ const Monitor = () => {
       }
       return data;
     } else if (timeRange === 'M') {
-      const data = [
-        { name: 'Week 1', 'water flow': 24, pressure: 44 },
-        { name: 'Week 2', 'water flow': 28, pressure: 46 },
-        { name: 'Week 3', 'water flow': 22, pressure: 42 },
-        { name: 'Week 4', 'water flow': 26, pressure: 44 },
-      ];
+      const data = [];
+      const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      
+      for (let i = 0; i < weeks.length; i++) {
+        // Different pattern for each province
+        const waterFlow = Math.round(baseFlow + (8 * flowMultiplier) * 
+          Math.sin((i / weeks.length) * Math.PI * (2 + provinceVariation)));
+          
+        const pressure = Math.round(basePressure + (6 * pressureMultiplier) * 
+          Math.cos((i / weeks.length) * Math.PI * (2 + provinceVariation)));
+          
+        data.push({
+          name: weeks[i],
+          'water flow': waterFlow,
+          pressure: pressure,
+        });
+      }
       return data;
     } else {
       const data = [];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
       for (let i = 0; i < months.length; i++) {
-        const waterFlow = Math.round(24 + 8 * Math.sin((i / months.length) * Math.PI * 2));
-        const pressure = Math.round(44 + 6 * Math.cos((i / months.length) * Math.PI * 2));
+        // Different pattern for each province
+        const waterFlow = Math.round(baseFlow + (8 * flowMultiplier) * 
+          Math.sin((i / months.length) * Math.PI * (2 + provinceVariation)));
+          
+        const pressure = Math.round(basePressure + (6 * pressureMultiplier) * 
+          Math.cos((i / months.length) * Math.PI * (2 + provinceVariation)));
+          
         data.push({
           name: months[i],
           'water flow': waterFlow,
@@ -96,28 +167,109 @@ const Monitor = () => {
     }
   };
 
-  // Get current values based on time range
+  // Get current values based on province and time range
   const getCurrentValues = () => {
-    return { flow: '24 cm³/h', pressure: '44 kpa' };
+    // Province-specific base values
+    const provinceData = {
+      'North': { baseFlow: 24, basePressure: 44 },
+      'South': { baseFlow: 28, basePressure: 42 },
+      'East': { baseFlow: 22, basePressure: 40 },
+      'West': { baseFlow: 26, basePressure: 46 },
+      'Kigali': { baseFlow: 30, basePressure: 48 }
+    };
+    
+    // Get base values for current province
+    const { baseFlow, basePressure } = provinceData[selectedProvince as keyof typeof provinceData];
+    
+    // Add variation based on time range
+    let flowModifier = 0;
+    let pressureModifier = 0;
+    
+    if (timeRange === 'M') {
+      flowModifier = 2;
+      pressureModifier = 1;
+    } else if (timeRange === 'Y') {
+      flowModifier = 4;
+      pressureModifier = 2;
+    }
+    
+    return { 
+      flow: `${baseFlow + flowModifier} cm³/h`, 
+      pressure: `${basePressure + pressureModifier} kpa` 
+    };
   };
   
-  // Get past hour values
+  // Get past hour values based on province
   const getPastHourValues = () => {
-    return { flow: '22 cm³/h', pressure: '44 kpa' };
+    // Province-specific base values with slight variations
+    const provinceData = {
+      'North': { baseFlow: 22, basePressure: 43 },
+      'South': { baseFlow: 26, basePressure: 41 },
+      'East': { baseFlow: 20, basePressure: 39 },
+      'West': { baseFlow: 24, basePressure: 45 },
+      'Kigali': { baseFlow: 28, basePressure: 47 }
+    };
+    
+    // Get base values for current province
+    const { baseFlow, basePressure } = provinceData[selectedProvince as keyof typeof provinceData];
+    
+    // Add variation based on time range
+    let flowModifier = 0;
+    let pressureModifier = 0;
+    
+    if (timeRange === 'M') {
+      flowModifier = 1;
+      pressureModifier = 1;
+    } else if (timeRange === 'Y') {
+      flowModifier = 3;
+      pressureModifier = 2;
+    }
+    
+    return { 
+      flow: `${baseFlow + flowModifier} cm³/h`, 
+      pressure: `${basePressure + pressureModifier} kpa` 
+    };
   };
   
-  // Get average values
+  // Get average values based on province and time range
   const getAverageValues = () => {
-    return { flow: '24 cm³/h', pressure: '44 kpa' };
+    // Province-specific base values
+    const provinceData = {
+      'North': { baseFlow: 23, basePressure: 44 },
+      'South': { baseFlow: 27, basePressure: 42 },
+      'East': { baseFlow: 21, basePressure: 40 },
+      'West': { baseFlow: 25, basePressure: 46 },
+      'Kigali': { baseFlow: 29, basePressure: 48 }
+    };
+    
+    // Get base values for current province
+    const { baseFlow, basePressure } = provinceData[selectedProvince as keyof typeof provinceData];
+    
+    // Add variation based on time range
+    let flowModifier = 0;
+    let pressureModifier = 0;
+    
+    if (timeRange === 'M') {
+      flowModifier = 2;
+      pressureModifier = 1;
+    } else if (timeRange === 'Y') {
+      flowModifier = 3;
+      pressureModifier = 2;
+    }
+    
+    return { 
+      flow: `${baseFlow + flowModifier} cm³/h`, 
+      pressure: `${basePressure + pressureModifier} kpa` 
+    };
   };
   
-  // Provinces data for dropdown
+  // Provinces data for dropdown with official icons
   const provinces = [
-    { id: 'north', name: 'North', color: 'bg-yellow-100', letter: 'N' },
-    { id: 'south', name: 'South', color: 'bg-blue-100', letter: 'S' },
-    { id: 'east', name: 'East', color: 'bg-green-100', letter: 'E' },
-    { id: 'west', name: 'West', color: 'bg-purple-100', letter: 'W' },
-    { id: 'kigali', name: 'Kigali', color: 'bg-red-100', letter: 'K' },
+    { id: 'north', name: 'North', color: 'bg-[#F7D917]', letter: 'N', icon: '/Smarten Assets/assets/North.svg' },
+    { id: 'south', name: 'South', color: 'bg-[#396EB0]', letter: 'S', icon: '/Smarten Assets/assets/South.svg' },
+    { id: 'east', name: 'East', color: 'bg-[#FD7E14]', letter: 'E', icon: '/Smarten Assets/assets/East.svg' },
+    { id: 'west', name: 'West', color: 'bg-[#22C55E]', letter: 'W', icon: '/Smarten Assets/assets/West.svg' },
+    { id: 'kigali', name: 'Kigali', color: 'bg-[#AF52DE]', letter: 'K', icon: '/Smarten Assets/assets/Kigali.svg' },
   ];
   
   // Get active province
@@ -144,24 +296,23 @@ const Monitor = () => {
           <div className="md:col-span-2">
             {/* Header with Province Selection and Time Period Controls */}
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2 cursor-pointer relative" onClick={() => setShowProvinceDropdown(!showProvinceDropdown)}>
-                <div className={`flex items-center justify-center ${activeProvince.color} rounded-full h-8 w-8`}>
-                  <span className="text-lg font-semibold">{activeProvince.letter}</span>
+                <div className="flex items-center space-x-2 cursor-pointer relative" onClick={() => setShowProvinceDropdown(!showProvinceDropdown)}>
+                <div className="flex items-center justify-center w-8 h-8">
+                  <img src={activeProvince.icon} alt={activeProvince.name} className="w-7 h-7" />
                 </div>
                 <h2 className="text-lg font-semibold">{activeProvince.name}</h2>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className={`w-4 h-4 text-gray-500 ${showProvinceDropdown ? 'transform rotate-180' : ''}`} />
                 
-                {/* Province Dropdown */}
                 {showProvinceDropdown && (
-                  <div className="absolute top-full left-0 mt-1 w-40 bg-white shadow-lg rounded-md z-10">
+                  <div className="absolute top-10 left-0 bg-white shadow-md rounded-md z-10 min-w-[150px] py-1">
                     {provinces.map(province => (
-                      <div 
+                      <div
                         key={province.id}
-                        className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                        className={`flex items-center px-3 py-2 hover:bg-gray-100 ${selectedProvince === province.name ? 'bg-gray-50' : ''}`}
                         onClick={() => handleProvinceSelect(province.name)}
                       >
-                        <div className={`flex items-center justify-center ${province.color} rounded-full h-6 w-6 mr-2`}>
-                          <span className="text-sm font-semibold">{province.letter}</span>
+                        <div className="flex items-center justify-center w-6 h-6 mr-2">
+                          <img src={province.icon} alt={province.name} className="w-5 h-5" />
                         </div>
                         <span className="text-sm">{province.name}</span>
                       </div>
@@ -223,20 +374,33 @@ const Monitor = () => {
                 
                 {/* Chart */}
                 <div className="w-full h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} vertical={false} />
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart 
+                      data={chartData} 
+                      margin={{ top: 5, right: 20, bottom: 5, left: 5 }}
+                      ref={chartRef}
+                      onMouseMove={(e) => {
+                        if (e.activeTooltipIndex !== undefined) {
+                          setActiveDataPoint(e.activeTooltipIndex);
+                        }
+                      }}
+                      onMouseLeave={() => setActiveDataPoint(null)}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                       <XAxis 
-                        dataKey="name" 
-                        axisLine={false}
+                        dataKey="name"
+                        stroke="#94a3b8"
+                        fontSize={10}
                         tickLine={false}
-                        tick={{ fontSize: 10, fill: '#888' }}
+                        axisLine={false}
                       />
                       <YAxis 
-                        hide={true}
+                        fontSize={10}
+                        stroke="#94a3b8"
                         axisLine={false}
                         tickLine={false}
                       />
+                      <Tooltip content={<CustomTooltip />} />
                       <Line 
                         type="monotone" 
                         dataKey="water flow" 

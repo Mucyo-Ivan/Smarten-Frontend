@@ -1,31 +1,80 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, ChevronDown, Activity } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
-// Import the SVG icon
+import { Clock, Activity, ChevronDown } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
+
+// Import province icons
+import NorthIcon from '../../../Smarten Assets/assets/North.svg';
+import SouthIcon from '../../../Smarten Assets/assets/South.svg';
+import EastIcon from '../../../Smarten Assets/assets/East.svg';
+import WestIcon from '../../../Smarten Assets/assets/West.svg';
+import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
+
+// Import Group icon
 import GroupIcon from '../../../Smarten Assets/assets/Group.svg';
 
-// StatusBadge component
+// Custom tooltip component for the chart
+const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 shadow-md rounded-md border border-gray-100">
+        <div className="flex justify-center items-center text-xs text-gray-500 mb-1">
+          <Clock className="w-3 h-3 mr-1" />
+          <span>{label}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1 text-xs">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <span>{payload[0]?.value} cm³/h</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) => {
   const getStatusDetails = () => {
     switch (status) {
       case 'normal':
-        return { color: 'bg-green-500', text: 'normal' };
+        return { 
+          textColor: 'text-green-700', 
+          bgColor: 'rgba(52, 211, 153, 0.25)', 
+          borderColor: 'rgba(52, 211, 153, 0.5)',
+          text: 'normal' 
+        };
       case 'warning':
-        return { color: 'bg-orange-500', text: 'warning' };
+        return { 
+          textColor: 'text-orange-700', 
+          bgColor: 'rgba(251, 146, 60, 0.25)', 
+          borderColor: 'rgba(251, 146, 60, 0.5)',
+          text: 'warning' 
+        };
       case 'critical':
-        return { color: 'bg-red-500', text: 'critical' };
+        return { 
+          textColor: 'text-red-700', 
+          bgColor: 'rgba(239, 68, 68, 0.25)', 
+          borderColor: 'rgba(239, 68, 68, 0.5)',
+          text: 'critical' 
+        };
       default:
-        return { color: 'bg-gray-500', text: 'unknown' };
+        return { 
+          textColor: 'text-gray-700', 
+          bgColor: 'rgba(156, 163, 175, 0.25)', 
+          borderColor: 'rgba(156, 163, 175, 0.5)',
+          text: 'unknown' 
+        };
     }
   };
 
-  const { color, text } = getStatusDetails();
+  const { textColor, bgColor, borderColor, text } = getStatusDetails();
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`rounded-md px-2 py-1 text-xs font-medium text-white ${color}`}>
+      <div className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${textColor}`} 
+           style={{ backgroundColor: bgColor, border: `1px solid ${borderColor}` }}>
         {text}
       </div>
     </div>
@@ -37,6 +86,8 @@ const Monitor = () => {
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
   const [currentTime, setCurrentTime] = useState('16:00 PM');
   const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
+  const [activeDataPoint, setActiveDataPoint] = useState<number | null>(null);
+  const chartRef = useRef<any>(null);
   
   useEffect(() => {
     // Update the current time every minute
@@ -55,34 +106,49 @@ const Monitor = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Generate chart data based on selected time range
+  // Get province-specific data constants
+  const getProvinceData = (provinceName: string) => {
+    const provinceData = {
+      'North': { baseFlow: 24, flowMultiplier: 1.0 },
+      'South': { baseFlow: 28, flowMultiplier: 1.2 },
+      'East': { baseFlow: 22, flowMultiplier: 0.9 },
+      'West': { baseFlow: 26, flowMultiplier: 1.1 },
+      'Kigali': { baseFlow: 30, flowMultiplier: 1.3 }
+    };
+    return provinceData[provinceName as keyof typeof provinceData] || provinceData['North'];
+  };
+
+  // Generate chart data based on selected province and time range
   const generateChartData = () => {
+    // Get data for current province
+    const { baseFlow, flowMultiplier } = getProvinceData(selectedProvince);
+    
+    // Add small random variation based on province name to make each province's data unique
+    const provinceVariation = selectedProvince.charCodeAt(0) / 100;
+    
     if (timeRange === 'D') {
       const data = [];
       // Start with 0h
       data.push({
         time: '0h',
-        flow: Math.round(24 + 12 * Math.sin(0)),
-        pressure: Math.round(44 + 10 * Math.cos(0)),
+        flow: Math.round(baseFlow + (12 * flowMultiplier) * Math.sin(provinceVariation))
       });
       
       // Generate data points for hours 2h through 22h
       for (let hour = 2; hour <= 22; hour += 2) {
         const i = hour / 2;
-        const waterFlow = Math.round(24 + 12 * Math.sin((i / 12) * Math.PI * 4));
-        const pressure = Math.round(44 + 10 * Math.cos((i / 12) * Math.PI * 3));
+        const waterFlow = Math.round(baseFlow + (12 * flowMultiplier) * 
+          Math.sin((i / 12) * Math.PI * (4 + provinceVariation)));
         data.push({
           time: `${hour}h`,
-          flow: waterFlow,
-          pressure: pressure,
+          flow: waterFlow
         });
       }
       
       // End with 24h
       data.push({
         time: '24h',
-        flow: Math.round(24 + 12 * Math.sin(Math.PI * 4)),
-        pressure: Math.round(44 + 10 * Math.cos(Math.PI * 3)),
+        flow: Math.round(baseFlow + (12 * flowMultiplier) * Math.sin(Math.PI * (4 + provinceVariation)))
       });
       
       return data;
@@ -92,27 +158,26 @@ const Monitor = () => {
       // Add weeks instead of days
       const weeks = ['1st week', '2nd week', '3rd week', '4th week'];
       for (let i = 0; i < weeks.length; i++) {
-        const waterFlow = Math.round(24 + 10 * Math.sin((i / weeks.length) * Math.PI * 6));
-        const pressure = Math.round(44 + 12 * Math.cos((i / weeks.length) * Math.PI * 5));
+        const waterFlow = Math.round(baseFlow + (10 * flowMultiplier) * 
+          Math.sin((i / weeks.length) * Math.PI * (6 + provinceVariation)));
         data.push({
           time: weeks[i],
-          flow: waterFlow,
-          pressure: pressure,
+          flow: waterFlow
         });
       }
       
       return data;
     } else {
+      // Year view (Y)
       const data = [];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       
       for (let i = 0; i < months.length; i++) {
-        const waterFlow = Math.round(24 + 8 * Math.sin((i / months.length) * Math.PI * 2));
-        const pressure = Math.round(44 + 6 * Math.cos((i / months.length) * Math.PI * 2));
+        const waterFlow = Math.round(baseFlow + (8 * flowMultiplier) * 
+          Math.sin((i / months.length) * Math.PI * (2 + provinceVariation)));
         data.push({
           time: months[i],
-          flow: waterFlow,
-          pressure: pressure,
+          flow: waterFlow
         });
       }
       
@@ -120,31 +185,56 @@ const Monitor = () => {
     }
   };
 
-  // Get current values based on time range
-  const getCurrentValues = () => {
-    return { flow: '24 cm³/h', pressure: '44 kpa' };
-  };
-  
-  // Get past hour values
-  const getPastHourValues = () => {
-    return { flow: '22 cm³/h', pressure: '44 kpa' };
-  };
-  
-  // Get average values
-  const getAverageValues = () => {
-    return { flow: '24 cm³/h', pressure: '44 kpa' };
-  };
-  
-  // Provinces data for dropdown
+  // Provinces data for dropdown with official icons
   const provinces = [
-    { id: 'north', name: 'North', color: 'bg-yellow-100', letter: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
-    { id: 'south', name: 'South', color: 'bg-blue-100', letter: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
-    { id: 'east', name: 'East', color: 'bg-green-100', letter: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
-    { id: 'west', name: 'West', color: 'bg-purple-100', letter: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
-    { id: 'kigali', name: 'Kigali', color: 'bg-red-100', letter: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+    { id: 'north', name: 'North', color: 'bg-[#F7D917]', letter: 'N', iconSrc: NorthIcon },
+    { id: 'south', name: 'South', color: 'bg-[#396EB0]', letter: 'S', iconSrc: SouthIcon },
+    { id: 'east', name: 'East', color: 'bg-[#FD7E14]', letter: 'E', iconSrc: EastIcon },
+    { id: 'west', name: 'West', color: 'bg-[#22C55E]', letter: 'W', iconSrc: WestIcon },
+    { id: 'kigali', name: 'Kigali', color: 'bg-[#AF52DE]', letter: 'K', iconSrc: KigaliIcon },
   ];
+
+  // Get current values based on province and time range
+  const getCurrentValues = () => {
+    // Get data for current province
+    const { baseFlow } = getProvinceData(selectedProvince);
+    
+    // Add variation based on time range
+    let flowModifier = 0;
+    
+    if (timeRange === 'M') {
+      flowModifier = 2;
+    } else if (timeRange === 'Y') {
+      flowModifier = 4;
+    }
+    
+    return { 
+      flow: `${baseFlow + flowModifier} cm³/h`
+    };
+  };
   
-  // Get active province
+  // Get past hour values based on province
+  const getPastHourValues = () => {
+    // Get data for current province with slight variations
+    const { baseFlow } = getProvinceData(selectedProvince);
+    const pastHourFlow = baseFlow - 2; // Slightly lower than current
+    
+    return { 
+      flow: `${pastHourFlow} cm³/h`
+    };
+  };
+  
+  // Get average values based on province and time range
+  const getAverageValues = () => {
+    // Get data for current province
+    const { baseFlow } = getProvinceData(selectedProvince);
+    
+    // Average is usually close to base flow
+    return { 
+      flow: `${baseFlow} cm³/h`
+    };
+  };
+  
   const getActiveProvince = () => {
     return provinces.find(p => p.name === selectedProvince) || provinces[0];
   };
@@ -247,15 +337,6 @@ const Monitor = () => {
                           <stop offset="0%" stopColor="#0095ff" />
                           <stop offset="100%" stopColor="#0095ff" />
                         </linearGradient>
-                        <linearGradient id="pressureLineGradient" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#10b981" />
-                          <stop offset="100%" stopColor="#10b981" />
-                        </linearGradient>
-                        <linearGradient id="tooltipGradient" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#0095ff" />
-                          <stop offset="50%" stopColor="#7bb8ff" />
-                          <stop offset="100%" stopColor="#10b981" />
-                        </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis 
@@ -267,86 +348,30 @@ const Monitor = () => {
                         tickFormatter={(value) => value}
                         padding={{ left: 30, right: 30 }}
                       />
+                      <YAxis hide />
                       <Tooltip 
-                        position={{ y: 60 }}
-                        coordinate={{ x: 100, y: 140 }}
-                        allowEscapeViewBox={{ x: false, y: true }}
-                        content={(props) => {
-                          const { active, payload, label } = props || {};
-                          if (active && payload && payload.length >= 2) {
-                            try {
-                              // Convert hour format (e.g., "8h") to time format (e.g., "8:00 AM")
-                              let formattedTime = currentTime;
-                              if (label) {
-                                const hourMatch = label.match(/^(\d+)h$/);
-                                if (hourMatch) {
-                                  const hour = parseInt(hourMatch[1]);
-                                  const ampm = hour >= 12 ? 'PM' : 'AM';
-                                  const hour12 = hour % 12 || 12;
-                                  formattedTime = `${hour12}:00 ${ampm}`;
-                                }
-                              }
-                              
-                              return (
-                                <div className="bg-white p-2 shadow-md rounded-md border border-gray-100">
-                                  <div className="flex justify-center items-center text-xs text-gray-500 mb-1">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    <span>{formattedTime}</span>
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-1 text-xs">
-                                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                      <span>{payload[0]?.value || 0} cm³/h</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 text-xs">
-                                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                      <span>{payload[1]?.value || 0} kpa</span>
-                                    </div>
-                                    <div className="h-1 w-full mt-1 rounded-full" style={{ background: 'linear-gradient(to right, #0095ff, #7bb8ff, #10b981)' }}></div>
-                                  </div>
-                                </div>
-                              );
-                            } catch (e) {
-                              console.error(e);
-                              return null;
-                            }
-                          }
-                          return null;
-                        }}
+                        content={<CustomTooltip />}
+                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                        allowEscapeViewBox={{ x: true, y: true }}
                         wrapperStyle={{ zIndex: 100 }}
                       />
                       <Line 
-                        type="natural"
+                        type="monotone"
                         dataKey="flow" 
                         stroke="url(#flowLineGradient)" 
                         strokeWidth={2} 
                         dot={false}
                         activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
                         isAnimationActive={false}
-                        strokeOpacity={0.9}
-                      />
-                      <Line 
-                        type="natural"
-                        dataKey="pressure" 
-                        stroke="url(#pressureLineGradient)" 
-                        strokeWidth={2} 
-                        dot={false}
-                        activeDot={{ r: 4, fill: '#fff', stroke: '#10b981', strokeWidth: 2 }}
-                        isAnimationActive={false}
-                        strokeOpacity={0.9}
                       />
                     </LineChart>
                   </ResponsiveContainer>
                   
-                  {/* Legend indicators positioned at the bottom of the chart */}
+                  {/* Legend indicator positioned at the bottom of the chart */}
                   <div className="flex items-center justify-end space-x-6 absolute bottom-[-15px] right-4">
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
                       <span className="text-xs text-gray-600">water flow</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-2"></div>
-                      <span className="text-xs text-gray-600">pressure</span>
                     </div>
                   </div>
                 </div>
@@ -368,21 +393,14 @@ const Monitor = () => {
                 </div>
                 
                 <div className="flex items-center justify-center my-2 relative">
-                  {/* Blue Circle */}
-                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10">
-                    <div className="text-center">
-                      <span className="text-base font-medium">{pastHourValues.flow}</span>
+                  {/* Blue Circle for Flow */}
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
+                      <div className="text-center">
+                        <span className="text-base font-medium">{pastHourValues.flow}</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Connecting Line */}
-                  <div className="absolute w-8 h-4 z-0" style={{ background: 'linear-gradient(to right, #0095ff, #10b981)' }}></div>
-                  
-                  {/* Green Circle */}
-                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
-                    <div className="text-center">
-                      <span className="text-base font-medium">{pastHourValues.pressure}</span>
-                    </div>
+                    <span className="text-xs text-gray-600">Water Flow</span>
                   </div>
                 </div>
                 
@@ -390,7 +408,7 @@ const Monitor = () => {
                   <div className="flex items-center">
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
-                    <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full">
+                    <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                       normal
                     </div>
                   </div>
@@ -404,21 +422,14 @@ const Monitor = () => {
                 <div className="text-base font-medium mb-3">Average</div>
                 
                 <div className="flex items-center justify-center my-2 relative">
-                  {/* Blue Circle */}
-                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10">
-                    <div className="text-center">
-                      <span className="text-base font-medium">{averageValues.flow}</span>
+                  {/* Blue Circle for Flow */}
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
+                      <div className="text-center">
+                        <span className="text-base font-medium">{averageValues.flow}</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Connecting Line */}
-                  <div className="absolute w-8 h-4 z-0" style={{ background: 'linear-gradient(to right, #0095ff, #10b981)' }}></div>
-                  
-                  {/* Green Circle */}
-                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
-                    <div className="text-center">
-                      <span className="text-base font-medium">{averageValues.pressure}</span>
-                    </div>
+                    <span className="text-xs text-gray-600">Water Flow</span>
                   </div>
                 </div>
               </div>
@@ -446,7 +457,6 @@ const Monitor = () => {
                   <th className="py-3 px-4 text-left text-sm font-medium">N°</th>
                   <th className="py-3 px-4 text-left text-sm font-medium">District</th>
                   <th className="py-3 px-4 text-left text-sm font-medium">Waterflow</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium">Pressure</th>
                   <th className="py-3 px-4 text-left text-sm font-medium">Status</th>
                 </tr>
               </thead>
@@ -455,9 +465,8 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">1</td>
                   <td className="py-3 px-4 text-sm">Gicumbi</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
-                    <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                    <div className="text-green-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                       normal
                     </div>
                   </td>
@@ -466,9 +475,8 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">2</td>
                   <td className="py-3 px-4 text-sm">Musanze</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
-                    <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                    <div className="text-orange-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(251, 146, 60, 0.25)', border: '1px solid rgba(251, 146, 60, 0.5)'}}>
                       underflow
                     </div>
                   </td>
@@ -477,9 +485,8 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">3</td>
                   <td className="py-3 px-4 text-sm">Gasabo</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
-                    <div className="bg-red-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                    <div className="text-red-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(239, 68, 68, 0.25)', border: '1px solid rgba(239, 68, 68, 0.5)'}}>
                       overflow
                     </div>
                   </td>
@@ -488,9 +495,8 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">4</td>
                   <td className="py-3 px-4 text-sm">Rulindo</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
-                    <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                    <div className="text-green-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                       normal
                     </div>
                   </td>
@@ -499,9 +505,8 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">5</td>
                   <td className="py-3 px-4 text-sm">Burera</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
-                    <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
+                    <div className="text-orange-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(251, 146, 60, 0.25)', border: '1px solid rgba(251, 146, 60, 0.5)'}}>
                       underflow
                     </div>
                   </td>
@@ -529,16 +534,12 @@ const Monitor = () => {
                     <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm">24 cm³/h</span>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-sm">44 kpa</span>
-                  </div>
                 </div>
                 
                 <div className="flex items-center">
                   <Activity className="w-3 h-3 mr-1 text-black" />
                   <span className="mr-1 text-xs font-bold text-black">Status</span>
-                  <div className="bg-orange-500 text-white text-xs px-3 py-0.5 rounded-full">
+                  <div className="text-orange-700 text-xs px-4 py-2 rounded-full font-medium" style={{backgroundColor: 'rgba(251, 146, 60, 0.5)', border: '1px solid rgba(251, 146, 60, 0.8)', opacity: 0.9}}>
                     underflow
                   </div>
                 </div>
@@ -558,16 +559,12 @@ const Monitor = () => {
                     <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm">24 cm³/h</span>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-sm">44 kpa</span>
-                  </div>
                 </div>
                 
                 <div className="flex items-center">
                   <Activity className="w-3 h-3 mr-1 text-black" />
                   <span className="mr-1 text-xs font-bold text-black">Status</span>
-                  <div className="bg-red-500 text-white text-xs px-3 py-0.5 rounded-full">
+                  <div className="text-red-700 text-xs px-4 py-2 rounded-full font-medium" style={{backgroundColor: 'rgba(239, 68, 68, 0.5)', border: '1px solid rgba(239, 68, 68, 0.8)', opacity: 0.9}}>
                     overflow
                   </div>
                 </div>

@@ -1,170 +1,315 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RegionIcon from '@/components/ui/RegionIcon';
+import { ChevronDown } from 'lucide-react';
+
+// Import SVG icons
+import NorthIcon from '../../../Smarten Assets/assets/North.svg';
+import SouthIcon from '../../../Smarten Assets/assets/South.svg';
+import EastIcon from '../../../Smarten Assets/assets/East.svg';
+import WestIcon from '../../../Smarten Assets/assets/West.svg';
+import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
 
 const DeviceSelector = () => {
   const [selectedDeviceType, setSelectedDeviceType] = useState<string>('esp32');
-  const [selectedRegion, setSelectedRegion] = useState<string>('west');
+  const [selectedRegion, setSelectedRegion] = useState<string>('north');
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   const deviceTypes = [
-    { id: 'esp32', name: 'ESP32', description: 'Microcontroller devices' },
-    { id: 'sensors', name: 'Sensors', description: 'Water monitoring sensors' },
-    { id: 'smart-valves', name: 'Smart Valves', description: 'Automated valve controls' },
-    { id: 'lora', name: 'LoRa', description: 'Long-range communication devices' },
+    { id: 'esp32', name: 'ESP32' },
+    { id: 'sensors', name: 'Sensors' },
+    { id: 'smart-valves', name: 'Smart Valves' },
   ];
 
   const regions = [
-    { id: 'north', name: 'North', value: 20000, unit: 'ESP32', color: 'bg-yellow-50', iconBg: 'bg-yellow-500', borderColor: 'border-yellow-200' },
-    { id: 'south', name: 'South', value: 59000, unit: 'ESP32', color: 'bg-blue-50', iconBg: 'bg-blue-500', borderColor: 'border-blue-200' },
-    { id: 'east', name: 'East', value: 100000, unit: 'ESP32', color: 'bg-orange-50', iconBg: 'bg-orange-500', borderColor: 'border-orange-200' },
-    { id: 'west', name: 'West', value: 420000, unit: 'ESP32', color: 'bg-green-50', iconBg: 'bg-green-500', borderColor: 'border-green-200' },
-    { id: 'kigali', name: 'Kigali', value: 120000, unit: 'ESP32', color: 'bg-purple-50', iconBg: 'bg-purple-500', borderColor: 'border-purple-200' },
+    { id: 'north', name: 'North', value: 20000, letter: 'N', color: 'bg-yellow-500', icon: NorthIcon },
+    { id: 'south', name: 'South', value: 59000, letter: 'S', color: 'bg-blue-500', icon: SouthIcon },
+    { id: 'east', name: 'East', value: 100000, letter: 'E', color: 'bg-orange-500', icon: EastIcon },
+    { id: 'west', name: 'West', value: 420000, letter: 'W', color: 'bg-green-500', icon: WestIcon },
+    { id: 'kigali', name: 'Kigali', value: 120000, letter: 'K', color: 'bg-purple-500', icon: KigaliIcon },
   ];
 
-  const westDistricts = [
-    { id: 'nyabihu', name: 'Nyabihu', count: 20, sectors: 12 },
-    { id: 'karongi', name: 'Karongi', count: 20, sectors: 10 },
-    { id: 'ngororero', name: 'Ngororero', count: 20, sectors: 13 },
-    { id: 'nyamasheke', name: 'Nyamasheke', count: 20, sectors: 14 },
-    { id: 'rubavu', name: 'Rubavu', count: 20, sectors: 12 },
-    { id: 'rusizi', name: 'Rusizi', count: 20, sectors: 18 },
-    { id: 'rutsiro', name: 'Rutsiro', count: 20, sectors: 13 },
-  ];
+  // District data for each province
+  const provinceDistricts = {
+    north: [
+      { id: 'rulindo', name: 'Rulindo', count: 20 },
+      { id: 'burera', name: 'Burera', count: 20 },
+      { id: 'musanze', name: 'Musanze', count: 20 },
+      { id: 'gicumbi', name: 'Gicumbi', count: 20 },
+      { id: 'gakenke', name: 'Gakenke', count: 20 },
+    ],
+    south: [
+      { id: 'huye', name: 'Huye', count: 20 },
+      { id: 'nyanza', name: 'Nyanza', count: 20 },
+      { id: 'gisagara', name: 'Gisagara', count: 20 },
+      { id: 'nyaruguru', name: 'Nyaruguru', count: 20 },
+      { id: 'kamonyi', name: 'Kamonyi', count: 20 },
+      { id: 'ruhango', name: 'Ruhango', count: 20 },
+      { id: 'muhanga', name: 'Muhanga', count: 20 },
+      { id: 'nyamagabe', name: 'Nyamagabe', count: 20 },
+    ],
+    east: [
+      { id: 'bugesera', name: 'Bugesera', count: 20 },
+      { id: 'nyagatare', name: 'Nyagatare', count: 20 },
+      { id: 'gatsibo', name: 'Gatsibo', count: 20 },
+      { id: 'kayonza', name: 'Kayonza', count: 20 },
+      { id: 'kirehe', name: 'Kirehe', count: 20 },
+      { id: 'ngoma', name: 'Ngoma', count: 20 },
+      { id: 'rwamagana', name: 'Rwamagana', count: 20 },
+    ],
+    west: [
+      { id: 'nyabihu', name: 'Nyabihu', count: 20 },
+      { id: 'karongi', name: 'Karongi', count: 20 },
+      { id: 'ngororero', name: 'Ngororero', count: 20 },
+      { id: 'nyamasheke', name: 'Nyamasheke', count: 20 },
+      { id: 'rubavu', name: 'Rubavu', count: 20 },
+      { id: 'rusizi', name: 'Rusizi', count: 20 },
+      { id: 'rutsiro', name: 'Rutsiro', count: 20 },
+    ],
+    kigali: [
+      { id: 'gasabo', name: 'Gasabo', count: 20 },
+      { id: 'nyarugenge', name: 'Nyarugenge', count: 20 },
+      { id: 'kicukiro', name: 'Kicukiro', count: 20 },
+    ],
+  };
+  
+  // Get districts based on selected region
+  const getDistricts = () => {
+    if (!selectedRegion) return [];
+    return provinceDistricts[selectedRegion as keyof typeof provinceDistricts] || [];
+  };
+
+  const districts = getDistricts();
 
   return (
     <MainLayout>
       <div className="p-6 bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Device Management</h1>
-          <p className="text-lg text-gray-600 mb-8">Select device type and region to manage your IoT infrastructure</p>
+          <h1 className="text-xl font-semibold text-gray-900 mb-4">Choose a device</h1>
           
           {/* Device Type Selector */}
-          <div className="inline-flex bg-white rounded-xl p-1 border border-gray-200 shadow-sm">
+          <div className="inline-flex bg-white rounded-full p-1 border border-gray-200 shadow-sm mb-8 mx-auto">
             {deviceTypes.map((type) => (
               <button
                 key={type.id}
-                className={`px-6 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`px-6 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
                   selectedDeviceType === type.id
                     ? 'bg-blue-500 text-white shadow-md'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 onClick={() => setSelectedDeviceType(type.id)}
               >
-                <div className="text-center">
-                  <div className="font-semibold">{type.name}</div>
-                  <div className="text-xs opacity-75">{type.description}</div>
-                </div>
+                {type.name}
               </button>
             ))}
           </div>
         </div>
 
         {/* Regional Overview */}
-        <div className="mb-10">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Regional Overview</h2>
-          <div className="grid grid-cols-5 gap-6">
+        <div className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {regions.map((region) => (
-              <Card
+              <div
                 key={region.id}
-                className={`${region.color} border-2 transition-all duration-200 cursor-pointer hover:shadow-lg ${
-                  selectedRegion === region.id 
-                    ? `${region.borderColor} ring-2 ring-offset-2 ring-blue-500` 
-                    : 'border-transparent hover:border-gray-300'
-                }`}
+                className={`bg-white rounded-lg shadow-sm p-5 cursor-pointer hover:shadow-md transition-all duration-200 ${selectedRegion === region.id ? 'border-2 border-blue-200' : 'border border-transparent'}`}
                 onClick={() => setSelectedRegion(region.id)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-8 h-8 ${region.iconBg} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-sm font-bold">
-                        {region.name.charAt(0)}
-                      </span>
-                    </div>
-                    <span className="font-semibold text-gray-900">{region.name}</span>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-8 h-8 flex items-center justify-center`}>
+                    <img src={region.icon} alt={region.name} className="w-6 h-6" />
                   </div>
-                  <div className="mb-4">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">
-                      {region.value.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600">{region.unit} Devices</div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Active:</span>
-                      <span className="font-medium text-green-600">98.5%</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Offline:</span>
-                      <span className="font-medium text-red-600">1.5%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <span className="font-medium text-gray-900">{region.name}</span>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mt-1">
+                  {region.value.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-500">ESP32</div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* District Level Details */}
-        {selectedRegion === 'west' && (
+        {/* District Level Display */}
+        {selectedRegion && (
           <div>
-            <div className="flex items-center gap-3 mb-6">
-              <RegionIcon region="west" size="lg" />
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900">West Province</h2>
-                <p className="text-gray-600">District-level device distribution</p>
+            <div className="flex items-center mb-4 relative" ref={dropdownRef}>
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <div className="w-7 h-7 flex items-center justify-center mr-1">
+                  <img src={regions.find(r => r.id === selectedRegion)?.icon} alt={regions.find(r => r.id === selectedRegion)?.name} className="w-6 h-6" />
+                </div>
+                <span className="font-medium">{regions.find(r => r.id === selectedRegion)?.name}</span>
+                <ChevronDown className={`w-4 h-4 ml-1 text-gray-500 transition-transform ${dropdownOpen ? 'transform rotate-180' : ''}`} />
               </div>
+              
+              {dropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 py-1">
+                  {regions.map(region => (
+                    <div 
+                      key={region.id}
+                      className={`flex items-center p-2 hover:bg-gray-100 cursor-pointer ${selectedRegion === region.id ? 'bg-gray-50' : ''}`}
+                      onClick={() => {
+                        setSelectedRegion(region.id);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <div className="w-6 h-6 flex items-center justify-center mr-2">
+                        <img src={region.icon} alt={region.name} className="w-5 h-5" />
+                      </div>
+                      <span className="text-sm">{region.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {westDistricts.map((district) => (
-                <Card key={district.id} className="hover:shadow-lg transition-all duration-200 border border-gray-200">
-                  <CardContent className="p-6">
-                    <div className="bg-green-500 text-white p-4 rounded-lg mb-4">
-                      <h3 className="text-xl font-semibold">{district.name}</h3>
-                      <p className="text-green-100 text-sm">{district.sectors} sectors</p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Total Devices:</span>
-                        <span className="text-2xl font-bold text-gray-900">{district.count}</span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">ESP32:</span>
-                          <span className="font-medium">{Math.floor(district.count * 0.4)}</span>
+            <div className="mb-2">On the district level</div>
+            
+            <div className="flex flex-wrap gap-8 justify-center">
+              {selectedRegion === 'north' ? (
+                <>
+                  <div className="flex gap-8 justify-center w-full">
+                    {districts.slice(0, 3).map((district) => (
+                      <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
+                        <div className="bg-[#FCD34D] py-3 text-center font-medium text-white text-lg" 
+                             style={{backgroundImage: 'repeating-linear-gradient(to right, rgba(253, 224, 71, 0.7), rgba(253, 224, 71, 0.7) 10px, rgba(251, 191, 36, 0.5) 10px, rgba(251, 191, 36, 0.5) 20px)'}}>
+                          {district.name}
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Sensors:</span>
-                          <span className="font-medium">{Math.floor(district.count * 0.3)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">LoRa:</span>
-                          <span className="font-medium">{Math.floor(district.count * 0.2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Valves:</span>
-                          <span className="font-medium">{Math.floor(district.count * 0.1)}</span>
+                        <div className="p-5">
+                          <div className="text-3xl font-bold text-center mb-0">{district.count}</div>
+                          <div className="text-sm text-gray-500 text-center mb-4">ESP32</div>
+                          <div className="flex justify-center">
+                            <Link to={`/device/list/${district.id}`}>
+                              <button className="bg-[#0095ff] text-white text-sm py-1 px-4 rounded-full">See Devices</button>
+                            </Link>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-8 justify-center">
+                    {districts.slice(3, 5).map((district) => (
+                      <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
+                        <div className="bg-[#FCD34D] py-3 text-center font-medium text-white text-lg" 
+                             style={{backgroundImage: 'repeating-linear-gradient(to right, rgba(253, 224, 71, 0.7), rgba(253, 224, 71, 0.7) 10px, rgba(251, 191, 36, 0.5) 10px, rgba(251, 191, 36, 0.5) 20px)'}}>
+                          {district.name}
+                        </div>
+                        <div className="p-5">
+                          <div className="text-3xl font-bold text-center mb-0">{district.count}</div>
+                          <div className="text-sm text-gray-500 text-center mb-4">ESP32</div>
+                          <div className="flex justify-center">
+                            <Link to={`/device/list/${district.id}`}>
+                              <button className="bg-[#0095ff] text-white text-sm py-1 px-4 rounded-full">See Devices</button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : selectedRegion === 'south' ? (
+                <div className="grid grid-cols-4 gap-8">
+                  {districts.map((district) => (
+                    <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
+                      <div className="bg-[#396EB0] py-3 text-center font-medium text-white text-lg" 
+                           style={{backgroundImage: 'repeating-linear-gradient(to right, rgba(59, 130, 246, 0.7), rgba(59, 130, 246, 0.7) 10px, rgba(37, 99, 235, 0.5) 10px, rgba(37, 99, 235, 0.5) 20px)'}}>
+                        {district.name}
+                      </div>
+                      <div className="p-5">
+                        <div className="text-3xl font-bold text-center mb-0">{district.count}</div>
+                        <div className="text-sm text-gray-500 text-center mb-4">ESP32</div>
+                        <div className="flex justify-center">
+                          <Link to={`/device/list/${district.id}`}>
+                            <button className="bg-[#0095ff] text-white text-sm py-1 px-4 rounded-full">See Devices</button>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <Link to={`/device/list/${district.id}`}>
-                        <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
-                          Manage Devices
-                        </Button>
-                      </Link>
+                  ))}
+                </div>
+              ) : selectedRegion === 'east' ? (
+                <div className="grid grid-cols-4 gap-8">
+                  {districts.map((district) => (
+                    <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
+                      <div className="bg-[#FD7E14] py-3 text-center font-medium text-white text-lg" 
+                           style={{backgroundImage: 'repeating-linear-gradient(to right, rgba(249, 115, 22, 0.7), rgba(249, 115, 22, 0.7) 10px, rgba(234, 88, 12, 0.5) 10px, rgba(234, 88, 12, 0.5) 20px)'}}>
+                        {district.name}
+                      </div>
+                      <div className="p-5">
+                        <div className="text-3xl font-bold text-center mb-0">{district.count}</div>
+                        <div className="text-sm text-gray-500 text-center mb-4">ESP32</div>
+                        <div className="flex justify-center">
+                          <Link to={`/device/list/${district.id}`}>
+                            <button className="bg-[#0095ff] text-white text-sm py-1 px-4 rounded-full">See Devices</button>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  ))}
+                </div>
+              ) : selectedRegion === 'west' ? (
+                <div className="grid grid-cols-4 gap-8">
+                  {districts.map((district) => (
+                    <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
+                      <div className="bg-[#22C55E] py-3 text-center font-medium text-white text-lg" 
+                           style={{backgroundImage: 'repeating-linear-gradient(to right, rgba(34, 197, 94, 0.7), rgba(34, 197, 94, 0.7) 10px, rgba(22, 163, 74, 0.5) 10px, rgba(22, 163, 74, 0.5) 20px)'}}>
+                        {district.name}
+                      </div>
+                      <div className="p-5">
+                        <div className="text-3xl font-bold text-center mb-0">{district.count}</div>
+                        <div className="text-sm text-gray-500 text-center mb-4">ESP32</div>
+                        <div className="flex justify-center">
+                          <Link to={`/device/list/${district.id}`}>
+                            <button className="bg-[#0095ff] text-white text-sm py-1 px-4 rounded-full">See Devices</button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-8">
+                  {districts.map((district) => (
+                    <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
+                      <div className="bg-[#AF52DE] py-3 text-center font-medium text-white text-lg" 
+                           style={{backgroundImage: 'repeating-linear-gradient(to right, rgba(168, 85, 247, 0.7), rgba(168, 85, 247, 0.7) 10px, rgba(147, 51, 234, 0.5) 10px, rgba(147, 51, 234, 0.5) 20px)'}}>
+                        {district.name}
+                      </div>
+                      <div className="p-5">
+                        <div className="text-3xl font-bold text-center mb-0">{district.count}</div>
+                        <div className="text-sm text-gray-500 text-center mb-4">ESP32</div>
+                        <div className="flex justify-center">
+                          <Link to={`/device/list/${district.id}`}>
+                            <button className="bg-[#0095ff] text-white text-sm py-1 px-4 rounded-full">See Devices</button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
