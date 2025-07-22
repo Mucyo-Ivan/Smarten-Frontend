@@ -18,6 +18,7 @@ const Login = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    //handling login
     
     setTimeout(() => {
       if (email && password) {
