@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, ChevronDown, Activity } from 'lucide-react';
@@ -37,6 +38,7 @@ const Monitor = () => {
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
   const [currentTime, setCurrentTime] = useState('16:00 PM');
   const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Update current time
@@ -109,10 +111,10 @@ const Monitor = () => {
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}
         <div className="mb-4">
-          <a href="/" className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600">
+          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             Back
-          </a>
+          </button>
         </div>
         {/* Province Selector and Title */}
         <div className="flex flex-col space-y-4 mb-6">
