@@ -125,7 +125,7 @@ const Settings = () => {
 
   return (
     <MainLayout title="Settings">
-      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
         <div className="max-w-6xl mx-auto">
           <Tabs defaultValue="profile" className="space-y-6">
             <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800">

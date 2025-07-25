@@ -163,7 +163,7 @@ const Leakage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col min-h-screen bg-[#F8F9FA] px-0 pt-0">
+      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 mt-6">
         {/* Province Dropdown */}
         <div className="flex items-center gap-2 mt-6 ml-6">
           <div className="relative">
@@ -204,7 +204,7 @@ const Leakage = () => {
         </div>
 
         {/* Main card: Leakage Detection (left) + Ongoing Analysis (right) in a single card */}
-        <div className="max-w-5xl mx-auto w-full mt-6">
+        <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 mt-6">
           <div className="bg-white rounded-xl shadow flex flex-row p-0 overflow-hidden" style={{ minHeight: 300 }}>
             {/* Loading spinner for main card */}
             {loading ? (
@@ -270,16 +270,16 @@ const Leakage = () => {
                   <div className={`w-full h-full transition-all duration-300 ${status === 'Investigating' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Investigating' ? 'relative' : 'absolute' }}>
                     {status === 'Investigating' && (
-                      <div className="bg-[#3B82F6] rounded-xl m-6 flex flex-col items-center justify-center w-full h-full animate-fade-in" style={{maxWidth: 340, minHeight: 240}}>
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
                         <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">Ongoing Analysis of<br/>Detected Leakage</span>
                         <img src={HouseSearchingCuate} alt="Ongoing Analysis" className="w-56 h-44 object-contain mb-8" />
                       </div>
                     )}
                   </div>
-                  <div className={`w-full h-full transition-all duration-300 ${status === 'Resolved' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none absolute'}`}
+                  <div className={`w-full h-full transition-all duration-300 ${status === 'Resolved' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Resolved' ? 'relative' : 'absolute' }}>
-                    {status === 'Resolved' && (
-                      <div className="bg-[#3B82F6] rounded-xl m-6 flex flex-col items-start justify-start w-full h-full p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 240}}>
+                    {status === 'Resolved' && !editResolved && (
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 240, width: '100%', display: 'flex'}}>
                         <div className="flex items-center justify-between w-full mb-2">
                           <span className="text-white text-lg font-semibold">Resolved leakage</span>
                           <button
@@ -290,86 +290,36 @@ const Leakage = () => {
                             <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>
                           </button>
                         </div>
-                        {editResolved ? (
-                          <form className="w-full animate-fade-in" onSubmit={e => {
-                            e.preventDefault();
-                            let errors = { date: '', plumber: '', note: '' };
-                            if (!resolvedForm.date.trim()) errors.date = 'Date is required.';
-                            if (!resolvedForm.plumber.trim()) errors.plumber = 'Plumber is required.';
-                            if (!resolvedForm.note.trim()) errors.note = 'Resolved note is required.';
-                            setResolvedErrors(errors);
-                            if (errors.date || errors.plumber || errors.note) {
-                              setResolvedFeedback('Please fix the errors above.');
-                              return;
-                            }
-                            setResolvedFeedback('Saved successfully!');
-                            setTimeout(() => setResolvedFeedback(''), 2000);
-                            setEditResolved(false);
-                          }}>
-                            <div className="grid grid-cols-2 gap-4 mb-4 w-full">
-                              <div>
-                                <div className="text-white text-sm mb-1">Date</div>
-                                <input
-                                  type="text"
-                                  className={`w-full rounded-lg px-3 py-2 bg-white text-black text-base outline-none focus:ring-2 focus:ring-blue-300 ${resolvedErrors.date ? 'border border-red-500' : ''}`}
-                                  value={resolvedForm.date}
-                                  onChange={e => { setResolvedForm(f => ({ ...f, date: e.target.value })); setResolvedErrors(err => ({ ...err, date: '' })); }}
-                                />
-                                {resolvedErrors.date && <div className="text-xs text-red-200 mt-1">{resolvedErrors.date}</div>}
-                              </div>
-                              <div>
-                                <div className="text-white text-sm mb-1">Plumber</div>
-                                <input
-                                  type="text"
-                                  className={`w-full rounded-lg px-3 py-2 bg-white text-black text-base outline-none focus:ring-2 focus:ring-blue-300 ${resolvedErrors.plumber ? 'border border-red-500' : ''}`}
-                                  value={resolvedForm.plumber}
-                                  onChange={e => { setResolvedForm(f => ({ ...f, plumber: e.target.value })); setResolvedErrors(err => ({ ...err, plumber: '' })); }}
-                                />
-                                {resolvedErrors.plumber && <div className="text-xs text-red-200 mt-1">{resolvedErrors.plumber}</div>}
-                              </div>
+                        <div className="flex flex-col w-full gap-2">
+                          <div className="text-white text-sm mb-1">Date</div>
+                          <div className="text-white text-base font-semibold">{resolvedForm.date}</div>
+                          <div className="text-white text-sm mb-1">Plumber</div>
+                          <div className="text-white text-base font-semibold">{resolvedForm.plumber}</div>
+                          <div className="text-white text-sm mb-1">Resolved note</div>
+                          <div className="text-white text-base">{resolvedForm.note}</div>
+                        </div>
+                      </div>
+                    )}
+                    {status === 'Resolved' && editResolved && (
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
+                        <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
+                        <form className="flex flex-col w-full gap-4 items-center">
+                          <div className="flex w-full gap-4">
+                            <div className="flex flex-col flex-1">
+                              <label className="text-white text-sm mb-1">Date</label>
+                              <input type="date" className="rounded-lg px-3 py-2 outline-none border-none w-full" />
                             </div>
-                            <div className="mb-4 w-full">
-                              <div className="text-white text-sm mb-1">Resolved note</div>
-                              <textarea
-                                className={`w-full rounded-lg px-3 py-2 bg-white text-black text-base outline-none focus:ring-2 focus:ring-blue-300 min-h-[70px] resize-none ${resolvedErrors.note ? 'border border-red-500' : ''}`}
-                                placeholder="Write text here..."
-                                value={resolvedForm.note}
-                                onChange={e => { setResolvedForm(f => ({ ...f, note: e.target.value })); setResolvedErrors(err => ({ ...err, note: '' })); }}
-                              />
-                              {resolvedErrors.note && <div className="text-xs text-red-200 mt-1">{resolvedErrors.note}</div>}
-                            </div>
-                            {resolvedFeedback && <div className={`text-center mb-2 ${resolvedFeedback.includes('success') ? 'text-green-200' : 'text-red-200'}`}>{resolvedFeedback}</div>}
-                            <div className="flex justify-center w-full">
-                              <button
-                                type="submit"
-                                className="bg-[#38A3F7] hover:bg-blue-500 text-white font-semibold rounded-full px-8 py-2 mt-2 transition"
-                              >
-                                Save
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          <div className="animate-fade-in">
-                            <div className="grid grid-cols-2 gap-4 mb-4 w-full">
-                              <div>
-                                <div className="text-white text-sm mb-1">Date</div>
-                                <div className="text-white text-base font-semibold">{resolvedForm.date}</div>
-                              </div>
-                              <div>
-                                <div className="text-white text-sm mb-1">Plumber</div>
-                                <div className="text-white text-base font-semibold">{resolvedForm.plumber}</div>
-                              </div>
-                            </div>
-                            <div className="mb-2 w-full">
-                              <div className="text-white text-sm mb-1">Resolved note</div>
-                              <div className="text-white text-base">{resolvedForm.note}</div>
-                            </div>
-                            <div className="flex flex-col items-center mt-4 w-full">
-                              <img src={SuccessIcon} alt="Success" className="w-32 h-12 object-contain" />
-                              <span className="text-2xl font-bold text-white mt-2 mb-4">Success</span>
+                            <div className="flex flex-col flex-1">
+                              <label className="text-white text-sm mb-1">Plumber</label>
+                              <input type="text" placeholder="Plumber name" className="rounded-lg px-3 py-2 outline-none border-none w-full" />
                             </div>
                           </div>
-                        )}
+                          <div className="flex flex-col w-full">
+                            <label className="text-white text-sm mb-1">Resolved note</label>
+                            <textarea placeholder="Write text here..." className="rounded-lg px-3 py-2 outline-none border-none w-full min-h-[80px]" />
+                          </div>
+                          <button type="submit" className="bg-[#0EA5E9] text-white font-semibold rounded-lg px-8 py-2 mt-2 self-center">Save</button>
+                        </form>
                       </div>
                     )}
                   </div>
@@ -396,7 +346,7 @@ const Leakage = () => {
                   <span className="mt-2">No history available.</span>
                 </div>
               ) : (
-                <table className="w-full text-sm">
+                <table className="w-full text-sm overflow-x-auto">
                   <thead>
                   <tr className="text-gray-500">
                     <th className="text-left py-2 font-normal">Time</th>

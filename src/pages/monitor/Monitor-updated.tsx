@@ -66,12 +66,10 @@ const Monitor = () => {
     for (let i = 1; i <= dataPoints; i++) {
       // Using sine and cosine to generate realistic-looking oscillating data
       const flow = 20 + 10 * Math.sin(i / 2) + Math.random() * 4;
-      const pressure = 40 + 8 * Math.cos(i / 3) + Math.random() * 3;
       
       data.push({
         time: timeRange === 'D' ? `${i}h` : timeRange === 'M' ? `Day ${i}` : `Month ${i}`,
         flow: Math.round(flow),
-        pressure: Math.round(pressure),
       });
     }
     
@@ -86,7 +84,6 @@ const Monitor = () => {
     const lastData = chartData[chartData.length - 1];
     return {
       flow: `${lastData.flow} cm³/h`,
-      pressure: `${lastData.pressure} kpa`,
     };
   };
   
@@ -94,7 +91,6 @@ const Monitor = () => {
   const pastHourValues = getCurrentValues();
   const averageValues = {
     flow: `${Math.round(chartData.reduce((sum, item) => sum + item.flow, 0) / chartData.length)} cm³/h`,
-    pressure: `${Math.round(chartData.reduce((sum, item) => sum + item.pressure, 0) / chartData.length)} kpa`,
   };
 
   // Toggle province dropdown
@@ -189,14 +185,6 @@ const Monitor = () => {
                     dot={{ r: 0 }}
                     activeDot={{ r: 6 }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="pressure" 
-                    stroke="#0dca73" 
-                    strokeWidth={2} 
-                    dot={{ r: 0 }}
-                    activeDot={{ r: 6 }}
-                  />
                   <CartesianGrid stroke="#f5f5f5" strokeDasharray="5 5" />
                   <XAxis dataKey="time" />
                   <YAxis />
@@ -208,10 +196,6 @@ const Monitor = () => {
               <div className="flex items-center">
                 <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                 <span className="text-sm text-gray-600">water flow</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-sm text-gray-600">pressure</span>
               </div>
             </div>
           </div>
@@ -240,12 +224,6 @@ const Monitor = () => {
                   {/* Connecting Line */}
                   <div className="absolute w-8 h-4 bg-blue-400 z-0"></div>
                   
-                  {/* Green Circle */}
-                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
-                    <div className="text-center">
-                      <span className="text-base font-medium">{pastHourValues.pressure}</span>
-                    </div>
-                  </div>
                 </div>
                 
                 <div className="flex items-center justify-center mt-3">
@@ -276,12 +254,6 @@ const Monitor = () => {
                   {/* Connecting Line */}
                   <div className="absolute w-8 h-4 bg-blue-400 z-0"></div>
                   
-                  {/* Green Circle */}
-                  <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-500 text-white ml-6 z-10">
-                    <div className="text-center">
-                      <span className="text-base font-medium">{averageValues.pressure}</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -308,7 +280,6 @@ const Monitor = () => {
                   <th className="py-3 px-4 text-left text-sm font-medium">N°</th>
                   <th className="py-3 px-4 text-left text-sm font-medium">District</th>
                   <th className="py-3 px-4 text-left text-sm font-medium">Waterflow</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium">Pressure</th>
                   <th className="py-3 px-4 text-left text-sm font-medium">Status</th>
                 </tr>
               </thead>
@@ -317,7 +288,6 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">1</td>
                   <td className="py-3 px-4 text-sm">Gicumbi</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
                     <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
                       normal
@@ -328,7 +298,6 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">2</td>
                   <td className="py-3 px-4 text-sm">Musanze</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
                     <div className="bg-yellow-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
                       underflow
@@ -339,7 +308,6 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">3</td>
                   <td className="py-3 px-4 text-sm">Gasabo</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
                     <div className="bg-red-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
                       overflow
@@ -350,7 +318,6 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">4</td>
                   <td className="py-3 px-4 text-sm">Rulindo</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
                     <div className="bg-green-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
                       normal
@@ -361,7 +328,6 @@ const Monitor = () => {
                   <td className="py-3 px-4 text-sm">5</td>
                   <td className="py-3 px-4 text-sm">Burera</td>
                   <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4 text-sm">20kpa</td>
                   <td className="py-3 px-4">
                     <div className="bg-yellow-500 text-white text-xs px-3 py-0.5 rounded-full inline-block">
                       underflow
@@ -391,10 +357,6 @@ const Monitor = () => {
                     <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm">24 cm³/h</span>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-sm">44 kpa</span>
-                  </div>
                 </div>
                 
                 <div className="flex items-center">
@@ -419,10 +381,6 @@ const Monitor = () => {
                   <div className="flex items-center">
                     <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm">24 cm³/h</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-sm">44 kpa</span>
                   </div>
                 </div>
                 

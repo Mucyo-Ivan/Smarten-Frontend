@@ -77,8 +77,7 @@ const Control = () => {
 
   return (
     <MainLayout>
-      {/* Wrap all content in a single parent div to fix JSX errors */}
-      <div className="bg-gray-50 min-h-screen">
+      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
         <div style={{ margin: 0, padding: 0 }}>
           {/* Header - Province Dropdown */}
           <div className="flex items-center gap-2" style={{ marginBottom: 0, paddingBottom: 0 }}>

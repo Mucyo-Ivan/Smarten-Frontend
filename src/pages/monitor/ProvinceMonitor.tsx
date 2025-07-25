@@ -43,30 +43,29 @@ const ProvinceMonitor = () => {
   const currentProvince = provinceData[province as keyof typeof provinceData];
 
   const chartData = timeRange === 'D' ? [
-    { name: '00:00', 'water flow': 20, pressure: 40 },
-    { name: '04:00', 'water flow': 25, pressure: 42 },
-    { name: '08:00', 'water flow': 15, pressure: 38 },
-    { name: '12:00', 'water flow': 30, pressure: 44 },
-    { name: '16:00', 'water flow': 22, pressure: 40 },
-    { name: '20:00', 'water flow': 18, pressure: 39 },
-    { name: '24:00', 'water flow': 24, pressure: 42 },
+    { name: '00:00', 'water flow': 20 },
+    { name: '04:00', 'water flow': 25 },
+    { name: '08:00', 'water flow': 15 },
+    { name: '12:00', 'water flow': 30 },
+    { name: '16:00', 'water flow': 22 },
+    { name: '20:00', 'water flow': 18 },
+    { name: '24:00', 'water flow': 24 },
   ] : timeRange === 'M' ? [
-    { name: 'Week 1', 'water flow': 180, pressure: 420 },
-    { name: 'Week 2', 'water flow': 200, pressure: 440 },
-    { name: 'Week 3', 'water flow': 170, pressure: 400 },
-    { name: 'Week 4', 'water flow': 220, pressure: 460 },
+    { name: 'Week 1', 'water flow': 180 },
+    { name: 'Week 2', 'water flow': 200 },
+    { name: 'Week 3', 'water flow': 170 },
+    { name: 'Week 4', 'water flow': 220 },
   ] : [
-    { name: '2021', 'water flow': 8760, pressure: 18400 },
-    { name: '2022', 'water flow': 9200, pressure: 19200 },
-    { name: '2023', 'water flow': 8800, pressure: 18800 },
-    { name: '2024', 'water flow': 9500, pressure: 20000 },
+    { name: '2021', 'water flow': 8760 },
+    { name: '2022', 'water flow': 9200 },
+    { name: '2023', 'water flow': 8800 },
+    { name: '2024', 'water flow': 9500 },
   ];
   
   const districtData = currentProvince?.districts.map((district, index) => ({
     id: index + 1,
     district,
     waterflow: `${180 + index * 20} L/s`,
-    pressure: `${190 + index * 10} kPa`,
     status: index % 3 === 0 ? 'normal' : index % 3 === 1 ? 'underflow' : 'overflow'
   })) || [];
 
@@ -76,7 +75,7 @@ const ProvinceMonitor = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/monitor">
+            <Link to="/">
               <Button variant="outline" size="sm" className="gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -116,12 +115,6 @@ const ProvinceMonitor = () => {
                     {timeRange === 'D' ? '24 L/h' : timeRange === 'M' ? '1.8K L/h' : '9.5K L/h'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium">
-                    {timeRange === 'D' ? '44 kPa' : timeRange === 'M' ? '440 kPa' : '20K kPa'}
-                  </span>
-                </div>
               </div>
               <div className="flex gap-1">
                 {(['D', 'M', 'Y'] as const).map((period) => (
@@ -144,7 +137,6 @@ const ProvinceMonitor = () => {
                 data={chartData} 
                 lines={[
                   { dataKey: 'water flow', stroke: '#3b82f6', name: 'Water Flow (L/h)' },
-                  { dataKey: 'pressure', stroke: '#10b981', name: 'Pressure (kPa)' },
                 ]}
               />
             </div>
@@ -165,7 +157,6 @@ const ProvinceMonitor = () => {
                     <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">N°</th>
                     <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">District</th>
                     <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Water Flow</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Pressure</th>
                     <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Status</th>
                   </tr>
                 </thead>
@@ -175,7 +166,6 @@ const ProvinceMonitor = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">{item.id}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.district}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{item.waterflow}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{item.pressure}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={item.status as any} />
                       </td>

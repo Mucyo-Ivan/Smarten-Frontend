@@ -13,9 +13,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   title?: string;
+  onShowNotifications?: () => void;
 }
 
-const Header = ({ title }: HeaderProps) => {
+const Header = ({ title, onShowNotifications }: HeaderProps) => {
   const navigate = useNavigate();
 
   return (
@@ -34,7 +35,7 @@ const Header = ({ title }: HeaderProps) => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="relative p-1">
+          <Button variant="ghost" size="sm" className="relative p-1" onClick={onShowNotifications}>
             <div className="relative">
               <Bell className="w-5 h-5 text-gray-600" />
               <span className="absolute -top-2.5 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
