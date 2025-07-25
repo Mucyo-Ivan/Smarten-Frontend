@@ -107,6 +107,13 @@ const Monitor = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-6">
+        {/* Back Button */}
+        <div className="mb-4">
+          <a href="/" className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+            Back
+          </a>
+        </div>
         {/* Province Selector and Title */}
         <div className="flex flex-col space-y-4 mb-6">
           <div className="relative inline-block">
