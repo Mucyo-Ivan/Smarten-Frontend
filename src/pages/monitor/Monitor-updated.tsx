@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } fro
 // Import the SVG icon
 import GroupIcon from '../../../Smarten Assets/assets/Group.svg';
 
-// StatusBadge component
+
 const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) => {
   const getStatusDetails = () => {
     switch (status) {
