@@ -989,7 +989,7 @@ const Settings = () => {
                           <div key={l.id} className="w-full max-w-5xl mx-auto mb-10">
                             {/* Digital date header */}
                             <div className="flex justify-center mb-2">
-                              <span className="font-mono text-2xl tracking-widest text-black">{l.day}-{l.date.split('-').reverse().join('/')}</span>
+                              <span className="font-major-mono-display text-2xl tracking-widest text-black">{l.day}-{l.date.split('-').reverse().join('/')}</span>
                             </div>
                             <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-6 items-stretch">
                               {/* Left: Leakage Detection */}
@@ -1013,41 +1013,38 @@ const Settings = () => {
                                     <div className="flex items-center gap-2 text-sm"><span className="font-semibold">Status:</span> <span className="text-blue-600 font-bold">{l.status}</span></div>
                                   </div>
                                 </div>
-                                {/* Radio buttons: default to Resolved checked */}
+                                {/* Radio buttons */}
                                 <div className="flex items-center gap-6 mt-4">
                                   <label className="flex items-center gap-1 text-sm font-medium">
-                                    <input type="radio" checked={true} readOnly className="accent-blue-600" /> Resolved
+                                    <input type="radio" checked={l.status === 'Resolved'} readOnly className="accent-blue-600" /> Resolved
                                   </label>
                                   <label className="flex items-center gap-1 text-sm font-medium">
-                                    <input type="radio" checked={false} readOnly className="accent-blue-600" /> Investigating
+                                    <input type="radio" checked={l.status === 'Investigating'} readOnly className="accent-blue-600" /> Investigating
                                   </label>
                                 </div>
                               </div>
-                              {/* Right: Resolved leakage card - match previous Leakage page style */}
-                              <div className="flex-1 min-w-[260px] bg-[#338CF5] rounded-2xl p-8 text-white relative flex flex-col justify-between shadow-lg">
-                                <div>
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="font-semibold text-lg">Resolved leakage</span>
-                                    <button className="text-white/80 hover:text-white text-xs underline">Edit</button>
+                              {/* Right: Resolved leakage card */}
+                              <div className="flex-1 min-w-[260px] bg-[#338CF5] rounded-xl p-6 text-white relative flex flex-col gap-2 justify-between max-w-md mx-auto" style={{minHeight: 240}}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-semibold text-base">Resolved leakage</span>
+                                  <button className="text-white/80 hover:text-white text-xs underline">Edit</button>
+                                </div>
+                                <div className="flex flex-row gap-8 mb-2">
+                                  <div>
+                                    <div className="text-xs text-white/80">Date</div>
+                                    <div className="font-bold text-base">{l.resolved.date.split('-').reverse().join('/')}</div>
                                   </div>
-                                  <div className="flex gap-8 mb-2">
-                                    <div>
-                                      <div className="text-xs text-white/80">Date</div>
-                                      <div className="font-bold text-base">{l.resolved.date.split('-').reverse().join('/')}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-xs text-white/80">Plumber</div>
-                                      <div className="font-bold text-base">{l.resolved.plumber}</div>
-                                    </div>
-                                  </div>
-                                  <div className="mb-2">
-                                    <div className="text-xs text-white/80 mb-1">Resolved note</div>
-                                    <div className="text-sm font-medium leading-snug">{l.resolved.note}</div>
+                                  <div>
+                                    <div className="text-xs text-white/80">Plumber</div>
+                                    <div className="font-bold text-base">{l.resolved.plumber}</div>
                                   </div>
                                 </div>
-                                {/* Success watermark */}
+                                <div className="mb-2">
+                                  <div className="text-xs text-white/80 mb-1">Resolved note</div>
+                                  <div className="text-sm font-medium leading-snug">{l.resolved.note}</div>
+                                </div>
                                 {l.resolved.success && (
-                                  <span className="absolute bottom-6 right-6 text-[2.5rem] font-extrabold opacity-20 select-none pointer-events-none font-mono">Success</span>
+                                  <span className="absolute bottom-4 right-4 text-[2.5rem] font-extrabold opacity-20 select-none pointer-events-none" style={{fontFamily: 'sans-serif'}}>Success</span>
                                 )}
                               </div>
                             </div>
