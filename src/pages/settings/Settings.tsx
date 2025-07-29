@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,11 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
+import NorthIcon from '../../../Smarten Assets/assets/North.svg';
+import SouthIcon from '../../../Smarten Assets/assets/South.svg';
+import EastIcon from '../../../Smarten Assets/assets/East.svg';
+import WestIcon from '../../../Smarten Assets/assets/West.svg';
+import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
 
 const Settings = () => {
   const [name, setName] = useState('WASAC Admin');
@@ -52,6 +57,86 @@ const Settings = () => {
   const [dataRetention, setDataRetention] = useState('365');
   const [autoBackup, setAutoBackup] = useState(true);
   const [dataCompression, setDataCompression] = useState(false);
+
+  // History tab state
+  const [historyTab, setHistoryTab] = useState<'leakage' | 'readings' | 'control'>('leakage');
+  const [selectedProvince, setSelectedProvince] = useState('north');
+  const [dateRange, setDateRange] = useState('yesterday');
+
+  // Mock data for provinces and districts (from Figma)
+  const provinceData = {
+    north: {
+      name: 'North',
+      icon: NorthIcon,
+      color: 'bg-yellow-100',
+      districts: [
+        { id: 1, name: 'Musanze', status: 'underflow', value: 24 },
+        { id: 2, name: 'Gakenke', status: 'normal', value: 24 },
+        { id: 3, name: 'Rulindo', status: 'overflow', value: 24 },
+        { id: 4, name: 'Burera', status: 'underflow', value: 24 },
+        { id: 5, name: 'Gicumbi', status: 'normal', value: 24 },
+      ],
+    },
+    south: {
+      name: 'South',
+      icon: SouthIcon,
+      color: 'bg-blue-100',
+      districts: [
+        { id: 1, name: 'Huye', status: 'underflow', value: 24 },
+        { id: 2, name: 'Nyanza', status: 'normal', value: 24 },
+        { id: 3, name: 'Gisagara', status: 'overflow', value: 24 },
+        { id: 4, name: 'Nyaruguru', status: 'normal', value: 24 },
+        { id: 5, name: 'Kamonyi', status: 'underflow', value: 24 },
+        { id: 6, name: 'Ruhango', status: 'normal', value: 24 },
+        { id: 7, name: 'Muhanga', status: 'overflow', value: 24 },
+        { id: 8, name: 'Nyamagabe', status: 'normal', value: 24 },
+      ],
+    },
+    east: {
+      name: 'East',
+      icon: EastIcon,
+      color: 'bg-orange-100',
+      districts: [
+        { id: 1, name: 'Bugesera', status: 'underflow', value: 24 },
+        { id: 2, name: 'Nyagatare', status: 'normal', value: 24 },
+        { id: 3, name: 'Gatsibo', status: 'overflow', value: 24 },
+        { id: 4, name: 'Kayonza', status: 'normal', value: 24 },
+        { id: 5, name: 'Kirehe', status: 'underflow', value: 24 },
+        { id: 6, name: 'Ngoma', status: 'normal', value: 24 },
+        { id: 7, name: 'Rwamagana', status: 'overflow', value: 24 },
+      ],
+    },
+    west: {
+      name: 'West',
+      icon: WestIcon,
+      color: 'bg-green-100',
+      districts: [
+        { id: 1, name: 'Nyabihu', status: 'underflow', value: 24 },
+        { id: 2, name: 'Karongi', status: 'normal', value: 24 },
+        { id: 3, name: 'Ngororero', status: 'overflow', value: 24 },
+        { id: 4, name: 'Nyamasheke', status: 'normal', value: 24 },
+        { id: 5, name: 'Rubavu', status: 'underflow', value: 24 },
+        { id: 6, name: 'Rusizi', status: 'normal', value: 24 },
+        { id: 7, name: 'Rutsiro', status: 'overflow', value: 24 },
+      ],
+    },
+    kigali: {
+      name: 'Kigali',
+      icon: KigaliIcon,
+      color: 'bg-purple-100',
+      districts: [
+        { id: 1, name: 'Gasabo', status: 'underflow', value: 24 },
+        { id: 2, name: 'Nyarugenge', status: 'normal', value: 24 },
+        { id: 3, name: 'Kicukiro', status: 'overflow', value: 24 },
+      ],
+    },
+  };
+
+  const dateRanges = [
+    { value: 'yesterday', label: 'Yesterday' },
+    { value: 'past-week', label: 'Past week' },
+    { value: 'past-month', label: 'Past Month' },
+  ];
 
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -123,12 +208,70 @@ const Settings = () => {
     });
   };
 
+  // 1. Add mock leakage data
+  const leakageHistory = [
+    {
+      id: 1,
+      date: '2025-03-06',
+      day: 'TUE',
+      time: '12:00 AM',
+      waterLoss: 20,
+      location: 'Kigali, Kicukiro, Kamashahi',
+      severity: 'High',
+      action: 'Yes',
+      status: 'Investigating',
+      resolved: {
+        date: '2025-04-06',
+        plumber: 'Nshimiyumukiza Aimable',
+        note: 'There was a massive leakage that damage the pipe in a great amount, but it has been fixed and water is flowing again',
+        success: true,
+      },
+    },
+    {
+      id: 2,
+      date: '2025-03-14',
+      day: 'FRI',
+      time: '12:00 AM',
+      waterLoss: 15,
+      location: 'Kigali, Gasabo, Remera',
+      severity: 'Medium',
+      action: 'Yes',
+      status: 'Resolved',
+      resolved: {
+        date: '2025-04-15',
+        plumber: 'Uwimana Jean',
+        note: 'Leakage fixed, water flow normal.',
+        success: true,
+      },
+    },
+  ];
+
+  // 2. Add CSV download function for leakage
+  function downloadLeakageCSV() {
+    const header = 'Location,Date,Time,Severity,Status,Water Loss (cm³),Action\n';
+    const rows = leakageHistory.map(l => `${l.location},${l.date},${l.time},${l.severity},${l.status},${l.waterLoss},${l.action}`).join('\n');
+    const csv = header + rows;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'leakage_report.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // 3. In the History TabsContent, render Leakage section if historyTab === 'leakage'
+  // 4. Set default tab to 'leakage' when opening History
+  // (No replacement needed, just ensure historyTab is initialized to 'leakage')
+
   return (
     <MainLayout title="Settings">
       <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
         <div className="max-w-6xl mx-auto">
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800">
+            <TabsList className="grid w-full grid-cols-7 bg-white dark:bg-gray-800">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Profile
@@ -152,6 +295,10 @@ const Settings = () => {
               <TabsTrigger value="data" className="flex items-center gap-2">
                 <Database className="w-4 h-4" />
                 Data
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                History
               </TabsTrigger>
             </TabsList>
 
@@ -779,6 +926,189 @@ const Settings = () => {
                         Delete Account
                       </Button>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* History */}
+            <TabsContent value="history" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="w-5 h-5" />
+                    History
+                  </CardTitle>
+                  <CardDescription>View historical readings, leakage, and control data</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-6">
+                    {/* Top Tabs for Leakage, Readings, Control */}
+                    <div className="flex justify-center mb-4">
+                      <div className="bg-gray-100 rounded-full flex p-1">
+                        <button onClick={() => setHistoryTab('leakage')} className={`px-6 py-2 rounded-full text-sm font-medium transition ${historyTab === 'leakage' ? 'bg-white text-blue-600 shadow' : 'text-gray-500'}`}>Leakage</button>
+                        <button onClick={() => setHistoryTab('readings')} className={`px-6 py-2 rounded-full text-sm font-medium transition ${historyTab === 'readings' ? 'bg-white text-blue-600 shadow' : 'text-gray-500'}`}>Readings</button>
+                        <button onClick={() => setHistoryTab('control')} className={`px-6 py-2 rounded-full text-sm font-medium transition ${historyTab === 'control' ? 'bg-white text-blue-600 shadow' : 'text-gray-500'}`}>Control</button>
+                      </div>
+                    </div>
+                    {/* Province Selector and Date Range Dropdown (optional for leakage) */}
+                    {historyTab === 'leakage' && (
+                      <>
+                        <div className="flex items-center gap-2 mb-2">
+                          <img src={provinceData[selectedProvince].icon} alt={provinceData[selectedProvince].name} className="w-8 h-8" />
+                          <span className="font-bold text-lg" style={{ color: '#FFD600' }}>{provinceData[selectedProvince].name}</span>
+                          <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                            <SelectTrigger className="w-32 ml-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="north">North</SelectItem>
+                              <SelectItem value="south">South</SelectItem>
+                              <SelectItem value="east">East</SelectItem>
+                              <SelectItem value="west">West</SelectItem>
+                              <SelectItem value="kigali">Kigali</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Select value={dateRange} onValueChange={setDateRange}>
+                            <SelectTrigger className="w-40">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {dateRanges.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {/* Leakage Report Card */}
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="font-semibold text-lg">Leakage Report</span>
+                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2" onClick={downloadLeakageCSV}><Download className="w-4 h-4" />Download</Button>
+                        </div>
+                        {leakageHistory.map((l, idx) => (
+                          <div key={l.id} className="w-full max-w-5xl mx-auto mb-10">
+                            {/* Digital date header */}
+                            <div className="flex justify-center mb-2">
+                              <span className="font-mono text-2xl tracking-widest text-black">{l.day}-{l.date.split('-').reverse().join('/')}</span>
+                            </div>
+                            <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-6 items-stretch">
+                              {/* Left: Leakage Detection */}
+                              <div className="flex-1 min-w-[260px] flex flex-col justify-between">
+                                <div>
+                                  <div className="font-semibold text-lg mb-2">Leakage Detection</div>
+                                  <div className="mb-2">
+                                    <div className="text-gray-700 text-sm">{l.date.split('-').reverse().join('/')}<span className="ml-2">{l.time}</span></div>
+                                  </div>
+                                  <div className="flex items-end mb-2">
+                                    <span className="text-3xl font-bold text-black">{l.waterLoss}</span>
+                                    <span className="ml-1 text-base font-medium text-gray-700">cm³</span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">water lost</div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-gray-700 text-sm">{l.location}</span>
+                                  </div>
+                                  <div className="flex flex-col gap-1 mb-2">
+                                    <div className="flex items-center gap-2 text-sm"><span className="font-semibold">Severity:</span> <span className="text-red-600 font-bold">{l.severity}</span></div>
+                                    <div className="flex items-center gap-2 text-sm"><span className="font-semibold">Action:</span> <span className="text-gray-700 font-bold">{l.action}</span></div>
+                                    <div className="flex items-center gap-2 text-sm"><span className="font-semibold">Status:</span> <span className="text-blue-600 font-bold">{l.status}</span></div>
+                                  </div>
+                                </div>
+                                {/* Radio buttons: default to Resolved checked */}
+                                <div className="flex items-center gap-6 mt-4">
+                                  <label className="flex items-center gap-1 text-sm font-medium">
+                                    <input type="radio" checked={true} readOnly className="accent-blue-600" /> Resolved
+                                  </label>
+                                  <label className="flex items-center gap-1 text-sm font-medium">
+                                    <input type="radio" checked={false} readOnly className="accent-blue-600" /> Investigating
+                                  </label>
+                                </div>
+                              </div>
+                              {/* Right: Resolved leakage card - match previous Leakage page style */}
+                              <div className="flex-1 min-w-[260px] bg-[#338CF5] rounded-2xl p-8 text-white relative flex flex-col justify-between shadow-lg">
+                                <div>
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="font-semibold text-lg">Resolved leakage</span>
+                                    <button className="text-white/80 hover:text-white text-xs underline">Edit</button>
+                                  </div>
+                                  <div className="flex gap-8 mb-2">
+                                    <div>
+                                      <div className="text-xs text-white/80">Date</div>
+                                      <div className="font-bold text-base">{l.resolved.date.split('-').reverse().join('/')}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-xs text-white/80">Plumber</div>
+                                      <div className="font-bold text-base">{l.resolved.plumber}</div>
+                                    </div>
+                                  </div>
+                                  <div className="mb-2">
+                                    <div className="text-xs text-white/80 mb-1">Resolved note</div>
+                                    <div className="text-sm font-medium leading-snug">{l.resolved.note}</div>
+                                  </div>
+                                </div>
+                                {/* Success watermark */}
+                                {l.resolved.success && (
+                                  <span className="absolute bottom-6 right-6 text-[2.5rem] font-extrabold opacity-20 select-none pointer-events-none font-mono">Success</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    {/* Readings Report Card */}
+                    {historyTab === 'readings' && (
+                      <div className="bg-white rounded-xl shadow p-6 w-full max-w-5xl mx-auto">
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="font-semibold text-lg">Readings Report</span>
+                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
+                        </div>
+                        {/* Digital Date/Time/Month label - mock for now */}
+                        <div className="flex justify-center mb-6">
+                          <span className="font-mono text-2xl tracking-widest text-gray-700">00:00 AM</span>
+                        </div>
+                        {/* District Cards Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                          {provinceData[selectedProvince].districts.map(d => (
+                            <div key={d.id} className={`${provinceData[selectedProvince].color} rounded-xl p-4 flex flex-col items-start shadow-md min-w-[180px]`}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="w-7 h-7 rounded-full bg-yellow-400 text-white flex items-center justify-center font-bold">{d.id}</span>
+                                <span className="font-semibold text-lg">{d.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                                <span className="text-sm font-medium">Waterflow</span>
+                                <span className="text-sm font-bold ml-2">{d.value} cm³/h</span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-gray-500">Status</span>
+                                {d.status === 'normal' && <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full font-semibold">normal</span>}
+                                {d.status === 'underflow' && <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-200 text-yellow-800 rounded-full font-semibold">underflow</span>}
+                                {d.status === 'overflow' && <span className="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full font-semibold">overflow</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Control Section (future implementation) */}
+                    {historyTab === 'control' && (
+                      <div className="bg-white rounded-xl shadow p-6 w-full max-w-5xl mx-auto">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Shield className="w-5 h-5" />
+                            Control Data
+                          </CardTitle>
+                          <CardDescription>Manage and control water distribution systems</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p>Control data management and system monitoring features will be available here.</p>
+                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2">
+                            <Shield className="w-4 h-4" />
+                            View Control Dashboard
+                          </Button>
+                        </CardContent>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

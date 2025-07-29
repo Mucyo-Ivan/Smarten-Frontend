@@ -136,7 +136,7 @@ const Users = () => {
                 onClick={() => setViewMode('year')}
               >Y</button>
             </div>
-          </div>
+                </div>
           <div className={`flex items-end ${barGap} h-64 mt-4 mb-2 px-2 justify-center`} style={{ minHeight: '220px', overflowX: chartOverflowX }}>
             {chartBars.map((bar, idx) => {
               // Calculate height, cap for each view
@@ -151,7 +151,7 @@ const Users = () => {
                       <span className="text-xs font-semibold text-white" style={{ position: 'absolute', top: '50%', left: 0, right: 0, transform: 'translateY(-50%)', textAlign: 'center' }}>
                         {(viewMode === 'month' || viewMode === 'year') && bar.display ? bar.display : (bar.value === 0 ? '0' : (bar.value === 100 ? '100k litres' : '20k litres'))}
                       </span>
-                    </div>
+                </div>
                   </div>
                   <span className="text-xs text-gray-500 mt-1">{bar.label}</span>
                 </div>
