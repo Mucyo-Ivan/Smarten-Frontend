@@ -41,7 +41,7 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-
+  // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [leakageAlerts, setLeakageAlerts] = useState(true);
