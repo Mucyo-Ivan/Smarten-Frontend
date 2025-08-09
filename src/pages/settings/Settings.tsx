@@ -221,25 +221,143 @@ const Settings = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Calculate image size to fit page while keeping aspect ratio
-      const imgWidth = pageWidth - 20; // 10mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const generatedAt = new Date();
+      const reportId = `READ-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${String(generatedAt.getHours()).padStart(2,'0')}${String(generatedAt.getMinutes()).padStart(2,'0')}${String(generatedAt.getSeconds()).padStart(2,'0')}`;
+      const provinceName = provinceData[selectedProvince].name;
 
-      let y = 10;
-      if (imgHeight < pageHeight - 20) {
-        pdf.addImage(imgData, 'PNG', 10, y, imgWidth, imgHeight);
-      } else {
-        // Split across pages if content is tall
-        let position = 0;
-        while (position < imgHeight) {
-          pdf.addImage(imgData, 'PNG', 10, 10 - position, imgWidth, imgHeight);
-          position += pageHeight - 20;
-          if (position < imgHeight) pdf.addPage();
+      // Enhanced Header with background
+      pdf.setFillColor(240, 248, 255);
+      pdf.rect(5, 5, pageWidth - 10, 55, 'F');
+      
+      // Add border
+      pdf.setDrawColor(0, 51, 102);
+      pdf.setLineWidth(0.5);
+      pdf.rect(5, 5, pageWidth - 10, 55);
+
+      // Logo
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.src = WasacLogo as unknown as string;
+        await new Promise(resolve => {
+          logoImg.onload = resolve;
+          logoImg.onerror = resolve;
+        });
+        try {
+          pdf.addImage(logoImg, 'PNG', 10, 10, 20, 20);
+        } catch {}
+      } catch {}
+
+      // Main title
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 51, 102);
+      pdf.text('WATER READINGS REPORT', pageWidth/2, 20, { align: 'center' });
+      
+      // Subtitle
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('Rwanda Water and Sanitation Corporation', pageWidth/2, 27, { align: 'center' });
+
+      // Report metadata in organized layout
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      
+      // Left column
+      pdf.text('Province:', 35, 38);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(provinceName, 55, 38);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Report ID:', 35, 43);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(reportId, 55, 43);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Time Range:', 35, 48);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(dateRanges.find(r => r.value === dateRange)?.label ?? dateRange, 55, 48);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Report Type:', 35, 53);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Water Meter Readings', 55, 53);
+      
+      // Right column
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Generated Date:', pageWidth - 70, 38);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(generatedAt.toLocaleDateString(), pageWidth - 35, 38);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Generated Time:', pageWidth - 70, 43);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(generatedAt.toLocaleTimeString(), pageWidth - 35, 43);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Status:', pageWidth - 70, 48);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 128, 0);
+      pdf.text('OFFICIAL', pageWidth - 35, 48);
+      
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Classification:', pageWidth - 70, 53);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('INTERNAL USE', pageWidth - 35, 53);
+
+      // Calculate content area
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const headerHeight = 65;
+      const footerHeight = 25;
+      const availableHeight = pageHeight - headerHeight - footerHeight;
+
+      let pageNumber = 1;
+      let totalPages = Math.ceil(imgHeight / availableHeight);
+
+      // Add content with pagination
+      let position = 0;
+      while (position < imgHeight) {
+        if (pageNumber > 1) {
+          pdf.addPage();
+          // Add mini header on subsequent pages
+          pdf.setFillColor(240, 248, 255);
+          pdf.rect(5, 5, pageWidth - 10, 15, 'F');
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(0, 51, 102);
+          pdf.text(`Water Readings Report - ${provinceName} (Continued)`, 10, 15);
         }
+        
+        const yPos = pageNumber === 1 ? headerHeight : 25;
+        const remainingHeight = Math.min(availableHeight, imgHeight - position);
+        
+        pdf.addImage(imgData, 'PNG', 10, yPos - position, imgWidth, imgHeight);
+        
+        // Add footer to each page
+        const footerY = pageHeight - 20;
+        pdf.setFillColor(0, 51, 102);
+        pdf.rect(5, footerY - 5, pageWidth - 10, 20, 'F');
+        
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(255, 255, 255);
+        pdf.text('Rwanda Water and Sanitation Corporation (WASAC)', 10, footerY);
+        pdf.text('KG 7 Ave, Kigali, Rwanda | Tel: +250 788 300 000 | Email: info@wasac.rw', 10, footerY + 4);
+        
+        // Page info
+        pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 30, footerY);
+        pdf.text(`Generated: ${generatedAt.toLocaleString()}`, pageWidth - 80, footerY + 4);
+        pdf.text('CONFIDENTIAL DOCUMENT', pageWidth/2, footerY + 8, { align: 'center' });
+        
+        position += availableHeight;
+        pageNumber++;
       }
 
-      const provinceName = provinceData[selectedProvince].name;
-      const filename = `Readings_${provinceName}_${dateRange}.pdf`;
+      const filename = `WASAC_Readings_Report_${provinceName}_${dateRange}_${generatedAt.toISOString().slice(0, 10)}.pdf`;
       pdf.save(filename);
     } catch (error) {
       console.error('PDF export failed', error);
@@ -264,10 +382,21 @@ const Settings = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Header: logo + metadata
-      const headerY = 12;
+      const generatedAt = new Date();
+      const reportId = `LEAK-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${String(generatedAt.getHours()).padStart(2,'0')}${String(generatedAt.getMinutes()).padStart(2,'0')}${String(generatedAt.getSeconds()).padStart(2,'0')}`;
+      const provinceName = provinceData[selectedProvince].name;
+
+      // Enhanced Header with professional styling
+      pdf.setFillColor(220, 53, 69); // Red theme for leakage reports
+      pdf.rect(5, 5, pageWidth - 10, 55, 'F');
+      
+      // Add border
+      pdf.setDrawColor(139, 35, 46);
+      pdf.setLineWidth(0.8);
+      pdf.rect(5, 5, pageWidth - 10, 55);
+
+      // Logo
       try {
-        // Convert logo to base64 via HTMLCanvas for reliability
         const logoImg = new Image();
         logoImg.crossOrigin = 'anonymous';
         logoImg.src = WasacLogo as unknown as string;
@@ -275,40 +404,123 @@ const Settings = () => {
           logoImg.onload = resolve;
           logoImg.onerror = resolve;
         });
-        // Draw logo if available
         try {
-          pdf.addImage(logoImg, 'PNG', 10, headerY - 6, 18, 18);
+          pdf.addImage(logoImg, 'PNG', 10, 10, 20, 20);
         } catch {}
       } catch {}
 
-      const generatedAt = new Date();
-      const reportId = `LEAK-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${generatedAt.getHours()}${generatedAt.getMinutes()}${generatedAt.getSeconds()}`;
-      const provinceName = provinceData[selectedProvince].name;
-      pdf.setFontSize(12);
-      pdf.text(`Leakage Report`, 32, headerY);
+      // Main title
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('WATER LEAKAGE REPORT', pageWidth/2, 20, { align: 'center' });
+      
+      // Subtitle with urgency indicator
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('⚠️ URGENT - WATER LOSS INVESTIGATION', pageWidth/2, 27, { align: 'center' });
+      pdf.text('Rwanda Water and Sanitation Corporation', pageWidth/2, 33, { align: 'center' });
+
+      // Report metadata
       pdf.setFontSize(9);
-      pdf.text(`Province: ${provinceName}`, 32, headerY + 6);
-      pdf.text(`Report ID: ${reportId}`, 32, headerY + 12);
-      pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 32, headerY + 18);
-      pdf.text(`Range: ${dateRanges.find(r => r.value === dateRange)?.label ?? dateRange}`, 32, headerY + 24);
+      pdf.setFont('helvetica', 'normal');
+      
+      // Left column
+      pdf.text('Province:', 35, 42);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(provinceName, 55, 42);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Report ID:', 35, 47);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(reportId, 55, 47);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Time Range:', 35, 52);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(dateRanges.find(r => r.value === dateRange)?.label ?? dateRange, 55, 52);
+      
+      // Right column
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Generated Date:', pageWidth - 70, 42);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(generatedAt.toLocaleDateString(), pageWidth - 35, 42);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Generated Time:', pageWidth - 70, 47);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(generatedAt.toLocaleTimeString(), pageWidth - 35, 47);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Priority Level:', pageWidth - 70, 52);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(255, 255, 0);
+      pdf.text('HIGH', pageWidth - 35, 52);
+      
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Classification:', pageWidth - 70, 57);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('RESTRICTED', pageWidth - 35, 57);
 
-      // Horizontal rule
-      pdf.setDrawColor(200);
-      pdf.line(10, headerY + 26, pageWidth - 10, headerY + 26);
-
+      // Calculate content area
       const imgWidth = pageWidth - 20;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const headerHeight = 65;
+      const footerHeight = 25;
+      const availableHeight = pageHeight - headerHeight - footerHeight;
 
+      let pageNumber = 1;
+      let totalPages = Math.ceil(imgHeight / availableHeight);
+
+      // Add content with pagination
       let position = 0;
       while (position < imgHeight) {
-        const topOffset = headerY + 30; // leave space for header on first page
-        const y = (position === 0) ? topOffset : 10;
-        pdf.addImage(imgData, 'PNG', 10, y - position, imgWidth, imgHeight);
-        position += pageHeight - 20;
-        if (position < imgHeight) pdf.addPage();
+        if (pageNumber > 1) {
+          pdf.addPage();
+          // Add mini header on subsequent pages
+          pdf.setFillColor(220, 53, 69);
+          pdf.rect(5, 5, pageWidth - 10, 15, 'F');
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(255, 255, 255);
+          pdf.text(`Leakage Report - ${provinceName} (Continued) - ⚠️ URGENT`, 10, 15);
+        }
+        
+        const yPos = pageNumber === 1 ? headerHeight : 25;
+        const remainingHeight = Math.min(availableHeight, imgHeight - position);
+        
+        pdf.addImage(imgData, 'PNG', 10, yPos - position, imgWidth, imgHeight);
+        
+        // Enhanced footer
+        const footerY = pageHeight - 20;
+        pdf.setFillColor(139, 35, 46);
+        pdf.rect(5, footerY - 5, pageWidth - 10, 20, 'F');
+        
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(255, 255, 255);
+        pdf.text('Rwanda Water and Sanitation Corporation (WASAC) - Emergency Response Unit', 10, footerY);
+        pdf.text('Emergency Hotline: +250 788 300 001 | Email: emergency@wasac.rw | Website: www.wasac.rw', 10, footerY + 4);
+        
+        // Page info and signatures
+        pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 30, footerY);
+        pdf.text(`Report Generated: ${generatedAt.toLocaleString()}`, pageWidth - 80, footerY + 4);
+        
+        // Add signature lines on last page
+        if (pageNumber === totalPages) {
+          pdf.setTextColor(255, 255, 255);
+          pdf.text('Reviewed by: _________________ Date: _______', 10, footerY + 8);
+          pdf.text('Approved by: _________________ Date: _______', pageWidth - 80, footerY + 8);
+        } else {
+          pdf.text('⚠️ CONFIDENTIAL - WATER EMERGENCY REPORT', pageWidth/2, footerY + 8, { align: 'center' });
+        }
+        
+        position += availableHeight;
+        pageNumber++;
       }
 
-      const filename = `Leakage_Report_${provinceName}_${dateRange}.pdf`;
+      const filename = `WASAC_URGENT_Leakage_Report_${provinceName}_${dateRange}_${generatedAt.toISOString().slice(0, 10)}.pdf`;
       pdf.save(filename);
     } catch (error) {
       console.error('Leakage PDF export failed', error);
@@ -333,8 +545,20 @@ const Settings = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Header metadata
-      const headerY = 12;
+      const generatedAt = new Date();
+      const reportId = `CTRL-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${String(generatedAt.getHours()).padStart(2,'0')}${String(generatedAt.getMinutes()).padStart(2,'0')}${String(generatedAt.getSeconds()).padStart(2,'0')}`;
+      const provinceName = provinceData[selectedProvince].name;
+
+      // Enhanced Header with professional blue theme
+      pdf.setFillColor(59, 130, 246); // Blue theme for control reports
+      pdf.rect(5, 5, pageWidth - 10, 55, 'F');
+      
+      // Add border
+      pdf.setDrawColor(37, 99, 235);
+      pdf.setLineWidth(0.8);
+      pdf.rect(5, 5, pageWidth - 10, 55);
+
+      // Logo
       try {
         const logoImg = new Image();
         logoImg.crossOrigin = 'anonymous';
@@ -344,36 +568,127 @@ const Settings = () => {
           logoImg.onerror = resolve;
         });
         try {
-          pdf.addImage(logoImg, 'PNG', 10, headerY - 6, 18, 18);
+          pdf.addImage(logoImg, 'PNG', 10, 10, 20, 20);
         } catch {}
       } catch {}
 
-      const generatedAt = new Date();
-      const reportId = `CTRL-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${generatedAt.getHours()}${generatedAt.getMinutes()}${generatedAt.getSeconds()}`;
-      const provinceName = provinceData[selectedProvince].name;
-      pdf.setFontSize(12);
-      pdf.text('Control Report', 32, headerY);
-      pdf.setFontSize(9);
-      pdf.text(`Province: ${provinceName}`, 32, headerY + 6);
-      pdf.text(`Report ID: ${reportId}`, 32, headerY + 12);
-      pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 32, headerY + 18);
-      pdf.text(`Range: ${dateRanges.find(r => r.value === dateRange)?.label ?? dateRange}`, 32, headerY + 24);
-      pdf.setDrawColor(200);
-      pdf.line(10, headerY + 26, pageWidth - 10, headerY + 26);
+      // Main title
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('WATER CONTROL OPERATIONS REPORT', pageWidth/2, 20, { align: 'center' });
+      
+      // Subtitle
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('📊 SYSTEM CONTROL & MONITORING', pageWidth/2, 27, { align: 'center' });
+      pdf.text('Rwanda Water and Sanitation Corporation', pageWidth/2, 33, { align: 'center' });
 
+      // Report metadata
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      
+      // Left column
+      pdf.text('Province:', 35, 42);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(provinceName, 55, 42);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Report ID:', 35, 47);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(reportId, 55, 47);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Time Range:', 35, 52);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(dateRanges.find(r => r.value === dateRange)?.label ?? dateRange, 55, 52);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Report Type:', 35, 57);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Control Operations', 55, 57);
+      
+      // Right column
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Generated Date:', pageWidth - 70, 42);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(generatedAt.toLocaleDateString(), pageWidth - 35, 42);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Generated Time:', pageWidth - 70, 47);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(generatedAt.toLocaleTimeString(), pageWidth - 35, 47);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('System Status:', pageWidth - 70, 52);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 255, 0);
+      pdf.text('OPERATIONAL', pageWidth - 35, 52);
+      
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Access Level:', pageWidth - 70, 57);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('AUTHORIZED', pageWidth - 35, 57);
+
+      // Calculate content area
       const imgWidth = pageWidth - 20;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const headerHeight = 65;
+      const footerHeight = 25;
+      const availableHeight = pageHeight - headerHeight - footerHeight;
 
+      let pageNumber = 1;
+      let totalPages = Math.ceil(imgHeight / availableHeight);
+
+      // Add content with pagination
       let position = 0;
       while (position < imgHeight) {
-        const topOffset = headerY + 30;
-        const y = position === 0 ? topOffset : 10;
-        pdf.addImage(imgData, 'PNG', 10, y - position, imgWidth, imgHeight);
-        position += pageHeight - 20;
-        if (position < imgHeight) pdf.addPage();
+        if (pageNumber > 1) {
+          pdf.addPage();
+          // Add mini header on subsequent pages
+          pdf.setFillColor(59, 130, 246);
+          pdf.rect(5, 5, pageWidth - 10, 15, 'F');
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(255, 255, 255);
+          pdf.text(`Control Operations Report - ${provinceName} (Continued) - 📊`, 10, 15);
+        }
+        
+        const yPos = pageNumber === 1 ? headerHeight : 25;
+        const remainingHeight = Math.min(availableHeight, imgHeight - position);
+        
+        pdf.addImage(imgData, 'PNG', 10, yPos - position, imgWidth, imgHeight);
+        
+        // Enhanced footer
+        const footerY = pageHeight - 20;
+        pdf.setFillColor(37, 99, 235);
+        pdf.rect(5, footerY - 5, pageWidth - 10, 20, 'F');
+        
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(255, 255, 255);
+        pdf.text('Rwanda Water and Sanitation Corporation (WASAC) - Control Operations Center', 10, footerY);
+        pdf.text('Operations Center: +250 788 300 002 | Email: operations@wasac.rw | 24/7 Monitoring', 10, footerY + 4);
+        
+        // Page info and operational stamps
+        pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 30, footerY);
+        pdf.text(`Generated: ${generatedAt.toLocaleString()}`, pageWidth - 80, footerY + 4);
+        
+        // Add operational signatures on last page
+        if (pageNumber === totalPages) {
+          pdf.setTextColor(255, 255, 255);
+          pdf.text('Operations Manager: _________________ Date: _______', 10, footerY + 8);
+          pdf.text('Technical Lead: _________________ Date: _______', pageWidth - 80, footerY + 8);
+        } else {
+          pdf.text('📊 OFFICIAL CONTROL OPERATIONS REPORT', pageWidth/2, footerY + 8, { align: 'center' });
+        }
+        
+        position += availableHeight;
+        pageNumber++;
       }
 
-      const filename = `Control_Report_${provinceName}_${dateRange}.pdf`;
+      const filename = `WASAC_Control_Operations_Report_${provinceName}_${dateRange}_${generatedAt.toISOString().slice(0, 10)}.pdf`;
       pdf.save(filename);
     } catch (e) {
       console.error('Control PDF export failed', e);
