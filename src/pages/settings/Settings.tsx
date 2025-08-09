@@ -145,6 +145,27 @@ const Settings = () => {
     { value: 'past-month', label: 'Past Month' },
   ];
 
+  // Mock control logs (will be wired to backend later)
+  type ControlRow = { id: number; dateLabel: string; time: string; location: string; command: 'ON' | 'OFF'; situation: 'normal' | 'leakage' };
+  const baseControlRows: ControlRow[] = [
+    { id: 1, dateLabel: 'Today', time: '09:00 AM', location: 'Burera', command: 'ON', situation: 'normal' },
+    { id: 2, dateLabel: 'Yesterday', time: '12:00 AM', location: 'Gicumbi', command: 'OFF', situation: 'leakage' },
+    { id: 3, dateLabel: 'Today', time: '11:00 AM', location: 'Musanze', command: 'ON', situation: 'normal' },
+    { id: 4, dateLabel: 'Today', time: '02:00 PM', location: 'Rulindo', command: 'ON', situation: 'leakage' },
+    { id: 5, dateLabel: 'Today', time: '04:00 PM', location: 'Gakenke', command: 'OFF', situation: 'normal' },
+    { id: 6, dateLabel: 'Today', time: '06:00 PM', location: 'Burera', command: 'OFF', situation: 'leakage' },
+    { id: 7, dateLabel: 'Today', time: '08:00 PM', location: 'Gicumbi', command: 'OFF', situation: 'normal' },
+    { id: 8, dateLabel: 'Yesterday', time: '09:00 AM', location: 'Musanze', command: 'ON', situation: 'leakage' },
+    { id: 9, dateLabel: '06/04/2025', time: '12:00 AM', location: 'Rulindo', command: 'ON', situation: 'leakage' },
+    { id: 10, dateLabel: '05/04/2025', time: '10:00 PM', location: 'Gakenke', command: 'OFF', situation: 'leakage' },
+    { id: 11, dateLabel: '04/04/2025', time: '09:00 AM', location: 'Gicumbi', command: 'ON', situation: 'leakage' },
+  ];
+
+  const getControlRows = (provinceKey: string, range: string): ControlRow[] => {
+    // For now we reuse the same rows; in real integration this will filter by province and range
+    return baseControlRows.map(r => ({ ...r }));
+  };
+
   // Helper to build section headers for the Readings view based on selected range.
   // We keep this client-side for now (awaiting backend integration) to match the model screens.
   const getReadingSections = (range: string): string[] => {
@@ -1280,23 +1301,92 @@ const Settings = () => {
                       </div>
                       </>
                     )}
-                    {/* Control Section (future implementation) */}
+                    {/* Control Section - Control Report */}
                     {historyTab === 'control' && (
-                      <div className="bg-white rounded-xl shadow p-6 w-full max-w-5xl mx-auto">
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Shield className="w-5 h-5" />
-                            Control Data
-                          </CardTitle>
-                          <CardDescription>Manage and control water distribution systems</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p>Control data management and system monitoring features will be available here.</p>
-                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2">
-                            <Shield className="w-4 h-4" />
-                            View Control Dashboard
-                          </Button>
-                        </CardContent>
+                      <div className="bg-white rounded-xl shadow p-6 w-full max-w-6xl mx-auto">
+                        {/* Province header and range */}
+                        <div className="flex items-center gap-2 mb-4">
+                          <img src={provinceData[selectedProvince].icon} alt={provinceData[selectedProvince].name} className="w-8 h-8" />
+                          <span className="font-bold text-lg" style={{ color: provinceData[selectedProvince].textColor }}>{provinceData[selectedProvince].name}</span>
+                          <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                            <SelectTrigger className="w-32 ml-2 h-9 rounded-md border-gray-300 text-sm font-semibold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="north">North</SelectItem>
+                              <SelectItem value="south">South</SelectItem>
+                              <SelectItem value="east">East</SelectItem>
+                              <SelectItem value="west">West</SelectItem>
+                              <SelectItem value="kigali">Kigali</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <div className="ml-auto">
+                            <Select value={dateRange} onValueChange={setDateRange}>
+                              <SelectTrigger className="w-40 h-8 rounded-md border-gray-300 text-sm font-semibold">
+                                <SelectValue placeholder="Range" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {dateRanges.map(r => (
+                                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Title + Download */}
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="font-semibold text-lg">Control Report</span>
+                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
+                        </div>
+
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="text-left text-gray-500 border-b">
+                                <th className="py-3 px-4 w-12">№</th>
+                                <th className="py-3 px-4">Date</th>
+                                <th className="py-3 px-4">Location</th>
+                                <th className="py-3 px-4">Commands</th>
+                                <th className="py-3 px-4">Situation</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {getControlRows(selectedProvince, dateRange).map((row, idx) => (
+                                <tr key={row.id} className="border-b last:border-0">
+                                  <td className="py-3 px-4 text-gray-700">{idx + 1}</td>
+                                  <td className="py-3 px-4">
+                                    <div className="flex flex-col leading-tight">
+                                      <span className="font-semibold text-gray-800">{row.dateLabel}</span>
+                                      <span className="text-[10px] text-gray-400">{row.time}</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <div className="flex items-center gap-2 text-gray-800">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                      {row.location}
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    {row.command === 'ON' ? (
+                                      <span className="text-green-600 font-semibold">ON</span>
+                                    ) : (
+                                      <span className="text-blue-600 font-semibold">OFF</span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    {row.situation === 'normal' ? (
+                                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">normal</span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">leakage</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     )}
                   </div>
