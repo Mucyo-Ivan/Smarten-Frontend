@@ -8,6 +8,7 @@ import DropletsIcon from '../../../Smarten Assets/assets/droplets.svg';
 
 interface NotificationsPanelProps {
   onClose: () => void;
+  onChangeUnread?: (newUnread: number) => void;
 }
 
 const initialNotifications = [
@@ -91,8 +92,8 @@ const getIcon = (icon: string) => {
   }
 };
 
-const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
-  const [notifications] = useState(initialNotifications);
+const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps) => {
+  const [notifications, setNotifications] = useState(initialNotifications);
 
   // Group notifications by date
   const grouped = notifications.reduce((acc: Record<string, typeof notifications>, notif) => {
@@ -101,6 +102,18 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
     return acc;
   }, {});
 
+  const unread = notifications.filter(n => n.new).length;
+  // Notify parent about unread count changes
+  if (onChangeUnread) onChangeUnread(unread);
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, new: false })));
+  };
+
+  const markAsRead = (id: number) => {
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, new: false } : n)));
+  };
+
   return (
     <div className="fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 animate-slide-in" style={{ minWidth: 380 }}>
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -108,6 +121,12 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
         <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
           <X className="w-6 h-6 text-gray-500" />
         </button>
+      </div>
+      <div className="flex items-center justify-between px-6 py-3">
+        <span className="text-xs text-gray-500">Unread: {unread}</span>
+        {unread > 0 && (
+          <button onClick={markAllAsRead} className="text-blue-600 text-xs font-medium hover:underline">Mark all as read</button>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-2 max-h-[80vh]">
         {Object.keys(grouped).map(date => (
@@ -133,6 +152,9 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5">{notif.time}</div>
                 </div>
+                {notif.new && (
+                  <button onClick={() => markAsRead(notif.id)} className="text-blue-600 text-xs font-medium hover:underline">Mark as read</button>
+                )}
               </div>
             ))}
           </div>

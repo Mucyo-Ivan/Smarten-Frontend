@@ -11,17 +11,18 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children, title }: MainLayoutProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
       <SidebarNav />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={title} onShowNotifications={() => setShowNotifications(true)} />
+        <Header title={title} unreadCount={unreadCount} onShowNotifications={() => setShowNotifications(true)} />
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>
         <Footer />
         {showNotifications && (
-          <NotificationsPanel onClose={() => setShowNotifications(false)} />
+          <NotificationsPanel onClose={() => setShowNotifications(false)} onChangeUnread={setUnreadCount} />
         )}
       </div>
     </div>

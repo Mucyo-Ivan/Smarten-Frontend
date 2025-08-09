@@ -279,7 +279,7 @@ const Leakage = () => {
                   <div className={`w-full h-full transition-all duration-300 ${status === 'Resolved' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Resolved' ? 'relative' : 'absolute' }}>
                     {status === 'Resolved' && !editResolved && (
-                      <div className="bg-[#338CF5] rounded-xl p-6 relative flex flex-col gap-2 w-full max-w-md mx-auto animate-fade-in" style={{minHeight: 240}}>
+                      <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white text-base font-semibold">Resolved leakage</span>
                           <button
@@ -290,21 +290,24 @@ const Leakage = () => {
                             <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>
                           </button>
                         </div>
-                        <div className="flex flex-row gap-8 mb-2">
+                        <div className="flex flex-row gap-8 mb-4">
                           <div>
-                            <div className="text-xs text-white/80">Date</div>
-                            <div className="font-bold text-base text-white">{resolvedForm.date}</div>
+                            <div className="text-xs text-white font-semibold">Date</div>
+                            <div className="text-base text-white/80">{resolvedForm.date}</div>
                           </div>
                           <div>
-                            <div className="text-xs text-white/80">Plumber</div>
-                            <div className="font-bold text-base text-white">{resolvedForm.plumber}</div>
+                            <div className="text-xs text-white font-semibold">Plumber</div>
+                            <div className="text-base text-white/80">{resolvedForm.plumber}</div>
                           </div>
                         </div>
-                        <div className="mb-2">
-                          <div className="text-xs text-white/80 mb-1">Resolved note</div>
-                          <div className="text-sm font-medium leading-snug text-white">{resolvedForm.note}</div>
+                        <div className="mb-6">
+                          <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
+                          <div className="text-sm leading-snug text-white/80">{resolvedForm.note}</div>
                         </div>
-                        <span className="absolute bottom-4 right-4 text-[2.5rem] font-extrabold opacity-20 select-none pointer-events-none" style={{fontFamily: 'sans-serif'}}>Success</span>
+                        <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-25 select-none pointer-events-none">
+                          <img src={SuccessIcon} alt="Success" className="h-8 w-auto" />
+                          <span className="text-white text-4xl font-extrabold tracking-wide">Success</span>
+                        </div>
                       </div>
                     )}
                     {status === 'Resolved' && editResolved && (

@@ -14,9 +14,10 @@ import { useNavigate } from 'react-router-dom';
 interface HeaderProps {
   title?: string;
   onShowNotifications?: () => void;
+  unreadCount?: number;
 }
 
-const Header = ({ title, onShowNotifications }: HeaderProps) => {
+const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) => {
   const navigate = useNavigate();
 
   return (
@@ -38,9 +39,11 @@ const Header = ({ title, onShowNotifications }: HeaderProps) => {
           <Button variant="ghost" size="sm" className="relative p-1" onClick={onShowNotifications}>
             <div className="relative">
               <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute -top-2.5 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-[10px] font-medium text-white">1</span>
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-2.5 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-white">{Math.min(unreadCount, 99)}</span>
+                </span>
+              )}
             </div>
           </Button>
           

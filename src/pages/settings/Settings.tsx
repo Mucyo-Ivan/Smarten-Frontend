@@ -31,6 +31,7 @@ import SouthIcon from '../../../Smarten Assets/assets/South.svg';
 import EastIcon from '../../../Smarten Assets/assets/East.svg';
 import WestIcon from '../../../Smarten Assets/assets/West.svg';
 import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
+import SuccessImage from '../../../Smarten Assets/assets/Success.png';
 
 const Settings = () => {
   const [name, setName] = useState('WASAC Admin');
@@ -68,7 +69,7 @@ const Settings = () => {
     north: {
       name: 'North',
       icon: NorthIcon,
-      color: 'bg-yellow-100',
+      color: 'bg-yellow-50',
       textColor: '#FFD600',
       districts: [
         { id: 1, name: 'Musanze', status: 'underflow', value: 24 },
@@ -81,7 +82,7 @@ const Settings = () => {
     south: {
       name: 'South',
       icon: SouthIcon,
-      color: 'bg-blue-100',
+      color: 'bg-blue-50',
       textColor: '#338CF5',
       districts: [
         { id: 1, name: 'Huye', status: 'underflow', value: 24 },
@@ -97,7 +98,7 @@ const Settings = () => {
     east: {
       name: 'East',
       icon: EastIcon,
-      color: 'bg-orange-100',
+      color: 'bg-orange-50',
       textColor: '#F59E0B',
       districts: [
         { id: 1, name: 'Bugesera', status: 'underflow', value: 24 },
@@ -112,7 +113,7 @@ const Settings = () => {
     west: {
       name: 'West',
       icon: WestIcon,
-      color: 'bg-green-100',
+      color: 'bg-green-50',
       textColor: '#22C55E',
       districts: [
         { id: 1, name: 'Nyabihu', status: 'underflow', value: 24 },
@@ -127,7 +128,7 @@ const Settings = () => {
     kigali: {
       name: 'Kigali',
       icon: KigaliIcon,
-      color: 'bg-purple-100',
+      color: 'bg-purple-50',
       textColor: '#8B5CF6',
       districts: [
         { id: 1, name: 'Gasabo', status: 'underflow', value: 24 },
@@ -1090,27 +1091,30 @@ const Settings = () => {
                                 </div>
                               </div>
                               {/* Right: Resolved leakage card */}
-                              <div className="flex-1 min-w-[260px] bg-[#338CF5] rounded-xl p-6 text-white relative flex flex-col gap-2 justify-between max-w-md mx-auto" style={{minHeight: 240}}>
+                              <div className="flex-1 min-w-[260px] bg-[#338CF5] rounded-xl p-6 pb-14 text-white relative flex flex-col gap-3 justify-between max-w-md mx-auto" style={{minHeight: 240}}>
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="font-semibold text-base">Resolved leakage</span>
                                   <button className="text-white/80 hover:text-white text-xs underline">Edit</button>
                                 </div>
-                                <div className="flex flex-row gap-8 mb-2">
+                                <div className="flex flex-row gap-8 mb-4">
                                   <div>
-                                    <div className="text-xs text-white/80">Date</div>
-                                    <div className="font-bold text-base">{l.resolved.date.split('-').reverse().join('/')}</div>
+                                    <div className="text-xs text-white font-semibold">Date</div>
+                                    <div className="text-base text-white/80">{l.resolved.date.split('-').reverse().join('/')}</div>
                                   </div>
                                   <div>
-                                    <div className="text-xs text-white/80">Plumber</div>
-                                    <div className="font-bold text-base">{l.resolved.plumber}</div>
+                                    <div className="text-xs text-white font-semibold">Plumber</div>
+                                    <div className="text-base text-white/80">{l.resolved.plumber}</div>
                                   </div>
                                 </div>
-                                <div className="mb-2">
-                                  <div className="text-xs text-white/80 mb-1">Resolved note</div>
-                                  <div className="text-sm font-medium leading-snug">{l.resolved.note}</div>
+                                <div className="mb-6">
+                                  <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
+                                  <div className="text-sm leading-snug text-white/80">{l.resolved.note}</div>
                                 </div>
                                 {l.resolved.success && (
-                                  <span className="absolute bottom-4 right-4 text-[2.5rem] font-extrabold opacity-20 select-none pointer-events-none" style={{fontFamily: 'sans-serif'}}>Success</span>
+                                  <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-25 select-none pointer-events-none">
+                                    <img src={SuccessImage} alt="Success" className="h-8 w-auto" />
+                                    <span className="text-white text-4xl font-extrabold tracking-wide">Success</span>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -1120,7 +1124,26 @@ const Settings = () => {
                     )}
                     {/* Readings Report Card */}
                     {historyTab === 'readings' && (
-                      <div ref={readingsContainerRef} className="bg-white rounded-xl shadow p-6 w-full max-w-6xl mx-auto">
+                      <>
+                        {/* Province selector outside the report card, like in the model screenshots */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <img src={provinceData[selectedProvince].icon} alt={provinceData[selectedProvince].name} className="w-8 h-8" />
+                          <span className="font-bold text-lg" style={{ color: provinceData[selectedProvince].textColor }}>{provinceData[selectedProvince].name}</span>
+                          <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                            <SelectTrigger className="w-32 ml-2 h-9 rounded-md border-gray-300 text-sm font-semibold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="north">North</SelectItem>
+                              <SelectItem value="south">South</SelectItem>
+                              <SelectItem value="east">East</SelectItem>
+                              <SelectItem value="west">West</SelectItem>
+                              <SelectItem value="kigali">Kigali</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div ref={readingsContainerRef} className="bg-white rounded-xl shadow p-6 w-full max-w-6xl mx-auto">
                         {/* Header Row: time range on the left, centered title, download button on right */}
                         <div className="flex flex-wrap items-center gap-3 mb-2">
                           {/* Time range top-left styled as in models */}
@@ -1144,23 +1167,7 @@ const Settings = () => {
                           </div>
                         </div>
 
-                        {/* Province selector row matching previous dropdown style */}
-                        <div className="flex items-center gap-2 mb-4">
-                          <img src={provinceData[selectedProvince].icon} alt={provinceData[selectedProvince].name} className="w-8 h-8" />
-                          <span className="font-bold text-lg" style={{ color: provinceData[selectedProvince].textColor }}>{provinceData[selectedProvince].name}</span>
-                          <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-                            <SelectTrigger className="w-32 ml-2 h-9 rounded-md border-gray-300 text-sm font-semibold">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="north">North</SelectItem>
-                              <SelectItem value="south">South</SelectItem>
-                              <SelectItem value="east">East</SelectItem>
-                              <SelectItem value="west">West</SelectItem>
-                              <SelectItem value="kigali">Kigali</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {/* (Province badge row is rendered above the card) */}
 
                         {/* Sections driven by range (time/day/month) */}
                         {getReadingSections(dateRange).map((headerKey, idx) => (
@@ -1168,7 +1175,7 @@ const Settings = () => {
                             <div className="flex justify-center mb-6">
                               <span className="font-major-mono-display text-2xl tracking-widest text-black">{headerKey}</span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            <div className={`grid ${provinceData[selectedProvince].districts.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'} gap-y-8 gap-x-12 justify-items-center`}>
                               {provinceData[selectedProvince].districts.map(d => (
                                 <div key={`${headerKey}-${d.id}`} className={`${provinceData[selectedProvince].color} rounded-xl p-4 flex flex-col items-start shadow-md min-w-[180px]`}>
                                   <div className="flex items-center gap-2 mb-2">
@@ -1176,20 +1183,20 @@ const Settings = () => {
                                     <span className="font-semibold text-lg">{d.name}</span>
                                   </div>
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-                                    <span className="text-sm font-medium">Waterflow</span>
-                                    <span className="text-sm font-bold ml-2">{d.value} cm³/h</span>
+                                    <span className="w-2 h-2 rounded-full bg-blue-500/70 inline-block"></span>
+                                    <span className="text-[13px] font-medium text-gray-700">Waterflow</span>
+                                    <span className="text-[13px] font-semibold tracking-tight ml-2 font-major-mono-display text-gray-900/90">{d.value} cm³/h</span>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-gray-500">Status</span>
+                                    <span className="text-[11px] text-gray-500">Status</span>
                                     {d.status === 'normal' && (
-                                      <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full font-semibold">normal</span>
+                                      <span className="ml-2 px-2 py-0.5 text-[11px] bg-green-100 text-green-700 rounded-full font-semibold">normal</span>
                                     )}
                                     {d.status === 'underflow' && (
-                                      <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-200 text-yellow-800 rounded-full font-semibold">underflow</span>
+                                      <span className="ml-2 px-2 py-0.5 text-[11px] bg-yellow-200 text-yellow-800 rounded-full font-semibold">underflow</span>
                                     )}
                                     {d.status === 'overflow' && (
-                                      <span className="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full font-semibold">overflow</span>
+                                      <span className="ml-2 px-2 py-0.5 text-[11px] bg-red-100 text-red-700 rounded-full font-semibold">overflow</span>
                                     )}
                                   </div>
                                 </div>
@@ -1198,6 +1205,7 @@ const Settings = () => {
                           </div>
                         ))}
                       </div>
+                      </>
                     )}
                     {/* Control Section (future implementation) */}
                     {historyTab === 'control' && (
