@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import SidebarNav from './SidebarNav';
 import Header from './Header';
 import Footer from './Footer';
-import NotificationsPanel from '../ui/NotificationsPanel';
+import NotificationsPanel, { initialNotifications } from '../ui/NotificationsPanel';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -11,7 +11,9 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children, title }: MainLayoutProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(
+    initialNotifications.filter(n => n.new).length
+  );
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
       <SidebarNav />

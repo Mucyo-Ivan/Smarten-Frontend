@@ -1,5 +1,5 @@
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { useState } from 'react';
 import Frame1201Icon from '../../../Smarten Assets/assets/Frame 1201.svg';
 import LeakageButtonIcon from '../../../Smarten Assets/assets/Leakage button.svg';
 import PeopleIcon from '../../../Smarten Assets/assets/People.svg';
@@ -11,7 +11,7 @@ interface NotificationsPanelProps {
   onChangeUnread?: (newUnread: number) => void;
 }
 
-const initialNotifications = [
+export const initialNotifications = [
   {
     id: 1,
     type: 'leakage',
@@ -103,8 +103,10 @@ const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps
   }, {});
 
   const unread = notifications.filter(n => n.new).length;
-  // Notify parent about unread count changes
-  if (onChangeUnread) onChangeUnread(unread);
+  // Notify parent about unread count changes when it changes
+  useEffect(() => {
+    if (onChangeUnread) onChangeUnread(unread);
+  }, [unread, onChangeUnread]);
 
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, new: false })));
