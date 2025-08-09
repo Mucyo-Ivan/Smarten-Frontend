@@ -166,6 +166,25 @@ const Settings = () => {
     return baseControlRows.map(r => ({ ...r }));
   };
 
+  // CSV export for Control report
+  const downloadControlCSV = () => {
+    const rows = getControlRows(selectedProvince, dateRange);
+    const header = 'No,Date,Time,Location,Command,Situation\n';
+    const body = rows
+      .map((r, idx) => [idx + 1, r.dateLabel, r.time, r.location, r.command, r.situation].join(','))
+      .join('\n');
+    const csv = header + body;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `control_report_${selectedProvince}_${dateRange}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Helper to build section headers for the Readings view based on selected range.
   // We keep this client-side for now (awaiting backend integration) to match the model screens.
   const getReadingSections = (range: string): string[] => {
@@ -1402,7 +1421,10 @@ const Settings = () => {
                         {/* Title + Download */}
                         <div className="flex justify-between items-center mb-3">
                           <span className="font-semibold text-lg">Control Report</span>
-                          <Button onClick={handleDownloadControlPDF} className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
+                          <div className="flex gap-2">
+                            <Button onClick={handleDownloadControlPDF} className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />PDF</Button>
+                            <Button onClick={downloadControlCSV} className="bg-gray-200 hover:bg-gray-300 text-gray-800 flex gap-2"><Download className="w-4 h-4" />CSV</Button>
+                          </div>
                         </div>
 
                         {/* Table */}
