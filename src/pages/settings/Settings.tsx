@@ -296,6 +296,71 @@ const Settings = () => {
     }
   };
 
+  // PDF export for Control report
+  const controlContainerRef = useRef<HTMLDivElement | null>(null);
+  const handleDownloadControlPDF = async (): Promise<void> => {
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf') as unknown as Promise<{ jsPDF: any }>,
+      ]);
+
+      const target = controlContainerRef.current;
+      if (!target) return;
+
+      const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Header metadata
+      const headerY = 12;
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.src = WasacLogo as unknown as string;
+        await new Promise(resolve => {
+          logoImg.onload = resolve;
+          logoImg.onerror = resolve;
+        });
+        try {
+          pdf.addImage(logoImg, 'PNG', 10, headerY - 6, 18, 18);
+        } catch {}
+      } catch {}
+
+      const generatedAt = new Date();
+      const reportId = `CTRL-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${generatedAt.getHours()}${generatedAt.getMinutes()}${generatedAt.getSeconds()}`;
+      const provinceName = provinceData[selectedProvince].name;
+      pdf.setFontSize(12);
+      pdf.text('Control Report', 32, headerY);
+      pdf.setFontSize(9);
+      pdf.text(`Province: ${provinceName}`, 32, headerY + 6);
+      pdf.text(`Report ID: ${reportId}`, 32, headerY + 12);
+      pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 32, headerY + 18);
+      pdf.text(`Range: ${dateRanges.find(r => r.value === dateRange)?.label ?? dateRange}`, 32, headerY + 24);
+      pdf.setDrawColor(200);
+      pdf.line(10, headerY + 26, pageWidth - 10, headerY + 26);
+
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let position = 0;
+      while (position < imgHeight) {
+        const topOffset = headerY + 30;
+        const y = position === 0 ? topOffset : 10;
+        pdf.addImage(imgData, 'PNG', 10, y - position, imgWidth, imgHeight);
+        position += pageHeight - 20;
+        if (position < imgHeight) pdf.addPage();
+      }
+
+      const filename = `Control_Report_${provinceName}_${dateRange}.pdf`;
+      pdf.save(filename);
+    } catch (e) {
+      console.error('Control PDF export failed', e);
+    }
+  };
+
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
 
@@ -1337,11 +1402,11 @@ const Settings = () => {
                         {/* Title + Download */}
                         <div className="flex justify-between items-center mb-3">
                           <span className="font-semibold text-lg">Control Report</span>
-                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
+                          <Button onClick={handleDownloadControlPDF} className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
                         </div>
 
                         {/* Table */}
-                        <div className="overflow-x-auto">
+                        <div ref={controlContainerRef} className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="text-left text-gray-500 border-b">
