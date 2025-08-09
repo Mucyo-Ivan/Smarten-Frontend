@@ -205,6 +205,42 @@ const Settings = () => {
     }
   };
 
+  // PDF export for Leakage report
+  const leakageContainerRef = useRef<HTMLDivElement | null>(null);
+  const handleDownloadLeakagePDF = async (): Promise<void> => {
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf') as unknown as Promise<{ jsPDF: any }>,
+      ]);
+
+      const target = leakageContainerRef.current;
+      if (!target) return;
+
+      const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let position = 0;
+      while (position < imgHeight) {
+        pdf.addImage(imgData, 'PNG', 10, 10 - position, imgWidth, imgHeight);
+        position += pageHeight - 20;
+        if (position < imgHeight) pdf.addPage();
+      }
+
+      const provinceName = provinceData[selectedProvince].name;
+      const filename = `Leakage_Report_${provinceName}_${dateRange}.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Leakage PDF export failed', error);
+    }
+  };
+
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
 
@@ -1050,10 +1086,13 @@ const Settings = () => {
                         {/* Leakage Report Card */}
                         <div className="flex justify-between items-center mb-4">
                           <span className="font-semibold text-lg">Leakage Report</span>
-                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2" onClick={downloadLeakageCSV}><Download className="w-4 h-4" />Download</Button>
+                          <div className="flex gap-2">
+                            <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2" onClick={handleDownloadLeakagePDF}><Download className="w-4 h-4" />PDF</Button>
+                            <Button className="bg-gray-200 hover:bg-gray-300 text-gray-800 flex gap-2" onClick={downloadLeakageCSV}><Download className="w-4 h-4" />CSV</Button>
+                          </div>
                         </div>
                         {leakageHistory.map((l, idx) => (
-                          <div key={l.id} className="w-full max-w-5xl mx-auto mb-10">
+                          <div key={l.id} ref={idx === 0 ? leakageContainerRef : undefined} className="w-full max-w-5xl mx-auto mb-10">
                             {/* Digital date header */}
                             <div className="flex justify-center mb-2">
                               <span className="font-major-mono-display text-2xl tracking-widest text-black">{l.day}-{l.date.split('-').reverse().join('/')}</span>
