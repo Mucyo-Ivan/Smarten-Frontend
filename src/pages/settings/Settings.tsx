@@ -31,6 +31,7 @@ import SouthIcon from '../../../Smarten Assets/assets/South.svg';
 import EastIcon from '../../../Smarten Assets/assets/East.svg';
 import WestIcon from '../../../Smarten Assets/assets/West.svg';
 import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
+import WasacLogo from '../../../Smarten Assets/assets/WASAC 1.png';
 import SuccessImage from '../../../Smarten Assets/assets/Success.png';
 
 const Settings = () => {
@@ -223,17 +224,50 @@ const Settings = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
+      // Header: logo + metadata
+      const headerY = 12;
+      try {
+        // Convert logo to base64 via HTMLCanvas for reliability
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.src = WasacLogo as unknown as string;
+        await new Promise(resolve => {
+          logoImg.onload = resolve;
+          logoImg.onerror = resolve;
+        });
+        // Draw logo if available
+        try {
+          pdf.addImage(logoImg, 'PNG', 10, headerY - 6, 18, 18);
+        } catch {}
+      } catch {}
+
+      const generatedAt = new Date();
+      const reportId = `LEAK-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${generatedAt.getHours()}${generatedAt.getMinutes()}${generatedAt.getSeconds()}`;
+      const provinceName = provinceData[selectedProvince].name;
+      pdf.setFontSize(12);
+      pdf.text(`Leakage Report`, 32, headerY);
+      pdf.setFontSize(9);
+      pdf.text(`Province: ${provinceName}`, 32, headerY + 6);
+      pdf.text(`Report ID: ${reportId}`, 32, headerY + 12);
+      pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 32, headerY + 18);
+      pdf.text(`Range: ${dateRanges.find(r => r.value === dateRange)?.label ?? dateRange}`, 32, headerY + 24);
+
+      // Horizontal rule
+      pdf.setDrawColor(200);
+      pdf.line(10, headerY + 26, pageWidth - 10, headerY + 26);
+
       const imgWidth = pageWidth - 20;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       let position = 0;
       while (position < imgHeight) {
-        pdf.addImage(imgData, 'PNG', 10, 10 - position, imgWidth, imgHeight);
+        const topOffset = headerY + 30; // leave space for header on first page
+        const y = (position === 0) ? topOffset : 10;
+        pdf.addImage(imgData, 'PNG', 10, y - position, imgWidth, imgHeight);
         position += pageHeight - 20;
         if (position < imgHeight) pdf.addPage();
       }
 
-      const provinceName = provinceData[selectedProvince].name;
       const filename = `Leakage_Report_${provinceName}_${dateRange}.pdf`;
       pdf.save(filename);
     } catch (error) {
