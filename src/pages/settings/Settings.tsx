@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  // Notification settings
+  // Notification settings`
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [leakageAlerts, setLeakageAlerts] = useState(true);
@@ -69,6 +69,7 @@ const Settings = () => {
       name: 'North',
       icon: NorthIcon,
       color: 'bg-yellow-100',
+      textColor: '#FFD600',
       districts: [
         { id: 1, name: 'Musanze', status: 'underflow', value: 24 },
         { id: 2, name: 'Gakenke', status: 'normal', value: 24 },
@@ -81,6 +82,7 @@ const Settings = () => {
       name: 'South',
       icon: SouthIcon,
       color: 'bg-blue-100',
+      textColor: '#338CF5',
       districts: [
         { id: 1, name: 'Huye', status: 'underflow', value: 24 },
         { id: 2, name: 'Nyanza', status: 'normal', value: 24 },
@@ -96,6 +98,7 @@ const Settings = () => {
       name: 'East',
       icon: EastIcon,
       color: 'bg-orange-100',
+      textColor: '#F59E0B',
       districts: [
         { id: 1, name: 'Bugesera', status: 'underflow', value: 24 },
         { id: 2, name: 'Nyagatare', status: 'normal', value: 24 },
@@ -110,6 +113,7 @@ const Settings = () => {
       name: 'West',
       icon: WestIcon,
       color: 'bg-green-100',
+      textColor: '#22C55E',
       districts: [
         { id: 1, name: 'Nyabihu', status: 'underflow', value: 24 },
         { id: 2, name: 'Karongi', status: 'normal', value: 24 },
@@ -124,6 +128,7 @@ const Settings = () => {
       name: 'Kigali',
       icon: KigaliIcon,
       color: 'bg-purple-100',
+      textColor: '#8B5CF6',
       districts: [
         { id: 1, name: 'Gasabo', status: 'underflow', value: 24 },
         { id: 2, name: 'Nyarugenge', status: 'normal', value: 24 },
@@ -137,6 +142,67 @@ const Settings = () => {
     { value: 'past-week', label: 'Past week' },
     { value: 'past-month', label: 'Past Month' },
   ];
+
+  // Helper to build section headers for the Readings view based on selected range.
+  // We keep this client-side for now (awaiting backend integration) to match the model screens.
+  const getReadingSections = (range: string): string[] => {
+    switch (range) {
+      case 'yesterday':
+        return ['00:00 AM', '01:00 AM'];
+      case 'past-week':
+        // Sample last-week day headers in the model style
+        return ['MON-24/03/2025 TO SUN-30/03/2025', 'MON-31/03/2025 TO SUN-06/04/2025'];
+      case 'past-month':
+        // Month headers in the model style
+        return ['JAN 2025', 'FEB 2025'];
+      default:
+        return ['00:00 AM'];
+    }
+  };
+
+  // PDF export (client-side) for the currently visible Readings section.
+  // This uses html2canvas + jsPDF pattern; lazily loaded to keep bundle size lean.
+  const readingsContainerRef = useRef<HTMLDivElement | null>(null);
+  const handleDownloadReadingsPDF = async (): Promise<void> => {
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf') as unknown as Promise<{ jsPDF: any }>,
+      ]);
+
+      const target = readingsContainerRef.current;
+      if (!target) return;
+
+      const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculate image size to fit page while keeping aspect ratio
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let y = 10;
+      if (imgHeight < pageHeight - 20) {
+        pdf.addImage(imgData, 'PNG', 10, y, imgWidth, imgHeight);
+      } else {
+        // Split across pages if content is tall
+        let position = 0;
+        while (position < imgHeight) {
+          pdf.addImage(imgData, 'PNG', 10, 10 - position, imgWidth, imgHeight);
+          position += pageHeight - 20;
+          if (position < imgHeight) pdf.addPage();
+        }
+      }
+
+      const provinceName = provinceData[selectedProvince].name;
+      const filename = `Readings_${provinceName}_${dateRange}.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error('PDF export failed', error);
+    }
+  };
 
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -1054,37 +1120,83 @@ const Settings = () => {
                     )}
                     {/* Readings Report Card */}
                     {historyTab === 'readings' && (
-                      <div className="bg-white rounded-xl shadow p-6 w-full max-w-5xl mx-auto">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-semibold text-lg">Readings Report</span>
-                          <Button className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
+                      <div ref={readingsContainerRef} className="bg-white rounded-xl shadow p-6 w-full max-w-6xl mx-auto">
+                        {/* Header Row: time range on the left, centered title, download button on right */}
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          {/* Time range top-left styled as in models */}
+                          <div className="mr-auto flex items-center gap-2">
+                            <Select value={dateRange} onValueChange={setDateRange}>
+                              <SelectTrigger className="w-40 h-8 rounded-md border-gray-300 text-sm font-semibold">
+                                <SelectValue placeholder="Range" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {dateRanges.map(r => (
+                                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <span className="font-semibold text-lg">Readings Report</span>
+                          </div>
+                          <div className="ml-auto flex items-center gap-3">
+                            <Button onClick={() => handleDownloadReadingsPDF()} className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />Download</Button>
+                          </div>
                         </div>
-                        {/* Digital Date/Time/Month label - mock for now */}
-                        <div className="flex justify-center mb-6">
-                          <span className="font-mono text-2xl tracking-widest text-gray-700">00:00 AM</span>
+
+                        {/* Province selector row matching previous dropdown style */}
+                        <div className="flex items-center gap-2 mb-4">
+                          <img src={provinceData[selectedProvince].icon} alt={provinceData[selectedProvince].name} className="w-8 h-8" />
+                          <span className="font-bold text-lg" style={{ color: provinceData[selectedProvince].textColor }}>{provinceData[selectedProvince].name}</span>
+                          <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                            <SelectTrigger className="w-32 ml-2 h-9 rounded-md border-gray-300 text-sm font-semibold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="north">North</SelectItem>
+                              <SelectItem value="south">South</SelectItem>
+                              <SelectItem value="east">East</SelectItem>
+                              <SelectItem value="west">West</SelectItem>
+                              <SelectItem value="kigali">Kigali</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        {/* District Cards Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                          {provinceData[selectedProvince].districts.map(d => (
-                            <div key={d.id} className={`${provinceData[selectedProvince].color} rounded-xl p-4 flex flex-col items-start shadow-md min-w-[180px]`}>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="w-7 h-7 rounded-full bg-yellow-400 text-white flex items-center justify-center font-bold">{d.id}</span>
-                                <span className="font-semibold text-lg">{d.name}</span>
-                              </div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-                                <span className="text-sm font-medium">Waterflow</span>
-                                <span className="text-sm font-bold ml-2">{d.value} cm³/h</span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-gray-500">Status</span>
-                                {d.status === 'normal' && <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full font-semibold">normal</span>}
-                                {d.status === 'underflow' && <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-200 text-yellow-800 rounded-full font-semibold">underflow</span>}
-                                {d.status === 'overflow' && <span className="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full font-semibold">overflow</span>}
-                              </div>
+
+                        {/* Sections driven by range (time/day/month) */}
+                        {getReadingSections(dateRange).map((headerKey, idx) => (
+                          <div key={`${dateRange}-${idx}`} className={idx > 0 ? 'mt-8' : ''}>
+                            <div className="flex justify-center mb-6">
+                              <span className="font-major-mono-display text-2xl tracking-widest text-black">{headerKey}</span>
                             </div>
-                          ))}
-                        </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                              {provinceData[selectedProvince].districts.map(d => (
+                                <div key={`${headerKey}-${d.id}`} className={`${provinceData[selectedProvince].color} rounded-xl p-4 flex flex-col items-start shadow-md min-w-[180px]`}>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-7 h-7 rounded-full bg-yellow-400 text-white flex items-center justify-center font-bold">{d.id}</span>
+                                    <span className="font-semibold text-lg">{d.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                                    <span className="text-sm font-medium">Waterflow</span>
+                                    <span className="text-sm font-bold ml-2">{d.value} cm³/h</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-xs text-gray-500">Status</span>
+                                    {d.status === 'normal' && (
+                                      <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full font-semibold">normal</span>
+                                    )}
+                                    {d.status === 'underflow' && (
+                                      <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-200 text-yellow-800 rounded-full font-semibold">underflow</span>
+                                    )}
+                                    {d.status === 'overflow' && (
+                                      <span className="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full font-semibold">overflow</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                     {/* Control Section (future implementation) */}
