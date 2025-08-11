@@ -1610,7 +1610,15 @@ const Settings = () => {
 
                         {/* Table */}
                         <div ref={controlContainerRef} className="overflow-x-auto">
-                          <table className="w-full text-sm">
+                          <table className="w-full text-sm table-fixed">
+                            <colgroup>
+                              <col style={{ width: '6%' }} />
+                              <col style={{ width: '22%' }} />
+                              <col style={{ width: '32%' }} />
+                              <col style={{ width: '18%' }} />
+                              <col style={{ width: '14%' }} />
+                              <col style={{ width: '8%' }} />
+                            </colgroup>
                             <thead>
                               <tr className="text-left text-gray-500 border-b">
                                 <th className="py-3 px-4 w-12">№</th>
@@ -1618,6 +1626,7 @@ const Settings = () => {
                                 <th className="py-3 px-4">Location</th>
                                 <th className="py-3 px-4">Commands</th>
                                 <th className="py-3 px-4">Situation</th>
+                                <th className="py-3 px-4 text-right"> </th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1625,13 +1634,13 @@ const Settings = () => {
                                 <tr key={row.id} className="border-b last:border-0">
                                   <td className="py-3 px-4 text-gray-700">{idx + 1}</td>
                                   <td className="py-3 px-4">
-                                    <div className="flex flex-col leading-tight">
+                                    <div className="flex flex-col leading-tight whitespace-nowrap">
                                       <span className="font-semibold text-gray-800">{row.dateLabel}</span>
                                       <span className="text-[10px] text-gray-400">{row.time}</span>
                                     </div>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <div className="flex items-center gap-2 text-gray-800">
+                                    <div className="flex items-center gap-2 text-gray-800 whitespace-nowrap">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                                       {row.location}
                                     </div>
@@ -1645,11 +1654,13 @@ const Settings = () => {
                                   </td>
                                   <td className="py-3 px-4">
                                     {row.situation === 'normal' ? (
-                                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">normal</span>
+                                      <span className="text-xs font-semibold" style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 9999, backgroundColor: '#D1FAE5', color: '#047857' }}>normal</span>
                                     ) : (
-                                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">leakage</span>
+                                      <span className="text-xs font-semibold" style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 9999, backgroundColor: '#DBEAFE', color: '#2563EB' }}>leakage</span>
                                     )}
-                                    <button onClick={() => setShowControlDetail(row)} className="ml-3 text-blue-600 hover:underline text-xs font-medium">view more</button>
+                                  </td>
+                                  <td className="py-3 px-4 text-right">
+                                    <button onClick={() => setShowControlDetail(row)} className="text-blue-600 hover:underline text-xs font-medium whitespace-nowrap">view more</button>
                                   </td>
                                 </tr>
                               ))}
