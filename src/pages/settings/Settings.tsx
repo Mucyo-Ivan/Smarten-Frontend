@@ -203,8 +203,9 @@ const Settings = () => {
 
   // --- PDF HEADER/FOOTER REFINEMENT FOR ALL REPORTS ---
   // Helper for faint color (opacity ~10%)
-  const faintBlue = 'rgba(59,130,246,0.10)'; // for control/readings
-  const faintRed = 'rgba(220,53,69,0.10)'; // for leakage
+  const faintBlue = 'rgba(99, 172, 255, 0.1)'; // for control/readings
+  const mainBlue = '#338CF5';
+  const mainBlueText = [51,140,245];
 
   // --- Readings PDF ---
   const readingsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -224,8 +225,8 @@ const Settings = () => {
       const generatedAt = new Date();
       const reportId = `READ-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${String(generatedAt.getHours()).padStart(2,'0')}${String(generatedAt.getMinutes()).padStart(2,'0')}${String(generatedAt.getSeconds()).padStart(2,'0')}`;
       const provinceName = provinceData[selectedProvince].name;
-      // Faint header background (or remove for ultra-minimal)
-      pdf.setFillColor(240, 248, 255, 0.10); // very faint blue
+      // Faint header background
+      pdf.setFillColor(51,140,245, 0.10); // very faint blue
       pdf.rect(5, 5, pageWidth - 10, 30, 'F');
       // Subtle line below header
       pdf.setDrawColor(200);
@@ -244,18 +245,18 @@ const Settings = () => {
           pdf.addImage(logoImg, 'PNG', 10, 10, 12, 12);
         } catch {}
       } catch {}
-      // Header text (smaller, modern)
+      // Header text (smaller, modern, blue)
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(30, 41, 59);
+      pdf.setTextColor(...mainBlueText);
       pdf.text('WATER READINGS REPORT', 25, 16);
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 100, 100);
       pdf.text('WASAC', 25, 22);
-      // Metadata (smaller)
+      // Metadata (smaller, blue)
       pdf.setFontSize(7);
-      pdf.setTextColor(30, 41, 59);
+      pdf.setTextColor(...mainBlueText);
       pdf.text(`Province: ${provinceName}`, 10, 30);
       pdf.text(`ID: ${reportId}`, 60, 30);
       pdf.text(`Date: ${generatedAt.toLocaleDateString()}`, 110, 30);
@@ -272,11 +273,11 @@ const Settings = () => {
       while (position < imgHeight) {
         if (pageNumber > 1) {
           pdf.addPage();
-          pdf.setFillColor(240, 248, 255, 0.10);
+          pdf.setFillColor(51,140,245, 0.10);
           pdf.rect(5, 5, pageWidth - 10, 12, 'F');
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(30, 41, 59);
+          pdf.setTextColor(...mainBlueText);
           pdf.text(`Readings Report - ${provinceName} (Continued)`, 10, 13);
           pdf.setDrawColor(200);
           pdf.setLineWidth(0.3);
@@ -284,17 +285,17 @@ const Settings = () => {
         }
         const yPos = pageNumber === 1 ? headerHeight : 20;
         pdf.addImage(imgData, 'PNG', 10, yPos - position, imgWidth, imgHeight);
-        // Faint footer background (or remove for ultra-minimal)
-        pdf.setFillColor(240, 248, 255, 0.10);
+        // Faint footer background
+        pdf.setFillColor(51,140,245, 0.10);
         pdf.rect(5, pageHeight - footerHeight, pageWidth - 10, footerHeight - 2, 'F');
         // Subtle line above footer
         pdf.setDrawColor(200);
         pdf.setLineWidth(0.3);
         pdf.line(5, pageHeight - footerHeight, pageWidth - 5, pageHeight - footerHeight);
-        // Footer text (smaller, modern)
+        // Footer text (smaller, blue)
         pdf.setFontSize(7);
         pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(100, 100, 100);
+        pdf.setTextColor(...mainBlueText);
         pdf.text('WASAC | KG 7 Ave, Kigali, Rwanda | +250 788 300 000 | info@wasac.rw', 10, pageHeight - 8);
         pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 35, pageHeight - 8);
         pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 10, pageHeight - 3);
@@ -326,8 +327,8 @@ const Settings = () => {
       const generatedAt = new Date();
       const reportId = `LEAK-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${String(generatedAt.getHours()).padStart(2,'0')}${String(generatedAt.getMinutes()).padStart(2,'0')}${String(generatedAt.getSeconds()).padStart(2,'0')}`;
       const provinceName = provinceData[selectedProvince].name;
-      // Faint header background (or remove for ultra-minimal)
-      pdf.setFillColor(220, 53, 69, 0.10); // very faint red
+      // Faint header background
+      pdf.setFillColor(51,140,245, 0.10); // use blue for all
       pdf.rect(5, 5, pageWidth - 10, 30, 'F');
       pdf.setDrawColor(200);
       pdf.setLineWidth(0.3);
@@ -345,18 +346,18 @@ const Settings = () => {
           pdf.addImage(logoImg, 'PNG', 10, 10, 12, 12);
         } catch {}
       } catch {}
-      // Header text (smaller, modern)
+      // Header text (smaller, modern, blue)
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(139, 35, 46);
+      pdf.setTextColor(...mainBlueText);
       pdf.text('WATER LEAKAGE REPORT', 25, 16);
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 100, 100);
       pdf.text('WASAC', 25, 22);
-      // Metadata (smaller)
+      // Metadata (smaller, blue)
       pdf.setFontSize(7);
-      pdf.setTextColor(139, 35, 46);
+      pdf.setTextColor(...mainBlueText);
       pdf.text(`Province: ${provinceName}`, 10, 30);
       pdf.text(`ID: ${reportId}`, 60, 30);
       pdf.text(`Date: ${generatedAt.toLocaleDateString()}`, 110, 30);
@@ -373,11 +374,11 @@ const Settings = () => {
       while (position < imgHeight) {
         if (pageNumber > 1) {
           pdf.addPage();
-          pdf.setFillColor(220, 53, 69, 0.10);
+          pdf.setFillColor(51,140,245, 0.10);
           pdf.rect(5, 5, pageWidth - 10, 12, 'F');
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(139, 35, 46);
+          pdf.setTextColor(...mainBlueText);
           pdf.text(`Leakage Report - ${provinceName} (Continued)`, 10, 13);
           pdf.setDrawColor(200);
           pdf.setLineWidth(0.3);
@@ -385,14 +386,14 @@ const Settings = () => {
         }
         const yPos = pageNumber === 1 ? headerHeight : 20;
         pdf.addImage(imgData, 'PNG', 10, yPos - position, imgWidth, imgHeight);
-        pdf.setFillColor(220, 53, 69, 0.10);
+        pdf.setFillColor(51,140,245, 0.10);
         pdf.rect(5, pageHeight - footerHeight, pageWidth - 10, footerHeight - 2, 'F');
         pdf.setDrawColor(200);
         pdf.setLineWidth(0.3);
         pdf.line(5, pageHeight - footerHeight, pageWidth - 5, pageHeight - footerHeight);
         pdf.setFontSize(7);
         pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(139, 35, 46);
+        pdf.setTextColor(...mainBlueText);
         pdf.text('WASAC | Emergency: +250 788 300 001 | emergency@wasac.rw', 10, pageHeight - 8);
         pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 35, pageHeight - 8);
         pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 10, pageHeight - 3);
@@ -416,6 +417,7 @@ const Settings = () => {
       ]);
       const target = controlContainerRef.current;
       if (!target) return;
+      // Use html2canvas to capture the actual HTML as rendered (pixel-perfect)
       const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -424,7 +426,7 @@ const Settings = () => {
       const generatedAt = new Date();
       const reportId = `CTRL-${generatedAt.getFullYear()}${String(generatedAt.getMonth()+1).padStart(2,'0')}${String(generatedAt.getDate()).padStart(2,'0')}-${String(generatedAt.getHours()).padStart(2,'0')}${String(generatedAt.getMinutes()).padStart(2,'0')}${String(generatedAt.getSeconds()).padStart(2,'0')}`;
       const provinceName = provinceData[selectedProvince].name;
-      pdf.setFillColor(59, 130, 246, 0.10); // very faint blue
+      pdf.setFillColor(51,140,245, 0.10); // very faint blue
       pdf.rect(5, 5, pageWidth - 10, 30, 'F');
       pdf.setDrawColor(200);
       pdf.setLineWidth(0.3);
@@ -443,14 +445,14 @@ const Settings = () => {
       } catch {}
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
+      pdf.setTextColor(...mainBlueText);
       pdf.text('WATER CONTROL REPORT', 25, 16);
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 100, 100);
       pdf.text('WASAC', 25, 22);
       pdf.setFontSize(7);
-      pdf.setTextColor(37, 99, 235);
+      pdf.setTextColor(...mainBlueText);
       pdf.text(`Province: ${provinceName}`, 10, 30);
       pdf.text(`ID: ${reportId}`, 60, 30);
       pdf.text(`Date: ${generatedAt.toLocaleDateString()}`, 110, 30);
@@ -466,11 +468,11 @@ const Settings = () => {
       while (position < imgHeight) {
         if (pageNumber > 1) {
           pdf.addPage();
-          pdf.setFillColor(59, 130, 246, 0.10);
+          pdf.setFillColor(51,140,245, 0.10);
           pdf.rect(5, 5, pageWidth - 10, 12, 'F');
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(37, 99, 235);
+          pdf.setTextColor(...mainBlueText);
           pdf.text(`Control Report - ${provinceName} (Continued)`, 10, 13);
           pdf.setDrawColor(200);
           pdf.setLineWidth(0.3);
@@ -478,14 +480,14 @@ const Settings = () => {
         }
         const yPos = pageNumber === 1 ? headerHeight : 20;
         pdf.addImage(imgData, 'PNG', 10, yPos - position, imgWidth, imgHeight);
-        pdf.setFillColor(59, 130, 246, 0.10);
+        pdf.setFillColor(51,140,245, 0.10);
         pdf.rect(5, pageHeight - footerHeight, pageWidth - 10, footerHeight - 2, 'F');
         pdf.setDrawColor(200);
         pdf.setLineWidth(0.3);
         pdf.line(5, pageHeight - footerHeight, pageWidth - 5, pageHeight - footerHeight);
         pdf.setFontSize(7);
         pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(37, 99, 235);
+        pdf.setTextColor(...mainBlueText);
         pdf.text('WASAC | Control Center: +250 788 300 002 | operations@wasac.rw', 10, pageHeight - 8);
         pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 35, pageHeight - 8);
         pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 10, pageHeight - 3);
