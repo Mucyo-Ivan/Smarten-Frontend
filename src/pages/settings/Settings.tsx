@@ -165,6 +165,9 @@ const Settings = () => {
     return baseControlRows.map(r => ({ ...r }));
   };
 
+  // State for control detail modal/page
+  const [showControlDetail, setShowControlDetail] = useState<null | ControlRow>(null);
+
   // CSV export for Control report
   const downloadControlCSV = () => {
     const rows = getControlRows(selectedProvince, dateRange);
@@ -205,7 +208,7 @@ const Settings = () => {
   // Helper for faint color (opacity ~10%)
   const faintBlue = 'rgba(99, 172, 255, 0.1)'; // for control/readings
   const mainBlue = '#338CF5';
-  const mainBlueText = [51,140,245];
+  const mainBlueText = [51, 140, 245] as const;
 
   // --- Readings PDF ---
   const readingsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -252,7 +255,7 @@ const Settings = () => {
       pdf.text('WATER READINGS REPORT', 25, 16);
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 100, 100);
+      pdf.setTextColor(...mainBlueText);
       pdf.text('WASAC', 25, 22);
       // Metadata (smaller, blue)
       pdf.setFontSize(7);
@@ -353,7 +356,7 @@ const Settings = () => {
       pdf.text('WATER LEAKAGE REPORT', 25, 16);
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 100, 100);
+      pdf.setTextColor(...mainBlueText);
       pdf.text('WASAC', 25, 22);
       // Metadata (smaller, blue)
       pdf.setFontSize(7);
@@ -409,6 +412,7 @@ const Settings = () => {
 
   // --- CONTROL PDF ---
   const controlContainerRef = useRef<HTMLDivElement | null>(null);
+  const controlDetailRef = useRef<HTMLDivElement | null>(null);
   const handleDownloadControlPDF = async (): Promise<void> => {
     try {
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
@@ -449,7 +453,7 @@ const Settings = () => {
       pdf.text('WATER CONTROL REPORT', 25, 16);
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 100, 100);
+      pdf.setTextColor(...mainBlueText);
       pdf.text('WASAC', 25, 22);
       pdf.setFontSize(7);
       pdf.setTextColor(...mainBlueText);
@@ -498,6 +502,62 @@ const Settings = () => {
       pdf.save(filename);
     } catch (e) {
       console.error('Control PDF export failed', e);
+    }
+  };
+
+  // Control detail PDF (for a single district view)
+  const handleDownloadControlDetailPDF = async (): Promise<void> => {
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf') as unknown as Promise<{ jsPDF: any }>,
+      ]);
+      const target = controlDetailRef.current;
+      if (!target) return;
+      const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const generatedAt = new Date();
+      const provinceName = provinceData[selectedProvince].name;
+
+      // Minimal header in faint blue
+      pdf.setFillColor(51, 140, 245, 0.10);
+      pdf.rect(5, 5, pageWidth - 10, 20, 'F');
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.src = WasacLogo as unknown as string;
+        await new Promise(resolve => { logoImg.onload = resolve; logoImg.onerror = resolve; });
+        try { pdf.addImage(logoImg, 'PNG', 10, 8, 10, 10); } catch {}
+      } catch {}
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(...mainBlueText);
+      pdf.text(`Control Report Detail - ${provinceName}`, 25, 13);
+      pdf.setDrawColor(200);
+      pdf.line(5, 25, pageWidth - 5, 25);
+
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const yStart = 30;
+      if (yStart + imgHeight > pageHeight - 15) {
+        const scale = (pageHeight - yStart - 15) / imgHeight;
+        pdf.addImage(imgData, 'PNG', 10, yStart, imgWidth * scale, imgHeight * scale);
+      } else {
+        pdf.addImage(imgData, 'PNG', 10, yStart, imgWidth, imgHeight);
+      }
+
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...mainBlueText);
+      pdf.text(`Generated: ${generatedAt.toLocaleString()}`, 10, pageHeight - 8);
+      pdf.text('WASAC | Control Center: +250 788 300 002 | operations@wasac.rw', 10, pageHeight - 3);
+
+      pdf.save(`WASAC_Control_Detail_${provinceName}_${generatedAt.toISOString().slice(0,10)}.pdf`);
+    } catch (e) {
+      console.error('Control detail PDF export failed', e);
     }
   };
 
@@ -1589,12 +1649,55 @@ const Settings = () => {
                                     ) : (
                                       <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">leakage</span>
                                     )}
+                                    <button onClick={() => setShowControlDetail(row)} className="ml-3 text-blue-600 hover:underline text-xs font-medium">view more</button>
                                   </td>
                                 </tr>
                               ))}
                             </tbody>
                           </table>
                         </div>
+
+                        {/* Control Detail Modal/Overlay */}
+                        {showControlDetail && (
+                          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl p-6 relative" ref={controlDetailRef}>
+                              <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-800" onClick={() => setShowControlDetail(null)}>✕</button>
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-800">Control Report • {showControlDetail.location}</h3>
+                                <div className="flex gap-2">
+                                  <Button onClick={handleDownloadControlDetailPDF} className="bg-blue-500 hover:bg-blue-600 text-white flex gap-2"><Download className="w-4 h-4" />PDF</Button>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="space-y-1">
+                                  <div className="text-xs text-gray-500">Province</div>
+                                  <div className="text-sm font-medium text-gray-800">{provinceData[selectedProvince].name}</div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-xs text-gray-500">Date</div>
+                                  <div className="text-sm font-medium text-gray-800">{showControlDetail.dateLabel} • {showControlDetail.time}</div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-xs text-gray-500">Command</div>
+                                  <div className="text-sm font-semibold {showControlDetail.command === 'ON' ? 'text-green-600' : 'text-blue-600'}">{showControlDetail.command}</div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-xs text-gray-500">Situation</div>
+                                  <div className="text-sm">
+                                    {showControlDetail.situation === 'normal' ? (
+                                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">normal</span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">leakage</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="border rounded-lg p-4">
+                                <div className="text-sm text-gray-700">Detailed control actions, operator notes, device IDs and timestamps can be displayed here. This section mirrors the design style of the website for full fidelity.</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
