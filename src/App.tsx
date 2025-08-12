@@ -16,6 +16,8 @@ import Monitor from "./pages/monitor/Monitor";
 import Leakage from "./pages/leakage/Leakage";
 import Users from "./pages/users/Users";
 import Settings from "./pages/settings/Settings";
+import Profile from "./pages/profile/Profile";
+import EditProfile from "./pages/profile/EditProfile";
 import DeviceList from "./pages/device/DeviceList";
 import DeviceDetail from "./pages/device/DeviceDetail";
 import LeakageReport from "./pages/leakage/LeakageReport";
@@ -63,6 +65,8 @@ const App = () => (
             <Route path="/users" element={<Users />} />
             <Route path="/users/:userId" element={<UserDetail />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

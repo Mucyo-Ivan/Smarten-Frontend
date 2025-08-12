@@ -317,19 +317,19 @@ const Control = () => {
             <SectionHeader title="Stats" />
             
                 <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 min-h-[350px]">
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="flex justify-center gap-4">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="flex justify-center gap-3">
                       {regions.slice(0, 3).map((region) => (
-                        <div key={region.id} className="flex flex-col items-center justify-center p-2 rounded-full" style={{ background: `${region.color}33`, width: '100px', height: '100px' }}>
-                          <img src={region.icon} alt={region.name} className="w-14 h-14" />
+                        <div key={region.id} className="flex flex-col items-center justify-center p-2 rounded-full" style={{ background: `${region.color}33`, width: '80px', height: '80px' }}>
+                          <img src={region.icon} alt={region.name} className="w-10 h-10" />
                           <span className="text-xs text-black font-bold">20cmd</span>
                         </div>
                       ))}
                     </div>
-                    <div className="flex justify-center gap-4">
+                    <div className="flex justify-center gap-3">
                       {regions.slice(3, 5).map((region) => (
-                        <div key={region.id} className="flex flex-col items-center justify-center p-2 rounded-full" style={{ background: `${region.color}33`, width: '100px', height: '100px' }}>
-                          <img src={region.icon} alt={region.name} className="w-14 h-14" />
+                        <div key={region.id} className="flex flex-col items-center justify-center p-2 rounded-full" style={{ background: `${region.color}33`, width: '80px', height: '80px' }}>
+                          <img src={region.icon} alt={region.name} className="w-10 h-10" />
                           <span className="text-xs text-black font-bold">20cmd</span>
                         </div>
                       ))}

@@ -41,6 +41,9 @@ const Settings = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  // Profile avatar local preview
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   
   // Notification settings`
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -733,86 +736,44 @@ const Settings = () => {
                     <User className="w-5 h-5" />
                     Profile Information
                   </CardTitle>
-                  <CardDescription>Manage your personal information and account details</CardDescription>
+                  <CardDescription>View your personal information</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <div className="space-y-6">
                     <div className="flex items-center gap-6 mb-6">
-                      <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">W</span>
+                      <div className="w-24 h-24 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center">
+                        {profileAvatarUrl ? (
+                          <img src={profileAvatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white text-2xl font-bold">W</span>
+                        )}
+                      </div>
+                      <div className="flex gap-3">
+                        <Button variant="outline" onClick={() => photoInputRef.current?.click()}>Change Photo</Button>
+                        <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f=e.target.files?.[0]; if(f){ setProfileAvatarUrl(URL.createObjectURL(f)); } }} />
+                        <Button variant="ghost" className="text-red-600" onClick={() => setProfileAvatarUrl(null)}>Remove</Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div>
+                        <div className="text-xs text-gray-500">Full Name</div>
+                        <div className="text-sm font-medium">{name}</div>
                       </div>
                       <div>
-                        <Button variant="outline" className="mr-3">Change Photo</Button>
-                        <Button variant="ghost" className="text-red-600">Remove</Button>
+                        <div className="text-xs text-gray-500">Email</div>
+                        <div className="text-sm font-medium">{email}</div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input 
-                          id="name" 
-                          value={name} 
-                          onChange={(e) => setName(e.target.value)} 
-                          placeholder="Enter your full name" 
-                        />
+                      <div>
+                        <div className="text-xs text-gray-500">Phone</div>
+                        <div className="text-sm font-medium">{phone}</div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input 
-                          id="email" 
-                          type="email" 
-                          value={email} 
-                          onChange={(e) => setEmail(e.target.value)} 
-                          placeholder="Enter your email" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input 
-                          id="phone" 
-                          value={phone} 
-                          onChange={(e) => setPhone(e.target.value)} 
-                          placeholder="Enter your phone number" 
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select defaultValue="admin">
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">System Administrator</SelectItem>
-                            <SelectItem value="operator">Operator</SelectItem>
-                            <SelectItem value="viewer">Viewer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <textarea 
-                        id="bio"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows={3}
-                        placeholder="Tell us about yourself..."
-                      />
                     </div>
 
                     <div className="flex justify-end">
-                      <Button type="submit" className="bg-blue-500 hover:bg-blue-600 gap-2">
-                        <Save className="w-4 h-4" />
-                        Save Changes
-                      </Button>
+                      <Button onClick={() => window.location.assign('/profile')}>Open Profile Page</Button>
                     </div>
-                  </form>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
