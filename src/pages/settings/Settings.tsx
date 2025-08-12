@@ -742,16 +742,7 @@ const Settings = () => {
                   <div className="space-y-6">
                     <div className="flex items-center gap-6 mb-6">
                       <div className="w-24 h-24 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center">
-                        {profileAvatarUrl ? (
-                          <img src={profileAvatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-white text-2xl font-bold">W</span>
-                        )}
-                      </div>
-                      <div className="flex gap-3">
-                        <Button variant="outline" onClick={() => photoInputRef.current?.click()}>Change Photo</Button>
-                        <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f=e.target.files?.[0]; if(f){ setProfileAvatarUrl(URL.createObjectURL(f)); } }} />
-                        <Button variant="ghost" className="text-red-600" onClick={() => setProfileAvatarUrl(null)}>Remove</Button>
+                        <span className="text-white text-2xl font-bold">W</span>
                       </div>
                     </div>
 

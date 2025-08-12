@@ -1,5 +1,8 @@
 
 import { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import SmartenLogo from '../ui/SmartenLogo';
 import { Link } from 'react-router-dom';
 
@@ -10,6 +13,7 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <div className="py-6 px-6">
@@ -21,6 +25,11 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
       
       <div className="flex-1 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-8 rounded-lg shadow-sm">
+          <div>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </div>
           <div>
             <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-gray-100">
               {title}

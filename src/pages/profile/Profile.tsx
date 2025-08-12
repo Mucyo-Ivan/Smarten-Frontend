@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,20 +6,6 @@ import { useNavigate } from 'react-router-dom';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
-  const handleChangePhoto = () => {
-    fileInputRef.current?.click();
-  };
-
-  const onFileSelected: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setAvatarUrl(url);
-    // In a real app, upload file here and persist
-  };
 
   return (
     <MainLayout title="Profile">
@@ -33,16 +19,7 @@ const Profile: React.FC = () => {
             <CardContent>
               <div className="flex items-center gap-6 mb-6">
                 <div className="w-24 h-24 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center">
-                  {avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-white text-2xl font-bold">W</span>
-                  )}
-                </div>
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={handleChangePhoto}>Change Photo</Button>
-                  <input ref={fileInputRef} onChange={onFileSelected} type="file" accept="image/*" className="hidden" />
+                  <span className="text-white text-2xl font-bold">W</span>
                 </div>
               </div>
 
