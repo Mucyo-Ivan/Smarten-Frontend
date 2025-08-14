@@ -213,7 +213,7 @@ const Settings = () => {
   const mainBlue = '#338CF5';
   const mainBlueText = [51, 140, 245] as const;
 
-  // --- Readings PDF ---
+
   const readingsContainerRef = useRef<HTMLDivElement | null>(null);
   const handleDownloadReadingsPDF = async (): Promise<void> => {
     try {
