@@ -6,40 +6,71 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import SmartenLogo from '@/components/ui/SmartenLogo';
+import {loginCompany} from '@/services/api.js';
+
+
+interface FormData {
+  email: string;
+  password: string;
+}
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<FormData>({
+    email:"",
+    password:"",
+})
   const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleLogin = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    //handling login
-    
+    setError("");
+    setSuccess("");
+  
+    try {
+    const res = await loginCompany(formData);
+    setSuccess("✅ Login successful! Welcome back.");
+    console.log("Response:", res.data);
+    toast({
+      title: "Login successful",
+      description: "Welcome back to SMARTEN",
+    });
+      // ✅ Store JWT token securely
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem('user', JSON.stringify({ email: formData.email, name: 'WASAC Admin' }));
+    localStorage.setItem('isAuthenticated', 'true');
     setTimeout(() => {
-      if (email && password) {
-        localStorage.setItem('user', JSON.stringify({ email, name: 'WASAC Admin' }));
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        toast({
-          title: "Login successful",
-          description: "Welcome back to SMARTEN",
-        });
-        
-        navigate('/dashboard');
-      } else {
-        toast({
-          title: "Login failed",
-          description: "Please enter valid credentials",
-          variant: "destructive",
-        });
-      }
-      setIsLoading(false);
+      navigate("/dashboard");
     }, 1000);
+
+    }
+    catch (error) {
+      setError(error.response?.data?.message || "❌ Login failed");
+      toast({
+        title: "Login failed",
+        description: "Please enter valid credentials",
+        variant: "destructive",
+      });
+      
+    }
+    finally {
+      setIsLoading(false);
+    }
+    
+  
   };
 
   return (
@@ -86,8 +117,8 @@ const Login = () => {
             <Input
               id="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name='email'
+              onChange={handleChange}
               placeholder="e.g Jasper"
               className="w-full h-10 px-3 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               required
@@ -102,8 +133,8 @@ const Login = () => {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name='password'
+                onChange={handleChange}
                 className="w-full h-10 px-3 pr-10 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 required
               />

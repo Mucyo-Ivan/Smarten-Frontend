@@ -28,6 +28,7 @@ import ProvinceDevices from "./pages/device/ProvinceDevices";
 import ProvinceControl from "./pages/control/ProvinceControl";
 import UserDetail from "./pages/users/UserDetail";
 import Notifications from "./pages/Notifications";
+import ErrorBoundary from "./pages/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
+  <ErrorBoundary>
   <BrowserRouter>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -74,6 +76,7 @@ const App = () => (
       </QueryClientProvider>
     </ThemeProvider>
   </BrowserRouter>
+  </ErrorBoundary>
 );
 
 export default App;

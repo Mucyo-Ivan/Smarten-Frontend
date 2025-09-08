@@ -5,31 +5,77 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import {registerCompany} from '@/services/api.js';
 import SmartenLogo from '@/components/ui/SmartenLogo';
+
+
+interface FormData {
+  name: string;
+  email: string;
+  registration_number: string;
+  password: string;
+  phone:number;
+  
+}
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [birthdate, setBirthdate] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<FormData>({
+      name : "",
+      email:"",
+      registration_number:"",
+      password:"",
+      phone:0,
+  })
+
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleRegister = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-
+    setError("");
+    setSuccess("");
+  
+    try {
+    const res = await registerCompany(formData);
+    setSuccess("✅ Registered successfully! Please check your email.");
+    console.log("Response:", res.data);
+    toast({
+      title: "Account created",
+      description: "Your account has been created successfully",
+    });
+   
     setTimeout(() => {
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully",
-      });
-      navigate('/login');
-      setIsLoading(false);
+      navigate("/login");
     }, 1000);
+
+    }
+    catch (error) {
+      setError(error.response?.data?.message || "❌ Registration failed");
+      toast({
+        title: "Registration failed",
+        description: "Please enter valid credentials",
+        variant: "destructive",
+      });
+    }
+    finally {
+      setIsLoading(false);
+    }
+
+
+
   };
 
   return (
@@ -71,14 +117,14 @@ const Register = () => {
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <label htmlFor="firstName" className="block text-xs font-medium text-gray-700 mb-1">
-              First Name*
+              Business Name*
             </label>
             <Input
-              id="firstName"
+              id="BusinessName"
               type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Kayonj"
+              name="name"
+              onChange={handleChange}
+              placeholder="WASAC"
               className="w-full h-10 px-3 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -86,14 +132,28 @@ const Register = () => {
 
           <div>
             <label htmlFor="lastName" className="block text-xs font-medium text-gray-700 mb-1">
-              Last Name*
+              Business email*
             </label>
             <Input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="e.g. Jasper"
+              id="email"
+              type="email"
+              name="email"
+              onChange={handleChange}
+              placeholder="e.g. wasac@gmail.com"
+              className="w-full h-10 px-3 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-xs font-medium text-gray-700 mb-1">
+              Business phone Number*
+            </label>
+            <Input
+              id="phone"
+              type="tel"
+              name="phone"
+              onChange={handleChange}
+              placeholder="e.g. +250 7XXXXXXXX"
               className="w-full h-10 px-3 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -101,33 +161,19 @@ const Register = () => {
 
           <div>
             <label htmlFor="birthdate" className="block text-xs font-medium text-gray-700 mb-1">
-              Birthdate*
+              Business Registration Number*
             </label>
             <Input
-              id="birthdate"
+              id="registration_number"
               type="text"
-              value={birthdate}
-              onChange={(e) => setBirthdate(e.target.value)}
-              placeholder="DD/MM/YY"
+              name="registration_number"
+              onChange={handleChange}
+              // placeholder="DD/MM/YY"
               className="w-full h-10 px-3 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               required
             />
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
-              Email*
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g Jasper"
-              className="w-full h-10 px-3 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
 
           <div>
             <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-1">
@@ -137,8 +183,8 @@ const Register = () => {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name='password'
+                onChange={handleChange}
                 className="w-full h-10 px-3 pr-10 border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
@@ -150,11 +196,7 @@ const Register = () => {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            <div className="text-right mt-1">
-              <Link to="/forgot-password" className="text-xs text-blue-500 hover:text-blue-600">
-                Forgot password?
-              </Link>
-            </div>
+           
           </div>
 
           <div className="pt-2">
