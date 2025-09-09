@@ -4,7 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import SectionHeader from '@/components/ui/SectionHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { ChevronDown, Droplets, Zap, Plus } from 'lucide-react';
-import { ScheduledControl, getSmartValveLocation, sendCommand,getTodayScheduledControls } from '@/services/api.js';
+import { ScheduledControl, getSmartValveLocation, sendCommand,getTodayScheduledControls,getAllCommands,getProvinceCommandCount } from '@/services/api.js';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +38,27 @@ interface TodayScheduledControl {
   controls: Control[];
 }
 
+interface PastControl {
+  id:number;
+  command:string;
+  location:string;
+  status:string;
+
+}
+
+interface HistoryData {
+  status:string;
+  total_commands:number; 
+  commands:PastControl[];
+}
+
+
+interface ProvinceCommandCount {
+  status: string;
+  data: { [key: string]: number };
+  total_commands: number;
+}
+
 const Control = () => {
   const [locations, setLocations] = useState({});
   const [districtToProvince, setDistrictToProvince] = useState({});
@@ -57,7 +78,8 @@ const Control = () => {
   const [error, setError] = useState('');
   const { toast } = useToast();
   const [todayScheduledControl,setTodayScheduledControl] = useState<TodayScheduledControl | null>(null);
-
+  const [historyTableData, setHistoryTableData] = useState<HistoryData | null>(null);
+  const [provinceCommandCounts, setProvinceCommandCounts] = useState<ProvinceCommandCount | null>(null);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -236,12 +258,30 @@ const Control = () => {
     }
   };
   const regions = [
-    { id: 'north', name: 'North', icon: NorthIcon, color: '#FCD34D' },
-    { id: 'south', name: 'South', icon: SouthIcon, color: '#60A5FA' },
-    { id: 'east', name: 'East', icon: EastIcon, color: '#FB923C' },
-    { id: 'west', name: 'West', icon: WestIcon, color: '#22C55E' },
+    { id: 'north', name: 'Northern', icon: NorthIcon, color: '#FCD34D' },
+    { id: 'south', name: 'Southern', icon: SouthIcon, color: '#60A5FA' },
+    { id: 'east', name: 'Eastern', icon: EastIcon, color: '#FB923C' },
+    { id: 'west', name: 'Western', icon: WestIcon, color: '#22C55E' },
     { id: 'kigali', name: 'Kigali', icon: KigaliIcon, color: '#A855F7' },
   ];
+ 
+  // Fetch province command counts on mount
+  useEffect(() => {
+    const fetchProvinceCommandCounts = async () => {
+      try {
+        const res = await getProvinceCommandCount();
+        console.log("Received Province Command Counts ", res.data);
+        setProvinceCommandCounts(res.data);
+      } catch (err) {
+        console.error("Error fetching province command counts:", err);
+        setError('Failed to load province command counts');
+      }
+    };
+    fetchProvinceCommandCounts();
+  }, []);
+
+
+
   const regionStyles = {
     Northern: { icon: NorthIcon, color: '#FCD34D' },
     Southern: { icon: SouthIcon, color: '#60A5FA' },
@@ -250,21 +290,27 @@ const Control = () => {
     Kigali: { icon: KigaliIcon, color: '#A855F7' },
   };
 
-  const historyData = [
-    { id: 1, location: 'Burera', command: 'ON', situation: 'normal' },
-    { id: 2, location: 'Gicumbi', command: 'OFF', situation: 'leakage' },
-    { id: 3, location: 'Musanze', command: 'OFF', situation: 'normal' },
-    { id: 4, location: 'Gakenke', command: 'ON', situation: 'leakage' },
-    { id: 5, location: 'Rulindo', command: 'ON', situation: 'leakage' },
-  ];
 
-  const scheduledControls = [
-    { time: '07:00 AM', action: 'Turn on water in Musanze' },
-    { time: '08:00 AM', action: 'Turn off water in Nyabihu' },
-    { time: '09:00 AM', action: 'Turn on water in Base sector' },
-    { time: '09:00 AM', action: 'Turn off water in Karongi sector' },
-  ];
 
+
+  useEffect(() => {
+    const fetchCommandHistory = async () => {
+      try {
+        setIsLoading(true)
+        const res = await getAllCommands();
+        console.log("Received Command History ", res.data);
+        setHistoryTableData(res.data)
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch  Command History');
+        console.log("Failed to fetch  Command History",err.message)
+      }
+      finally{
+        setIsLoading(false)
+      }
+      
+    };
+    fetchCommandHistory ();
+  }, []);
 
   useEffect(() => {
     const fetchTodayScheduledControls = async () => {
@@ -289,20 +335,7 @@ const Control = () => {
     return location.replace('district:', '');
   };
 
-  // useEffect(()=>{
-  //   const fetchTodayScheduledControls= async () =>{
-  //     try{
-  //       const res = await getTodayScheduledControls();
-  //       console.log("Received Today Scheduled Control ", res.data)
-  //       setTodayScheduledControl(res.data)
-  //     }
-  //     catch(err:any){
-  //       setError(err)
-  //     }
 
-  //   }
-  //   fetchTodayScheduledControls();
-  // },[])
 
   const getRegionStyle = (locationKey: string) => {
     if (!locationKey) {
@@ -453,28 +486,49 @@ const Control = () => {
                           <th className="text-left py-2">N°</th>
                           <th className="text-left py-2">Location</th>
                           <th className="text-left py-2">Command</th>
-                          <th className="text-left py-2">Situation</th>
+                          <th className="text-left py-2">Status</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {historyData.map((item) => (
-                          <tr key={item.id} className="border-t border-gray-100 dark:border-gray-700">
-                            <td className="py-2">{item.id}</td>
-                            <td className="py-2">{item.location}</td>
+
+                        {historyTableData && historyTableData.commands?.length > 0 ? (
+                          historyTableData.commands.map((history)=> (
+                            <tr key={history.id} className="border-t border-gray-100 dark:border-gray-700">
+                            <td className="py-2">{history.id}</td>
+                            <td className="py-2">{getLocationName(history.location)}</td>
                             <td className="py-2">
                               <span
                                 className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                                  item.command === 'ON' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                  history.command === 'ON' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
                                 }`}
                               >
-                                {item.command}
+                                {history.command}
                               </span>
                             </td>
                             <td className="py-2">
-                              <StatusBadge status={item.situation as any} />
+                            <span
+                                 className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                   history.status === "success"
+                                     ? "bg-[#01CE68] text-white"
+                                     : history.status === "pending"
+                                     ? "bg-yellow-500 text-white"
+                                     : "bg-[#5180FF] text-white"
+                                 }`}
+                             >
+                               {history.status}
+                             </span>
+
+
+                              {/* <StatusBadge status={history.status} /> */}
                             </td>
                           </tr>
-                        ))}
+                          ))
+
+                        ) :(
+                          <tr>No past History</tr>
+                        )}
+                        
+                     
                       </tbody>
                     </table>
                   </div>
@@ -585,7 +639,7 @@ const Control = () => {
                       </form>
                     </div>
                   </div>
-                ) : todayScheduledControl.controls.length > 0 ? (
+                ) : todayScheduledControl && todayScheduledControl.controls?.length > 0 ? (
                   <div className="space-y-4">
                     {todayScheduledControl.controls.map((control) => (
                       <div key={control.id} className="flex items-start">
@@ -595,14 +649,16 @@ const Control = () => {
                         </div>
                         <div className="flex-1">
                           <p className="text-xs text-gray-500 dark:text-gray-400">{control.scheduled_time}</p>
-                          <p className="text-sm text-gray-900 dark:text-white">Turn {control.command} in {control.location}</p>
+                          <p className="text-sm text-gray-900 dark:text-white">
+                            Turn {control.command} in {}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-                    No Scheduled Controls
+                    No Scheduled ControlsgetLocationName(control.location)
                   </div>
                 )}
               </div>
@@ -618,7 +674,9 @@ const Control = () => {
                           style={{ background: `${region.color}33`, width: '80px', height: '80px' }}
                         >
                           <img src={region.icon} alt={region.name} className="w-10 h-10" />
-                          <span className="text-xs text-black font-bold">20cmd</span>
+                          <span className="text-xs text-black font-bold">
+                          {provinceCommandCounts?.data?.[region.name] || 0} cmd
+                            </span>
                         </div>
                       ))}
                     </div>
@@ -630,7 +688,9 @@ const Control = () => {
                           style={{ background: `${region.color}33`, width: '80px', height: '80px' }}
                         >
                           <img src={region.icon} alt={region.name} className="w-10 h-10" />
-                          <span className="text-xs text-black font-bold">20cmd</span>
+                          <span className="text-xs text-black font-bold">
+                          {provinceCommandCounts?.data?.[region.name] || 0} cmd
+                            </span>
                         </div>
                       ))}
                     </div>

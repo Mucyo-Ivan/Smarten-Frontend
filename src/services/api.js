@@ -31,6 +31,10 @@ export const getSensorLocation = () => api.get("/SensorLocation/");
 // Control
 export const ScheduledControl = (data) => api.post("/scheduled-control/",data);
 export const getTodayScheduledControls = () => api.get("/today-scheduled-controls/");
+export const getFutureScheduledControls = () => api.get("/future-scheduled-controls/");
+export const manageScheduledControlStatus = (controlId, action) => 
+  api.post(`/company/manage-scheduled-control-status/${controlId}/`, { action });
+export const checkScheduledControlStatus = () => api.get("/company/manage-scheduled-control-status/");
 
 // Water Readings (Past time)
 export const getHourlyAverages = () => api.get("/hourly-averages/");
