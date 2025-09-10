@@ -28,6 +28,8 @@ import ProvinceDevices from "./pages/device/ProvinceDevices";
 import ProvinceControl from "./pages/control/ProvinceControl";
 import UserDetail from "./pages/users/UserDetail";
 import Notifications from "./pages/Notifications";
+import RegisterESP from "./pages/device/RegisterESP";
+import RegisterESPSuccess from "./pages/device/RegisterESPSuccess";
 import ErrorBoundary from "./pages/ErrorBoundary";
 
 const queryClient = new QueryClient({
@@ -56,6 +58,8 @@ const App = () => (
             <Route path="/device/:province" element={<ProvinceDevices />} />
             <Route path="/device/list/:regionId" element={<DeviceList />} />
             <Route path="/device/detail/:deviceId" element={<DeviceDetail />} />
+            <Route path="/device/register-esp" element={<RegisterESP />} />
+            <Route path="/device/register-esp/success" element={<RegisterESPSuccess />} />
             <Route path="/control" element={<Control />} />
             <Route path="/control/:province" element={<ProvinceControl />} />
             <Route path="/control/report/:regionId" element={<ControlReport />} />

@@ -4,7 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RegionIcon from '@/components/ui/RegionIcon';
-import { ChevronDown, Droplets, Thermometer, Wind, Activity, Zap } from 'lucide-react';
+import { ChevronDown, Droplets, Thermometer, Wind, Activity, Zap, Plus } from 'lucide-react';
 
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
@@ -199,7 +199,16 @@ const DeviceSelector = () => {
       <div className="p-6 bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-xl font-semibold text-gray-900 mb-4">Choose a device</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-semibold text-gray-900">Choose a device</h1>
+            <Button 
+              onClick={() => navigate('/device/register-esp')}
+              className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add ESP
+            </Button>
+          </div>
           
           {/* Device Type Selector */}
           <div className="inline-flex bg-white rounded-full p-1 border border-gray-200 shadow-sm mb-8 mx-auto">
