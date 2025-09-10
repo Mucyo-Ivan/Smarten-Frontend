@@ -11,28 +11,17 @@ const RegisterESPSuccess = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url(/assets/closeup-industrial-pipelines.png)'
-        }}
-      />
-      
-      {/* Dark Blue Overlay */}
-      <div className="absolute inset-0 bg-blue-900 bg-opacity-80" />
-      
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
-        {/* Logo */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center gap-2">
-            <SmartenLogo className="w-8 h-8" />
-            <span className="text-2xl font-bold text-white">SMARTEN</span>
-          </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Logo - Top Left */}
+      <div className="p-6">
+        <div className="flex items-center gap-2">
+          <SmartenLogo className="w-8 h-8" />
+          <span className="text-2xl font-bold text-blue-600">SMARTEN</span>
         </div>
+      </div>
 
+      {/* Main Content - Centered */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
         {/* Success Illustration */}
         <div className="mb-8">
           <img 
@@ -43,7 +32,7 @@ const RegisterESPSuccess = () => {
         </div>
 
         {/* Success Message */}
-        <div className="mb-8">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Connected Successfully</h1>
           <p className="text-lg text-gray-600">Congratulations to you. You are now connected to the device.</p>
         </div>
