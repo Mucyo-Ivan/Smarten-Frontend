@@ -41,10 +41,10 @@ const RegisterESP = () => {
   };
 
   const provinces = [
-    'North',
-    'South', 
-    'East',
-    'West',
+    'Northern',
+    'Southern', 
+    'Eastern',
+    'Western',
     'Kigali'
   ];
 
@@ -108,7 +108,7 @@ const RegisterESP = () => {
                     </Label>
                     <Select value={formData.province} onValueChange={(value) => handleInputChange('province', value)}>
                       <SelectTrigger className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="e.g North" />
+                        <SelectValue placeholder="e.g Northern" />
                       </SelectTrigger>
                       <SelectContent>
                         {provinces.map((province) => (
