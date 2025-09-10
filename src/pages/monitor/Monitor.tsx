@@ -3,6 +3,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, Activity, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
+import {useWaterReadings} from '@/hooks/useWaterReadings'
 
 // Import province icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
@@ -35,9 +36,12 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
   return null;
 };
 
-const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) => {
+const StatusBadge = ({ status }: { status: string }) => {
+  // Normalize status to lowercase and trim whitespace
+  const normalizedStatus = status?.toLowerCase().trim() as 'normal' | 'underflow' | 'overflow' | string;
+
   const getStatusDetails = () => {
-    switch (status) {
+    switch (normalizedStatus) {
       case 'normal':
         return { 
           textColor: 'text-green-700', 
@@ -45,26 +49,26 @@ const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) 
           borderColor: 'rgba(52, 211, 153, 0.5)',
           text: 'normal' 
         };
-      case 'warning':
+      case 'underflow':
         return { 
           textColor: 'text-orange-700', 
           bgColor: 'rgba(251, 146, 60, 0.25)', 
           borderColor: 'rgba(251, 146, 60, 0.5)',
-          text: 'warning' 
+          text: 'underflow' 
         };
-      case 'critical':
+      case 'overflow':
         return { 
           textColor: 'text-red-700', 
           bgColor: 'rgba(239, 68, 68, 0.25)', 
           borderColor: 'rgba(239, 68, 68, 0.5)',
-          text: 'critical' 
+          text: 'overflow' 
         };
       default:
         return { 
           textColor: 'text-gray-700', 
           bgColor: 'rgba(156, 163, 175, 0.25)', 
           borderColor: 'rgba(156, 163, 175, 0.5)',
-          text: 'unknown' 
+          text: `unknown (${status})` // Show raw status for debugging
         };
     }
   };
@@ -81,13 +85,19 @@ const StatusBadge = ({ status }: { status: 'normal' | 'warning' | 'critical' }) 
   );
 };
 
+
 const Monitor = () => {
-  const [selectedProvince, setSelectedProvince] = useState('North');
+  const [selectedProvince, setSelectedProvince] = useState('Northern');
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
   const [currentTime, setCurrentTime] = useState('16:00 PM');
   const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
   const [activeDataPoint, setActiveDataPoint] = useState<number | null>(null);
   const chartRef = useRef<any>(null);
+
+ // Use WebSocket hook
+ const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage } = useWaterReadings(selectedProvince);
+  console.log("Fetched real time data ",waterData)
+  
   
   useEffect(() => {
     // Update the current time every minute
@@ -105,57 +115,65 @@ const Monitor = () => {
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, []);
-  
+
+
+  // Process WebSocket data for daily chart
+  const processChartData = (rawData: { flow_rate_lph: number; status: string; timestamp: string; province: string }[]) => {
+    if (!rawData.length) return [];
+
+
+    const filteredData = rawData
+    .filter(item => item.province === selectedProvince)
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+    .slice(-60); // Limit to last 100 points for performance
+
+  return filteredData.map(item => ({
+    time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`, // Format as '20h'
+    flow: Math.round(item.flow_rate_lph), // Use flow_rate_lph
+  }));
+};
+
+// Filter district data for the latest graph point
+const getLatestDistrictData = () => {
+  if (!waterData.length || !districtData.length) return [];
+
+  const latestPoint = waterData
+    .filter(item => item.province.toLowerCase() === selectedProvince.toLowerCase())
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+
+  if (!latestPoint) return [];
+
+  return districtData
+    .filter(item => item.timestamp === latestPoint.timestamp)
+    .sort((a, b) => a.district.localeCompare(b.district));
+};
+
+const latestDistrictData = getLatestDistrictData();  
+console.log(latestDistrictData)
+
   // Get province-specific data constants
   const getProvinceData = (provinceName: string) => {
     const provinceData = {
-      'North': { baseFlow: 24, flowMultiplier: 1.0 },
-      'South': { baseFlow: 28, flowMultiplier: 1.2 },
-      'East': { baseFlow: 22, flowMultiplier: 0.9 },
-      'West': { baseFlow: 26, flowMultiplier: 1.1 },
+      'Northern': { baseFlow: 24, flowMultiplier: 1.0 },
+      'Southern': { baseFlow: 28, flowMultiplier: 1.2 },
+      'Eastern': { baseFlow: 22, flowMultiplier: 0.9 },
+      'Western': { baseFlow: 26, flowMultiplier: 1.1 },
       'Kigali': { baseFlow: 30, flowMultiplier: 1.3 }
     };
     return provinceData[provinceName as keyof typeof provinceData] || provinceData['North'];
   };
 
-  // Generate chart data based on selected province and time range
   const generateChartData = () => {
-    // Get data for current province
+
+    if (timeRange === 'D') {
+      return processChartData(waterData); // Use WebSocket for 'D'
+    } 
     const { baseFlow, flowMultiplier } = getProvinceData(selectedProvince);
-    
-    // Add small random variation based on province name to make each province's data unique
     const provinceVariation = selectedProvince.charCodeAt(0) / 100;
     
-    if (timeRange === 'D') {
+    
+     if (timeRange === 'M') {
       const data = [];
-      // Start with 0h
-      data.push({
-        time: '0h',
-        flow: Math.round(baseFlow + (12 * flowMultiplier) * Math.sin(provinceVariation))
-      });
-      
-      // Generate data points for hours 2h through 22h
-      for (let hour = 2; hour <= 22; hour += 2) {
-        const i = hour / 2;
-        const waterFlow = Math.round(baseFlow + (12 * flowMultiplier) * 
-          Math.sin((i / 12) * Math.PI * (4 + provinceVariation)));
-        data.push({
-          time: `${hour}h`,
-          flow: waterFlow
-        });
-      }
-      
-      // End with 24h
-      data.push({
-        time: '24h',
-        flow: Math.round(baseFlow + (12 * flowMultiplier) * Math.sin(Math.PI * (4 + provinceVariation)))
-      });
-      
-      return data;
-    } else if (timeRange === 'M') {
-      const data = [];
-      
-      // Add weeks instead of days
       const weeks = ['1st week', '2nd week', '3rd week', '4th week'];
       for (let i = 0; i < weeks.length; i++) {
         const waterFlow = Math.round(baseFlow + (10 * flowMultiplier) * 
@@ -165,13 +183,11 @@ const Monitor = () => {
           flow: waterFlow
         });
       }
-      
       return data;
     } else {
-      // Year view (Y)
+      // Year view
       const data = [];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
       for (let i = 0; i < months.length; i++) {
         const waterFlow = Math.round(baseFlow + (8 * flowMultiplier) * 
           Math.sin((i / months.length) * Math.PI * (2 + provinceVariation)));
@@ -180,17 +196,16 @@ const Monitor = () => {
           flow: waterFlow
         });
       }
-      
       return data;
     }
   };
 
   // Provinces data for dropdown with official icons
   const provinces = [
-    { id: 'north', name: 'North', color: 'bg-[#F7D917]', letter: 'N', iconSrc: NorthIcon },
-    { id: 'south', name: 'South', color: 'bg-[#396EB0]', letter: 'S', iconSrc: SouthIcon },
-    { id: 'east', name: 'East', color: 'bg-[#FD7E14]', letter: 'E', iconSrc: EastIcon },
-    { id: 'west', name: 'West', color: 'bg-[#22C55E]', letter: 'W', iconSrc: WestIcon },
+    { id: 'north', name: 'Northern', color: 'bg-[#F7D917]', letter: 'N', iconSrc: NorthIcon },
+    { id: 'south', name: 'Southern', color: 'bg-[#396EB0]', letter: 'S', iconSrc: SouthIcon },
+    { id: 'east', name: 'Eastern', color: 'bg-[#FD7E14]', letter: 'E', iconSrc: EastIcon },
+    { id: 'west', name: 'Wesern', color: 'bg-[#22C55E]', letter: 'W', iconSrc: WestIcon },
     { id: 'kigali', name: 'Kigali', color: 'bg-[#AF52DE]', letter: 'K', iconSrc: KigaliIcon },
   ];
 
@@ -329,45 +344,46 @@ const Monitor = () => {
                 
                 {/* Chart */}
                 <div className="w-full h-56 relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
-                      {/* Define gradients for the lines */}
-                      <defs>
-                        <linearGradient id="flowLineGradient" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#0095ff" />
-                          <stop offset="100%" stopColor="#0095ff" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis 
-                        dataKey="time" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fontSize: 9, fill: '#888' }}
-                        interval={0}
-                        tickFormatter={(value) => value}
-                        padding={{ left: 30, right: 30 }}
-                      />
-                      <YAxis hide />
-                      <Tooltip 
-                        content={<CustomTooltip />}
-                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
-                        allowEscapeViewBox={{ x: true, y: true }}
-                        wrapperStyle={{ zIndex: 100 }}
-                      />
-                      <Line 
-                        type="monotone"
-                        dataKey="flow" 
-                        stroke="url(#flowLineGradient)" 
-                        strokeWidth={2} 
-                        dot={false}
-                        activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
-                        isAnimationActive={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  
-                  {/* Legend indicator positioned at the bottom of the chart */}
+                  {chartData.length === 0 && timeRange === 'D' ? (
+                    <div className="flex items-center justify-center h-full text-gray-500">Loading real-time data...</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
+                        <defs>
+                          <linearGradient id="flowLineGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#0095ff" />
+                            <stop offset="100%" stopColor="#0095ff" />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis 
+                          dataKey="time" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 9, fill: '#888' }}
+                          interval={0}
+                          tickFormatter={(value) => value}
+                          padding={{ left: 30, right: 30 }}
+                        />
+                        <YAxis hide />
+                        <Tooltip 
+                          content={<CustomTooltip />}
+                          cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                          allowEscapeViewBox={{ x: true, y: true }}
+                          wrapperStyle={{ zIndex: 100 }}
+                        />
+                        <Line 
+                          type="monotone"
+                          dataKey="flow" 
+                          stroke="url(#flowLineGradient)" 
+                          strokeWidth={2} 
+                          dot={false}
+                          activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                   <div className="flex items-center justify-end space-x-6 absolute bottom-[-15px] right-4">
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
@@ -385,7 +401,7 @@ const Monitor = () => {
             <div className="bg-white mb-6 rounded-lg shadow-sm">
               <div className="p-4">
                 <div className="flex flex-col mb-2">
-                  <div className="text-base font-medium mb-1">Past Hour</div>
+                  <div className="text-base font-medium mb-1">Past Minute</div>
                   <div className="flex items-center">
                     <Clock className="w-3 h-3 mr-1 text-gray-400" />
                     <span className="text-xs text-gray-400">{currentTime}</span>
@@ -395,9 +411,9 @@ const Monitor = () => {
                 <div className="flex items-center justify-center my-2 relative">
                   {/* Blue Circle for Flow */}
                   <div className="flex flex-col items-center">
-                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
+                    <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-medium">{pastHourValues.flow}</span>
+                        <span className="text-base font-small px-1">{pastHour.average.toFixed(2)}cm³/s</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
@@ -409,7 +425,7 @@ const Monitor = () => {
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                      normal
+                     {pastHour.status}
                     </div>
                   </div>
                 </div>
@@ -424,12 +440,21 @@ const Monitor = () => {
                 <div className="flex items-center justify-center my-2 relative">
                   {/* Blue Circle for Flow */}
                   <div className="flex flex-col items-center">
-                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
+                    <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-medium">{averageValues.flow}</span>
+                        <span className="text-base font-medium px-1 ">{dailyAverage.average.toFixed(2)}cm³/s</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center mt-3">
+                  <div className="flex items-center">
+                    <Activity className="w-4 h-4 mr-1 text-black" />
+                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
+                    {dailyAverage.status}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -461,76 +486,76 @@ const Monitor = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b">
-                  <td className="py-3 px-4 text-sm">1</td>
-                  <td className="py-3 px-4 text-sm">Gicumbi</td>
-                  <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4">
-                    <div className="text-green-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                      normal
-                    </div>
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-3 px-4 text-sm">2</td>
-                  <td className="py-3 px-4 text-sm">Musanze</td>
-                  <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4">
-                    <div className="text-orange-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(251, 146, 60, 0.25)', border: '1px solid rgba(251, 146, 60, 0.5)'}}>
-                      underflow
-                    </div>
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-3 px-4 text-sm">3</td>
-                  <td className="py-3 px-4 text-sm">Gasabo</td>
-                  <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4">
-                    <div className="text-red-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(239, 68, 68, 0.25)', border: '1px solid rgba(239, 68, 68, 0.5)'}}>
-                      overflow
-                    </div>
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-3 px-4 text-sm">4</td>
-                  <td className="py-3 px-4 text-sm">Rulindo</td>
-                  <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4">
-                    <div className="text-green-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                      normal
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-sm">5</td>
-                  <td className="py-3 px-4 text-sm">Burera</td>
-                  <td className="py-3 px-4 text-sm">200cm³/s</td>
-                  <td className="py-3 px-4">
-                    <div className="text-orange-700 text-xs px-3 py-1 rounded-full inline-block font-medium" style={{backgroundColor: 'rgba(251, 146, 60, 0.25)', border: '1px solid rgba(251, 146, 60, 0.5)'}}>
-                      underflow
-                    </div>
-                  </td>
-                </tr>
+              {latestDistrictData.length > 0 ? (
+                  latestDistrictData.map((item, index) => (
+                    <tr key={`${item.timestamp}-${item.district}`} className="border-b">
+                      <td className="py-3 px-4 text-sm">{index + 1}</td>
+                      <td className="py-3 px-4 text-sm">{item.district}</td>
+                      <td className="py-3 px-4 text-sm">{item.flow_rate.toFixed(2)} cm³/s</td>
+                      <td className="py-3 px-4">
+                        <StatusBadge status={item.status} />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-3 px-4 text-sm text-gray-500 text-center">
+                      No district data available 
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
+
+           {/* Critical Readings */}
+      <div className="mt-8 mb-6">
+        <h2 className="text-lg font-medium mb-4">Critical Readings (Last 24 Hours)</h2>
+        {criticalReadings.length > 0 ? (
+          criticalReadings.map((reading, index) => (
+            <div key={index} className="bg-white p-4 rounded-lg shadow-sm mb-4">
+              <div className="flex items-center mb-2">
+                <img src={GroupIcon} alt="Group Icon" className="w-5 h-5 mr-2" />
+                <span className="font-medium">{reading.province}/{reading.district}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span className="text-sm">{reading.waterflow.toFixed(6)} cm³/s</span>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Activity className="w-3 h-3 mr-1 text-black" />
+                  <span className="mr-1 text-xs font-bold text-black">Status</span>
+                  <StatusBadge status={reading.status} />
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="text-sm text-gray-500 text-center">No critical readings available</div>
+          </div>
+        )}
+      </div>
         
         {/* Critical Readings Section */}
-        <div className="mt-8 mb-6">
+        {/* <div className="mt-8 mb-6">
           <h2 className="text-lg font-medium mb-4">Critical readings</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-4"> */}
             {/* Critical Item 1 */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            {/* <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center mb-2">
                 <img src={GroupIcon} alt="Group Icon" className="w-5 h-5 mr-2" />
                 <span className="font-medium">North/Rulindo/Base</span>
               </div>
               
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center">
+                <div className="flex items-center space-x-6"> */}
+                  {/* <div className="flex items-center">
                     <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm">24 cm³/h</span>
                   </div>
@@ -544,10 +569,10 @@ const Monitor = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
             
             {/* Critical Item 2 */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            {/* <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center mb-2">
                 <img src={GroupIcon} alt="Group Icon" className="w-5 h-5 mr-2" />
                 <span className="font-medium">Kigali/Kicukiro/Kamashashi</span>
@@ -571,7 +596,7 @@ const Monitor = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </MainLayout>
   );
