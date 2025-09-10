@@ -16,31 +16,31 @@ const RegisterESPSuccess = () => {
       <div className="p-6">
         <div className="flex items-center gap-2">
           <SmartenLogo className="w-8 h-8" />
-          <span className="text-2xl font-bold text-blue-600">SMARTEN</span>
+          <span className="text-2xl font-extrabold" style={{ color: '#0052A9' }}>SMARTEN</span>
         </div>
       </div>
 
       {/* Main Content - Centered */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="flex-1 flex flex-col items-center justify-center px-8 py-12">
         {/* Success Illustration */}
-        <div className="mb-8">
+        <div className="mb-6">
           <img 
             src="/assets/sucessful.png" 
             alt="Success" 
-            className="w-80 h-80 object-contain"
+            className="w-72 h-72 object-contain"
           />
         </div>
 
         {/* Success Message */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Connected Successfully</h1>
-          <p className="text-lg text-gray-600">Congratulations to you. You are now connected to the device.</p>
+        <div className="text-center mb-6">
+          <h1 className="text-xl font-bold text-gray-800 mb-3">Connected Successfully</h1>
+          <p className="text-sm text-gray-600">Congratulations to you. You are now connected to the device.</p>
         </div>
 
         {/* Back Button */}
         <Button
           onClick={handleBackToDevices}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-8 py-3 rounded-lg transition-colors"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-2 rounded-lg transition-colors"
         >
           Back to Devices
         </Button>

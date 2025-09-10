@@ -54,10 +54,10 @@ const RegisterESP = () => {
       <div className="w-1/2 bg-white flex flex-col">
         {/* Logo */}
         <div className="p-6">
-          <div className="flex items-center gap-2">
-            <SmartenLogo className="w-8 h-8" />
-            <span className="text-2xl font-bold text-blue-600">SMARTEN</span>
-          </div>
+           <div className="flex items-center gap-2">
+             <SmartenLogo className="w-8 h-8" />
+             <span className="text-2xl font-extrabold" style={{ color: '#0052A9' }}>SMARTEN</span>
+           </div>
         </div>
 
         {/* Form Content */}
