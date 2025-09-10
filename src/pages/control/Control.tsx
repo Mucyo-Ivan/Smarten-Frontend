@@ -80,6 +80,26 @@ const Control = () => {
   const [todayScheduledControl,setTodayScheduledControl] = useState<TodayScheduledControl | null>(null);
   const [historyTableData, setHistoryTableData] = useState<HistoryData | null>(null);
   const [provinceCommandCounts, setProvinceCommandCounts] = useState<ProvinceCommandCount | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Number of items to show per page
+
+  // Pagination logic for history
+  const getPaginatedHistory = () => {
+    if (!historyTableData?.commands) return [];
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return historyTableData.commands.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    if (!historyTableData?.commands) return 0;
+    return Math.ceil(historyTableData.commands.length / itemsPerPage);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -495,7 +515,7 @@ const Control = () => {
                   <tbody>
 
                         {historyTableData && historyTableData.commands?.length > 0 ? (
-                          historyTableData.commands.map((history)=> (
+                          getPaginatedHistory().map((history)=> (
                             <tr key={history.id} className="border-t border-gray-100 dark:border-gray-700">
                             <td className="py-2">{history.id}</td>
                             <td className="py-2">{getLocationName(history.location)}</td>
@@ -546,11 +566,53 @@ const Control = () => {
                   </tbody>
                 </table>
               </div>
-                  <div className="mt-4 flex justify-end">
-                    <Link to="/control/history" className="text-sm text-blue-500 hover:underline">
-                  See more
-                </Link>
-              </div>
+                  {/* Pagination */}
+                  {historyTableData && historyTableData.commands?.length > 0 && getTotalPages() > 1 && (
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex items-center space-x-2">
+                        {/* Previous Button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                            currentPage === 1
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                          }`}
+                        >
+                          &lt;
+                        </button>
+
+                        {/* Page Numbers */}
+                        {Array.from({ length: getTotalPages() }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                              currentPage === page
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+
+                        {/* Next Button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === getTotalPages()}
+                          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                            currentPage === getTotalPages()
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                          }`}
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    </div>
+                  )}
             </div>
           </div>
         </div>
