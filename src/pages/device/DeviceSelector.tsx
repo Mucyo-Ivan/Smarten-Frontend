@@ -201,13 +201,15 @@ const DeviceSelector = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900">Choose a device</h1>
-            <Button 
-              onClick={() => navigate('/device/register-esp')}
-              className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add ESP
-            </Button>
+            {selectedDeviceType === 'esp32' && (
+              <Button 
+                onClick={() => navigate('/device/register-esp')}
+                className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add ESP
+              </Button>
+            )}
           </div>
           
           {/* Device Type Selector */}
@@ -294,9 +296,9 @@ const DeviceSelector = () => {
                       </span>
                       <span style={{ color: region.color, fontWeight: 700 }}>{region.name}</span>
                     </button>
-                  ))}
-                </div>
-              )}
+              ))}
+            </div>
+          )}
             </div>
             <span className="ml-2 text-lg font-semibold">On the district level</span>
         </div>
