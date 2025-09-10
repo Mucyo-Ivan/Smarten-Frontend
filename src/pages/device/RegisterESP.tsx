@@ -64,7 +64,17 @@ const RegisterESP = () => {
         <div className="flex-1 px-12 py-8">
           <div className="max-w-md mx-auto">
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-blue-600 mb-2">Connect to Esp32</h1>
+              <h1 
+                style={{
+                  color: '#0E9CFF',
+                  fontSize: 25,
+                  fontWeight: '600',
+                  wordWrap: 'break-word',
+                  marginBottom: '8px'
+                }}
+              >
+                Connect to Esp32
+              </h1>
               <p className="text-gray-500 text-sm">Please provide accurate device credentials</p>
             </div>
 
@@ -276,13 +286,47 @@ const RegisterESP = () => {
         />
         
         {/* Content Overlay */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8" style={{ paddingTop: '20%' }}>
+        <div className="relative z-10 h-full flex flex-col items-center justify-start text-center px-8" style={{ paddingTop: '18%' }}>
           <div className="text-white">
-            <h2 className="text-4xl font-bold mb-4">SMART WATER MONITORING</h2>
-            <h3 className="text-4xl font-bold mb-6">SMART LIVES</h3>
-            <p className="text-lg leading-relaxed">
+            <div 
+              style={{
+                width: '100%',
+                color: 'white',
+                fontSize: 30,
+                fontFamily: 'Climate Crisis',
+                fontWeight: '900',
+                wordWrap: 'break-word',
+                marginBottom: '2px'
+              }}
+            >
+              SMART WATER MONITORING
+            </div>
+            <div 
+              style={{
+                width: '100%',
+                textAlign: 'center',
+                color: 'white',
+                fontSize: 30,
+                fontFamily: 'Climate Crisis',
+                fontWeight: '900',
+                wordWrap: 'break-word',
+                marginBottom: '24px'
+              }}
+            >
+              SMART LIVES
+            </div>
+            <div 
+              style={{
+                width: '100%',
+                color: 'white',
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: '400',
+                wordWrap: 'break-word'
+              }}
+            >
               Connect your ESP32 to our system for an immersive experience in revolutionizing water management with smart, sustainable technology!
-            </p>
+            </div>
           </div>
         </div>
       </div>
