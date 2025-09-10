@@ -189,7 +189,7 @@ const RegisterESP = () => {
                    <h3 className="text-lg font-bold text-black">ESP32</h3>
                  </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
                     <Label htmlFor="macAddress" className="text-black text-sm font-medium">
                       Mac Address*
@@ -200,7 +200,7 @@ const RegisterESP = () => {
                       placeholder="e.g 01:AB:2C:AA:AA:AA"
                       value={formData.macAddress}
                       onChange={(e) => handleInputChange('macAddress', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
                       required
                     />
                   </div>
@@ -209,7 +209,7 @@ const RegisterESP = () => {
                      <Label className="text-black text-sm font-medium">
                        Select*
                      </Label>
-                     <div className="mt-2 flex space-x-6">
+                     <div className="mt-3 flex space-x-6">
                        <div className="flex items-center space-x-2">
                          <input
                            type="radio"
@@ -247,7 +247,7 @@ const RegisterESP = () => {
                       placeholder="e.g 2"
                       value={formData.deviceCount}
                       onChange={(e) => handleInputChange('deviceCount', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
                 </div>
