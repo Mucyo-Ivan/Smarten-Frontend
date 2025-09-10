@@ -527,8 +527,19 @@ const Control = () => {
                           </tr>
                           ))
 
-                        ) :(
-                          <tr>No past History</tr>
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="py-8">
+                              <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                                <img 
+                                  src="/assets/Calendar.gif" 
+                                  alt="No history data" 
+                                  className="w-[90%] h-[90%] max-w-80 max-h-80 mb-4 object-contain"
+                                />
+                                <p className="text-sm">No Past History</p>
+                              </div>
+                            </td>
+                          </tr>
                         )}
                         
                      
@@ -660,8 +671,13 @@ const Control = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-                    No Scheduled ControlsgetLocationName(control.location)
+                  <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                    <img 
+                      src="/assets/Calendar.gif" 
+                      alt="No scheduled controls" 
+                      className="w-[90%] h-[90%] max-w-80 max-h-80 mb-4 object-contain"
+                    />
+                    <p className="text-sm">No Scheduled Controls</p>
                   </div>
                 )}
               </div>
