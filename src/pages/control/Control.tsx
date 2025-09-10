@@ -377,7 +377,10 @@ const Control = () => {
                     src={getRegionStyle(selectedLocation).icon}
                     alt={selectedLocation.split(':')[1] || 'Select location'}
                     className="w-4 h-4"
-                    onError={(e) => (e.target.src = NorthIcon)}
+                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = NorthIcon;
+                    }}
                   />
                 </span>
                 <span style={{ color: getRegionStyle(selectedLocation).color, fontWeight: 700 }}>
