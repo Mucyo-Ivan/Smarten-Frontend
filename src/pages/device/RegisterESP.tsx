@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SmartenLogo from '@/components/ui/SmartenLogo';
-import { Star } from 'lucide-react';
 
 const RegisterESP = () => {
   const navigate = useNavigate();
@@ -64,7 +63,7 @@ const RegisterESP = () => {
         {/* Form Content */}
         <div className="flex-1 px-12 py-8">
           <div className="max-w-md mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-blue-600 mb-2">Connect to Esp32</h1>
               <p className="text-gray-500 text-sm">Please provide accurate device credentials</p>
             </div>
@@ -73,7 +72,7 @@ const RegisterESP = () => {
               {/* Location Section */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <Star className="w-4 h-4 text-gray-500" />
+                  <img src="/assets/star-frame.svg" alt="star" className="w-5 h-5" />
                   <h3 className="text-lg font-bold text-black">Location</h3>
                 </div>
                 
@@ -176,7 +175,7 @@ const RegisterESP = () => {
               {/* ESP32 Section */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <Star className="w-4 h-4 text-gray-500" />
+                  <img src="/assets/star-frame.svg" alt="star" className="w-5 h-5" />
                   <h3 className="text-lg font-bold text-black">ESP32</h3>
                 </div>
                 
@@ -268,8 +267,13 @@ const RegisterESP = () => {
           }}
         />
         
-        {/* Light Blue Overlay */}
-        <div className="absolute inset-0 bg-blue-500 bg-opacity-30" />
+        {/* Figma Gradient Overlay */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(135deg, rgba(15, 104, 190, 0.50) 0%, rgba(255, 255, 255, 0.70) 100%)'
+          }}
+        />
         
         {/* Content Overlay */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8" style={{ paddingTop: '20%' }}>
