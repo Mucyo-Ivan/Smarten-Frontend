@@ -5,16 +5,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SmartenLogo from '@/components/ui/SmartenLogo';
+import { Star } from 'lucide-react';
 
 const RegisterESP = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    espId: '',
-    espName: '',
-    location: '',
-    province: 'Kigali City',
-    latitude: '',
-    longitude: ''
+    country: '',
+    province: '',
+    district: '',
+    sector: '',
+    cell: '',
+    village: '',
+    macAddress: '',
+    deviceType: 'Smart Valve',
+    deviceCount: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -38,155 +42,243 @@ const RegisterESP = () => {
   };
 
   const provinces = [
-    'Kigali City',
-    'Northern Province',
-    'Southern Province', 
-    'Eastern Province',
-    'Western Province'
+    'North',
+    'South', 
+    'East',
+    'West',
+    'Kigali'
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url(/assets/closeup-industrial-pipelines.png)'
-        }}
-      />
-      
-      {/* Dark Blue Overlay */}
-      <div className="absolute inset-0 bg-blue-900 bg-opacity-80" />
-      
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center gap-2">
-              <SmartenLogo className="w-8 h-8" />
-              <span className="text-2xl font-bold text-white">SMARTEN</span>
-            </div>
+    <div className="min-h-screen flex">
+      {/* Left Section - Form */}
+      <div className="w-1/2 bg-white flex flex-col">
+        {/* Logo */}
+        <div className="p-6">
+          <div className="flex items-center gap-2">
+            <SmartenLogo className="w-8 h-8" />
+            <span className="text-2xl font-bold text-blue-600">SMARTEN</span>
           </div>
+        </div>
 
-          {/* Form Container */}
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 border border-white border-opacity-20">
+        {/* Form Content */}
+        <div className="flex-1 px-12 py-8">
+          <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-white mb-2">Register ESP</h1>
-              <div className="w-full h-px bg-white bg-opacity-30"></div>
+              <h1 className="text-2xl font-bold text-blue-600 mb-2">Connect to Esp32</h1>
+              <p className="text-gray-500 text-sm">Please provide accurate device credentials</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* ESP ID */}
+              {/* Location Section */}
               <div>
-                <Label htmlFor="espId" className="text-white text-sm font-medium">
-                  ESP ID
-                </Label>
-                <Input
-                  id="espId"
-                  type="text"
-                  placeholder="Enter ESP ID"
-                  value={formData.espId}
-                  onChange={(e) => handleInputChange('espId', e.target.value)}
-                  className="mt-1 bg-white bg-opacity-90 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
+                <div className="flex items-center gap-2 mb-4">
+                  <Star className="w-4 h-4 text-gray-500" />
+                  <h3 className="text-lg font-bold text-black">Location</h3>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="country" className="text-black text-sm font-medium">
+                      Country*
+                    </Label>
+                    <Input
+                      id="country"
+                      type="text"
+                      placeholder="e.g Rwanda"
+                      value={formData.country}
+                      onChange={(e) => handleInputChange('country', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="province" className="text-black text-sm font-medium">
+                      Province*
+                    </Label>
+                    <Select value={formData.province} onValueChange={(value) => handleInputChange('province', value)}>
+                      <SelectTrigger className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue placeholder="e.g North" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {provinces.map((province) => (
+                          <SelectItem key={province} value={province}>
+                            {province}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="district" className="text-black text-sm font-medium">
+                      District*
+                    </Label>
+                    <Input
+                      id="district"
+                      type="text"
+                      placeholder="e.g Kicukiro"
+                      value={formData.district}
+                      onChange={(e) => handleInputChange('district', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="sector" className="text-black text-sm font-medium">
+                      Sector*
+                    </Label>
+                    <Input
+                      id="sector"
+                      type="text"
+                      placeholder="e.g Kimironko"
+                      value={formData.sector}
+                      onChange={(e) => handleInputChange('sector', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="cell" className="text-black text-sm font-medium">
+                      Cell*
+                    </Label>
+                    <Input
+                      id="cell"
+                      type="text"
+                      placeholder="e.g Kamashashi"
+                      value={formData.cell}
+                      onChange={(e) => handleInputChange('cell', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="village" className="text-black text-sm font-medium">
+                      Village*
+                    </Label>
+                    <Input
+                      id="village"
+                      type="text"
+                      placeholder="e.g Kibaya"
+                      value={formData.village}
+                      onChange={(e) => handleInputChange('village', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* ESP Name */}
+              {/* ESP32 Section */}
               <div>
-                <Label htmlFor="espName" className="text-white text-sm font-medium">
-                  ESP Name
-                </Label>
-                <Input
-                  id="espName"
-                  type="text"
-                  placeholder="Enter ESP Name"
-                  value={formData.espName}
-                  onChange={(e) => handleInputChange('espName', e.target.value)}
-                  className="mt-1 bg-white bg-opacity-90 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
+                <div className="flex items-center gap-2 mb-4">
+                  <Star className="w-4 h-4 text-gray-500" />
+                  <h3 className="text-lg font-bold text-black">ESP32</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="macAddress" className="text-black text-sm font-medium">
+                      Mac Address*
+                    </Label>
+                    <Input
+                      id="macAddress"
+                      type="text"
+                      placeholder="e.g 01:AB:2C:AA:AA:AA"
+                      value={formData.macAddress}
+                      onChange={(e) => handleInputChange('macAddress', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-black text-sm font-medium">
+                      Select*
+                    </Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="sensor"
+                          name="deviceType"
+                          value="Sensor"
+                          checked={formData.deviceType === 'Sensor'}
+                          onChange={(e) => handleInputChange('deviceType', e.target.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="sensor" className="text-black">Sensor</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="smartValve"
+                          name="deviceType"
+                          value="Smart Valve"
+                          checked={formData.deviceType === 'Smart Valve'}
+                          onChange={(e) => handleInputChange('deviceType', e.target.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="smartValve" className="text-black">Smart Valve</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="deviceCount" className="text-black text-sm font-medium">
+                      No of Sensors/Smart valve
+                    </Label>
+                    <Input
+                      id="deviceCount"
+                      type="text"
+                      placeholder="e.g 2"
+                      value={formData.deviceCount}
+                      onChange={(e) => handleInputChange('deviceCount', e.target.value)}
+                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Location */}
-              <div>
-                <Label htmlFor="location" className="text-white text-sm font-medium">
-                  Location
-                </Label>
-                <Input
-                  id="location"
-                  type="text"
-                  placeholder="Enter Location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className="mt-1 bg-white bg-opacity-90 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              {/* Province */}
-              <div>
-                <Label htmlFor="province" className="text-white text-sm font-medium">
-                  Province
-                </Label>
-                <Select value={formData.province} onValueChange={(value) => handleInputChange('province', value)}>
-                  <SelectTrigger className="mt-1 bg-white bg-opacity-90 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Select Province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinces.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Latitude */}
-              <div>
-                <Label htmlFor="latitude" className="text-white text-sm font-medium">
-                  Latitude
-                </Label>
-                <Input
-                  id="latitude"
-                  type="text"
-                  placeholder="Enter Latitude"
-                  value={formData.latitude}
-                  onChange={(e) => handleInputChange('latitude', e.target.value)}
-                  className="mt-1 bg-white bg-opacity-90 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              {/* Longitude */}
-              <div>
-                <Label htmlFor="longitude" className="text-white text-sm font-medium">
-                  Longitude
-                </Label>
-                <Input
-                  id="longitude"
-                  type="text"
-                  placeholder="Enter Longitude"
-                  value={formData.longitude}
-                  onChange={(e) => handleInputChange('longitude', e.target.value)}
-                  className="mt-1 bg-white bg-opacity-90 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              {/* Submit Button */}
+              {/* Connect Button */}
               <div className="pt-4">
                 <Button
                   type="submit"
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Registering...' : 'Register ESP'}
+                  {isLoading ? 'Connecting...' : 'Connect'}
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Section - Background Image */}
+      <div className="w-1/2 relative">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/assets/closeup-industrial-pipelines.png)'
+          }}
+        />
+        
+        {/* Light Blue Overlay */}
+        <div className="absolute inset-0 bg-blue-500 bg-opacity-30" />
+        
+        {/* Content Overlay */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8" style={{ paddingTop: '20%' }}>
+          <div className="text-white">
+            <h2 className="text-4xl font-bold mb-4">SMART WATER MONITORING</h2>
+            <h3 className="text-4xl font-bold mb-6">SMART LIVES</h3>
+            <p className="text-lg leading-relaxed">
+              Connect your ESP32 to our system for an immersive experience in revolutionizing water management with smart, sustainable technology!
+            </p>
           </div>
         </div>
       </div>

@@ -427,19 +427,19 @@ const Control = () => {
                         <span style={{ color: regionStyles[province]?.color || '#6B7280', fontWeight: 700 }}>
                           {province}: {district}
                         </span>
-                      </button>
+        </button>
                     )),
                   ])}
                 </div>
               )}
             </div>
-          </div>
+      </div>
           {/* Grid with toggle and controls */}
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto" style={{ marginTop: '16px' }}>
-            {/* Control Panel */}
+        {/* Control Panel */}
             <div className="lg:col-span-5">
-              <SectionHeader title="Control" />
-              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6 flex flex-col items-center">
+          <SectionHeader title="Control" />
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6 flex flex-col items-center">
                 {/* Custom Toggle Switch */}
                 <div
                   className={`relative w-[460px] h-[200px] rounded-full flex items-center transition-colors duration-300 cursor-pointer`}
@@ -469,30 +469,30 @@ const Control = () => {
                       }`}
                     >
                       {switchState ? 'Online' : 'Offline'}
-                    </div>
-                  </span>
+            </div>
+              </span>
                   <span className="flex items-center gap-2 text-sm">
                     <Droplets size={16} className="text-blue-500" />
                     <span>24 cm³/h</span>
-                  </span>
-                </div>
+              </span>
+            </div>
               </div>
-              <div className="mt-6">
-                <SectionHeader title="History">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">(past hour)</span>
-                </SectionHeader>
+          <div className="mt-6">
+            <SectionHeader title="History">
+              <span className="text-sm text-gray-500 dark:text-gray-400">(past hour)</span>
+            </SectionHeader>
                 <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6 min-h-[350px]">
-                  <div className="overflow-x-auto">
+              <div className="overflow-x-auto">
                     <table className="data-table w-full">
-                      <thead>
-                        <tr>
+                  <thead>
+                    <tr>
                           <th className="text-left py-2">N°</th>
                           <th className="text-left py-2">Location</th>
                           <th className="text-left py-2">Command</th>
                           <th className="text-left py-2">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    </tr>
+                  </thead>
+                  <tbody>
 
                         {historyTableData && historyTableData.commands?.length > 0 ? (
                           historyTableData.commands.map((history)=> (
@@ -506,8 +506,8 @@ const Control = () => {
                                 }`}
                               >
                                 {history.command}
-                              </span>
-                            </td>
+                          </span>
+                        </td>
                             <td className="py-2">
                             <span
                                  className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -538,35 +538,35 @@ const Control = () => {
                                 />
                                 <p className="text-sm">No Past History</p>
                               </div>
-                            </td>
-                          </tr>
+                        </td>
+                      </tr>
                         )}
                         
                      
-                      </tbody>
-                    </table>
-                  </div>
+                  </tbody>
+                </table>
+              </div>
                   <div className="mt-4 flex justify-end">
                     <Link to="/control/history" className="text-sm text-blue-500 hover:underline">
-                      See more
-                    </Link>
-                  </div>
-                </div>
+                  See more
+                </Link>
               </div>
             </div>
-            {/* Scheduled Controls */}
-            <div className="lg:col-span-2">
-              <SectionHeader title="Scheduled Controls">
-                <button
-                  onClick={() => setShowScheduleForm(true)}
+          </div>
+        </div>
+        {/* Scheduled Controls */}
+        <div className="lg:col-span-2">
+          <SectionHeader title="Scheduled Controls">
+            <button
+              onClick={() => setShowScheduleForm(true)}
                   className="flex items-center gap-1 bg-blue-500 text-white text-sm px-3 py-1.5 rounded-md hover:bg-blue-600 transition-colors"
-                >
+            >
                   <Plus className="w-4 h-4" />
-                  Add
-                </button>
-              </SectionHeader>
+              Add
+            </button>
+          </SectionHeader>
               <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 min-h-[350px]">
-                {showScheduleForm ? (
+            {showScheduleForm ? (
                   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-auto relative">
                       <button
@@ -576,12 +576,12 @@ const Control = () => {
                         &times;
                       </button>
                       <h3 className="text-lg font-medium mb-4 text-center text-gray-900 dark:text-white">Make your control schedule</h3>
-                      <form onSubmit={handleSubmitSchedule}>
-                        <div className="space-y-4">
-                          <div>
+                <form onSubmit={handleSubmitSchedule}>
+                  <div className="space-y-4">
+                    <div>
                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                              Location*
-                            </label>
+                        Location*
+                      </label>
                             <select
                               name="location"
                               value={formData.location}
@@ -600,24 +600,24 @@ const Control = () => {
                                 )),
                               ])}
                             </select>
-                          </div>
-                          <div>
+                    </div>
+                    <div>
                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                              Command*
-                            </label>
-                            <input
-                              type="text"
+                        Command*
+                      </label>
+                      <input 
+                        type="text" 
                               name="command"
                               value={formData.command}
                               onChange={handleChange}
                               placeholder="e.g ON / OFF"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div>
+                      />
+                    </div>
+                    <div>
                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                               Date & Time*
-                            </label>
+                      </label>
                             <DatePicker
                               selected={
                                 formData.scheduled_date && formData.scheduled_time
@@ -639,38 +639,38 @@ const Control = () => {
                             {error && (!formData.scheduled_date || !formData.scheduled_time) && (
                               <p className="mt-1 text-xs text-red-500">Date and Time are required.</p>
                             )}
-                          </div>
-                          <div className="pt-4 flex justify-center">
-                            <button
-                              type="submit"
+                    </div>
+                    <div className="pt-4 flex justify-center">
+                      <button 
+                        type="submit" 
                               className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-2 rounded-md transition-colors"
                               disabled={isLoading}
-                            >
+                      >
                               {isLoading ? 'Saving...' : 'Save'}
-                            </button>
-                          </div>
-                        </div>
-                      </form>
+                      </button>
                     </div>
                   </div>
+                </form>
+              </div>
+                  </div>
                 ) : todayScheduledControl && todayScheduledControl.controls?.length > 0 ? (
-                  <div className="space-y-4">
+              <div className="space-y-4">
                     {todayScheduledControl.controls.map((control) => (
                       <div key={control.id} className="flex items-start">
-                        <div className="mt-1 mr-3">
-                          <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                          <div className="h-full w-0.5 bg-blue-200 dark:bg-blue-900/30 mx-auto mt-1"></div>
-                        </div>
-                        <div className="flex-1">
+                    <div className="mt-1 mr-3">
+                      <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                      <div className="h-full w-0.5 bg-blue-200 dark:bg-blue-900/30 mx-auto mt-1"></div>
+                    </div>
+                    <div className="flex-1">
                           <p className="text-xs text-gray-500 dark:text-gray-400">{control.scheduled_time}</p>
                           <p className="text-sm text-gray-900 dark:text-white">
                             Turn {control.command} in {}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      </p>
+                    </div>
                   </div>
-                ) : (
+                ))}
+              </div>
+            ) : (
                   <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                     <img 
                       src="/assets/Calendar.gif" 
@@ -678,11 +678,11 @@ const Control = () => {
                       className="w-[90%] h-[90%] max-w-80 max-h-80 mb-4 object-contain"
                     />
                     <p className="text-sm">No Scheduled Controls</p>
-                  </div>
-                )}
               </div>
-              <div className="mt-6">
-                <SectionHeader title="Stats" />
+            )}
+          </div>
+          <div className="mt-6">
+            <SectionHeader title="Stats" />
                 <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 min-h-[350px]">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <div className="flex justify-center gap-3">
