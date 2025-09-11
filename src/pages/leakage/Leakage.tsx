@@ -461,7 +461,7 @@ const Leakage = () => {
           
           {/* History and Investigated Leaks side by side - with minimal spacing */}
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto w-full mt-8">
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-4">
             <div className="bg-white rounded-xl shadow p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-base">History</span>
@@ -505,7 +505,7 @@ const Leakage = () => {
               )}
             </div>
           </div>
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow p-6 min-h-[260px] flex flex-col">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-base">Investigated leaks</span>
