@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MapPin, ChevronDown } from 'lucide-react';
+import UserDetailModal from '@/components/ui/UserDetailModal';
 import UsersIcon from '../../../Smarten Assets/assets/Users.svg';
 import WaterIcon from '../../../Smarten Assets/assets/water.svg';
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
@@ -28,6 +29,8 @@ const UsersDetail = () => {
   const [regionDropdownOpen, setRegionDropdownOpen] = useState(false);
   const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
   const [baseDropdownOpen, setBaseDropdownOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const regionDropdownRef = useRef<HTMLDivElement>(null);
   const districtDropdownRef = useRef<HTMLDivElement>(null);
   const baseDropdownRef = useRef<HTMLDivElement>(null);
@@ -180,6 +183,16 @@ const UsersDetail = () => {
   const handleDistrictChange = (districtId: string) => {
     setSelectedDistrict(districtId);
     setDistrictDropdownOpen(false);
+  };
+
+  const handleViewMore = (user: any) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
   };
 
   return (
@@ -348,6 +361,7 @@ const UsersDetail = () => {
                   <div className="w-32 ml-16">
                     <Button 
                       variant="outline" 
+                      onClick={() => handleViewMore(user)}
                       className="h-6 px-3 text-xs font-semibold text-[#0E9CFF] border-[#0E9CFF] hover:bg-[#0E9CFF] hover:text-white rounded-full"
                     >
                       View more
@@ -421,6 +435,16 @@ const UsersDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* User Detail Modal */}
+      {selectedUser && (
+        <UserDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          user={selectedUser}
+          province={selectedRegion}
+        />
+      )}
     </MainLayout>
   );
 };
