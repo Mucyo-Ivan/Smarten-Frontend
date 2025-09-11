@@ -321,18 +321,18 @@ const RegisterESP = () => {
               >
                 SMART LIVES
               </div>
-             <div 
-               style={{
-                 width: '100%',
-                 color: 'white',
-                 fontSize: 16,
-                 fontWeight: '300',
-                 wordWrap: 'break-word'
-               }}
-             >
-               Connect your ESP32 to our system for an immersive experience in revolutionizing water management with smart, sustainable technology!
-             </div>
-          </div>
+              <div 
+                style={{
+                  width: '100%',
+                  color: 'white',
+                  fontSize: 16,
+                  fontWeight: '300',
+                  wordWrap: 'break-word'
+                }}
+              >
+                Connect your ESP32 to our system for an immersive experience in revolutionizing water management with smart, sustainable technology!
+              </div>
+            </div>
         </div>
       </div>
     </div>
