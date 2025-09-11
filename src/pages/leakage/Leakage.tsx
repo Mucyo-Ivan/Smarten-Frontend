@@ -346,6 +346,7 @@ const Leakage = () => {
                                 value={resolvedForm.date}
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                style={{ color: resolvedForm.date ? 'white' : '#9CA3AF' }}
                                 required
                               />
                               {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
@@ -422,6 +423,7 @@ const Leakage = () => {
                                 value={resolvedForm.date}
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                style={{ color: resolvedForm.date ? 'white' : '#9CA3AF' }}
                                 required
                               />
                               {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
