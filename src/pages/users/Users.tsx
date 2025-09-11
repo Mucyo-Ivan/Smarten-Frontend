@@ -26,7 +26,7 @@ const Users = () => {
   // Province data with official icons
   const provinces = [
     { id: 'north', name: 'North', icon: NorthIcon, color: '#F3C623', districts: ['rulindo', 'gakenke', 'burera', 'musanze', 'gicumbi'] },
-    { id: 'south', name: 'South', icon: SouthIcon, color: '#22C55E', districts: ['huye', 'nyanza', 'gikongoro', 'nyaruguru', 'muhanga', 'kamonyi', 'ruhango'] },
+    { id: 'south', name: 'South', icon: SouthIcon, color: '#0E9CFF', districts: ['huye', 'nyanza', 'gikongoro', 'nyaruguru', 'muhanga', 'kamonyi', 'ruhango'] },
     { id: 'east', name: 'East', icon: EastIcon, color: '#F97316', districts: ['rwamagana', 'nyagatare', 'gatsibo', 'kayonza', 'kirehe', 'ngoma', 'bugesera'] },
     { id: 'west', name: 'West', icon: WestIcon, color: '#22C55E', districts: ['rubavu', 'nyabihu', 'karongi', 'rutsiro', 'nyamasheke', 'rusizi'] },
     { id: 'kigali', name: 'Kigali', icon: KigaliIcon, color: '#A855F7', districts: ['gasabo', 'kicukiro', 'nyarugenge'] },
@@ -219,7 +219,7 @@ const Users = () => {
                 style={{ minWidth: 100 }}
               >
                 <span className="text-[#1E1E1E] text-sm font-semibold">
-                  {currentProvince.districts.indexOf(selectedDistrict) + 1}.{districtNames[selectedDistrict]}
+                  {districtNames[selectedDistrict]}
                 </span>
                 <ChevronDown className="w-3 h-3 text-gray-500" />
               </button>
@@ -233,7 +233,7 @@ const Users = () => {
                       onClick={() => handleDistrictChange(districtId)}
                     >
                       <span className="text-[#1E1E1E] font-medium text-sm">
-                        {index + 1}.{districtNames[districtId]}
+                        {districtNames[districtId]}
                       </span>
                     </button>
                   ))}
