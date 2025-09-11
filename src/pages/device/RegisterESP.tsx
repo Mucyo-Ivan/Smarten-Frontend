@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SmartenLogo from '@/components/ui/SmartenLogo';
+import {registerEsp} from '@/services/api'
 
 const RegisterESP = () => {
   const navigate = useNavigate();
@@ -15,10 +17,12 @@ const RegisterESP = () => {
     sector: '',
     cell: '',
     village: '',
-    macAddress: '',
-    deviceType: 'Smart Valve',
-    deviceCount: ''
+    mac_address: '',
+    device_type: 'Smart Valve',
+    count: ''
   });
+
+  const {toast} = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,12 +36,34 @@ const RegisterESP = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
+
+      try{
+       const res = await registerEsp(formData)
+
+       toast({
+        title: "ESP32 created",
+        description: "Your have  successfully registered the ESP32 ",
+      });
+
+        // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
       navigate('/device/register-esp/success');
     }, 2000);
+      }
+      catch(err){
+        console.log("Encountered error while registering an ESP32 ",err)
+        toast({
+          title: "Registration of ESP32 failed",
+          description: "Please enter valid credentials",
+          variant: "destructive",
+        });
+      }
+      finally{
+        setIsLoading(false)
+      }
+    
+  
   };
 
   const provinces = [
@@ -198,8 +224,8 @@ const RegisterESP = () => {
                       id="macAddress"
                       type="text"
                       placeholder="e.g 01:AB:2C:AA:AA:AA"
-                      value={formData.macAddress}
-                      onChange={(e) => handleInputChange('macAddress', e.target.value)}
+                      value={formData.mac_address}
+                      onChange={(e) => handleInputChange('mac_address', e.target.value)}
                       className="mt-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
                       required
                     />
@@ -216,8 +242,8 @@ const RegisterESP = () => {
                            id="sensor"
                            name="deviceType"
                            value="Sensor"
-                           checked={formData.deviceType === 'Sensor'}
-                           onChange={(e) => handleInputChange('deviceType', e.target.value)}
+                           checked={formData.device_type === 'Sensor'}
+                           onChange={(e) => handleInputChange('device_type', e.target.value)}
                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                          />
                          <Label htmlFor="sensor" className="text-black">Sensor</Label>
@@ -228,8 +254,8 @@ const RegisterESP = () => {
                            id="smartValve"
                            name="deviceType"
                            value="Smart Valve"
-                           checked={formData.deviceType === 'Smart Valve'}
-                           onChange={(e) => handleInputChange('deviceType', e.target.value)}
+                           checked={formData.device_type === 'Smart Valve'}
+                           onChange={(e) => handleInputChange('device_type', e.target.value)}
                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                          />
                          <Label htmlFor="smartValve" className="text-black">Smart Valve</Label>
@@ -243,10 +269,10 @@ const RegisterESP = () => {
                     </Label>
                     <Input
                       id="deviceCount"
-                      type="text"
+                      type="number"
                       placeholder="e.g 2"
-                      value={formData.deviceCount}
-                      onChange={(e) => handleInputChange('deviceCount', e.target.value)}
+                      value={formData.count}
+                      onChange={(e) => handleInputChange('count', e.target.value)}
                       className="mt-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
