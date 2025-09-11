@@ -293,7 +293,8 @@ const RegisterESP = () => {
                  width: '100%',
                  color: 'white',
                  fontSize: 30,
-                 fontWeight: '900',
+                 fontFamily: 'Climate Crisis',
+                 fontWeight: '400',
                  wordWrap: 'break-word',
                  marginBottom: '2px'
                }}
@@ -306,7 +307,8 @@ const RegisterESP = () => {
                  textAlign: 'center',
                  color: 'white',
                  fontSize: 30,
-                 fontWeight: '900',
+                 fontFamily: 'Climate Crisis',
+                 fontWeight: '400',
                  wordWrap: 'break-word',
                  marginBottom: '24px'
                }}
