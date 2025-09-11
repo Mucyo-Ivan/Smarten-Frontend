@@ -1,4 +1,3 @@
-
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Monitor, Cpu, Settings, Users, Sliders, Droplets } from 'lucide-react';
@@ -44,7 +43,7 @@ const SidebarNav = () => {
 
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 shadow-sm">
-      <div className="p-6 border-b border-gray-100">
+      <div className="p-6">
         <Link to="/dashboard" className="flex items-center">
           <div className="flex items-center" style={{ marginRight: '0px', position: 'relative', top: '-4px' }}>
             <SmartenLogo className="w-12 h-12" />

@@ -21,7 +21,7 @@ const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) =>
   const navigate = useNavigate();
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6">
+    <header className="h-16 bg-white flex items-center justify-end px-6">
       {/* Empty div to remove logo from header */}
       <div></div>
       
