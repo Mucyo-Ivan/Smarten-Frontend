@@ -15,6 +15,7 @@ import Control from "./pages/control/Control";
 import Monitor from "./pages/monitor/Monitor";
 import Leakage from "./pages/leakage/Leakage";
 import Users from "./pages/users/Users";
+import UsersDetail from "./pages/users/UsersDetail";
 import Settings from "./pages/settings/Settings";
 import Profile from "./pages/profile/Profile";
 import EditProfile from "./pages/profile/EditProfile";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/leakage/:regionId" element={<LeakageReport />} />
             <Route path="/readings/:regionId" element={<ReadingsReport />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/users/detail/:province" element={<UsersDetail />} />
             <Route path="/users/:userId" element={<UserDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/profile" element={<Profile />} />
