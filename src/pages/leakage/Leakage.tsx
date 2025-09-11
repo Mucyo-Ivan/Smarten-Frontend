@@ -31,6 +31,7 @@ const provinceLeakageData = {
       severity: 'High',
       action: true,
       status: 'Investigating',
+      pressureDrop: 20,
     },
     history: [
       { time: '06/04/2025 12:00 AM', location: 'Gicumbi', waterLost: '200cm³/s', status: 'Investigating' },
@@ -54,6 +55,7 @@ const provinceLeakageData = {
       severity: 'Medium',
       action: false,
       status: 'Resolved',
+      pressureDrop: 15,
     },
     history: [
       { time: '07/04/2025 01:00 AM', location: 'Ngoma', waterLost: '150cm³/s', status: 'Resolved' },
@@ -74,6 +76,7 @@ const provinceLeakageData = {
       severity: 'Low',
       action: true,
       status: 'Investigating',
+      pressureDrop: 10,
     },
     history: [
       { time: '08/04/2025 02:00 AM', location: 'Huye', waterLost: '100cm³/s', status: 'Investigating' },
@@ -92,6 +95,7 @@ const provinceLeakageData = {
       severity: 'High',
       action: false,
       status: 'Investigating',
+      pressureDrop: 25,
     },
     history: [
       { time: '09/04/2025 03:00 AM', location: 'Rubavu', waterLost: '250cm³/s', status: 'Investigating' },
@@ -110,6 +114,7 @@ const provinceLeakageData = {
       severity: 'Medium',
       action: true,
       status: 'Resolved',
+      pressureDrop: 30,
     },
     history: [
       { time: '10/04/2025 04:00 AM', location: 'Gasabo', waterLost: '300cm³/s', status: 'Resolved' },
@@ -121,14 +126,6 @@ const provinceLeakageData = {
   },
 };
 
-// Add pressureDrop to each province's leakageData
-// (add to each provinceLeakageData.leakageData: pressureDrop: 20, 15, etc. as appropriate)
-// For brevity, only north is shown here, but you should add to all provinces in your real code
-provinceLeakageData.north.leakageData.pressureDrop = 20;
-provinceLeakageData.east.leakageData.pressureDrop = 15;
-provinceLeakageData.south.leakageData.pressureDrop = 10;
-provinceLeakageData.west.leakageData.pressureDrop = 25;
-provinceLeakageData.kigali.leakageData.pressureDrop = 30;
 
 const Leakage = () => {
   const [selectedRegion, setSelectedRegion] = useState('north');
@@ -219,7 +216,7 @@ const Leakage = () => {
 
   return (
     <MainLayout>
-      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 mt-6">
+      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
         {/* Province Dropdown */}
         <div className="flex items-center gap-2 mt-6 ml-6">
           <div className="relative">
@@ -461,9 +458,9 @@ const Leakage = () => {
               </>
             )}
           </div>
-        </div>
-        {/* History and Investigated Leaks side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto w-full mt-6">
+          
+          {/* History and Investigated Leaks side by side - with minimal spacing */}
+          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto w-full mt-8">
           <div className="lg:col-span-5">
             <div className="bg-white rounded-xl shadow p-6">
               <div className="flex items-center justify-between mb-2">
@@ -547,6 +544,7 @@ const Leakage = () => {
               )}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </MainLayout>
