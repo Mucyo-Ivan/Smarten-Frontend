@@ -21,14 +21,15 @@ interface NotificationDetailModalProps {
 
 const NotificationDetailModal = ({ notification, onClose }: NotificationDetailModalProps) => {
   const [switchState, setSwitchState] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('resolved');
 
   const getLocationData = () => {
     // Extract location from title or use default based on notification type
     if (notification.title.includes('Musanze')) {
       return {
-        province: 'Kigali',
-        district: 'Kicukiro', 
-        sector: 'Kamashashi'
+        province: 'Northern',
+        district: 'Musanze', 
+        sector: 'Kinigi'
       };
     } else if (notification.title.includes('Nyabihu')) {
       return {
@@ -42,11 +43,17 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
         district: 'Rwamagana',
         sector: 'Gishari'
       };
+    } else if (notification.title.includes('Kigali')) {
+      return {
+        province: 'Kigali',
+        district: 'Kicukiro',
+        sector: 'Kamashashi'
+      };
     }
     return {
-      province: 'Kigali',
-      district: 'Kicukiro',
-      sector: 'Kamashashi'
+      province: 'Northern',
+      district: 'Musanze',
+      sector: 'Kinigi'
     };
   };
 
@@ -65,7 +72,24 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
       case 'western':
         return WestIcon;
       default:
-        return KigaliIcon;
+        return NorthIcon;
+    }
+  };
+
+  const getProvinceColor = (province: string) => {
+    switch (province.toLowerCase()) {
+      case 'kigali':
+        return '#8B5CF6'; // Purple
+      case 'northern':
+        return '#FCD34D'; // Yellow
+      case 'southern':
+        return '#3B82F6'; // Blue
+      case 'eastern':
+        return '#F59E0B'; // Orange
+      case 'western':
+        return '#10B981'; // Green
+      default:
+        return '#FCD34D'; // Default yellow
     }
   };
 
@@ -73,9 +97,13 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
     setSwitchState(!switchState);
   };
 
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status);
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 relative">
+      <div className="bg-white rounded-3xl shadow-xl max-w-md w-full mx-4 relative">
         {/* Header */}
         <div className="flex items-center justify-center p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -100,7 +128,10 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
               <BookOpen className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Readings</span>
             </div>
-            <div className="text-3xl font-bold text-black mb-2">20 cm³</div>
+            <div className="text-3xl font-bold text-black mb-1 flex items-center justify-center gap-1">
+              <span>20</span>
+              <span>cm³</span>
+            </div>
             <div className="text-sm text-gray-500">water lost</div>
           </div>
 
@@ -111,8 +142,12 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
               <span className="text-sm font-medium text-gray-700">Location</span>
             </div>
             <div className="flex items-center justify-center gap-2">
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                <img src={getProvinceIcon(location.province)} alt={location.province} className="w-5 h-5" />
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img 
+                  src={getProvinceIcon(location.province)} 
+                  alt={location.province} 
+                  className="w-8 h-8" 
+                />
               </div>
               <span className="text-sm font-medium text-gray-900">{location.province}</span>
               <div className="w-4 h-4 flex items-center justify-center">
@@ -138,13 +173,13 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
             </div>
             <div className="flex justify-center">
               <div
-                className={`relative w-[120px] h-[60px] rounded-full flex items-center transition-colors duration-300 cursor-pointer`}
+                className={`relative w-[120px] h-[60px] rounded-full flex items-center justify-center transition-colors duration-300 cursor-pointer`}
                 onClick={handleSwitchToggle}
                 style={{ background: switchState ? '#D4FFE0' : '#E0E8F7' }}
               >
                 <div
-                  className={`absolute left-2 top-2 w-[52px] h-[52px] rounded-full flex items-center justify-center font-bold text-lg transition-transform duration-300 shadow-md ${
-                    switchState ? 'translate-x-[60px]' : ''
+                  className={`absolute w-[52px] h-[52px] rounded-full flex items-center justify-center font-bold text-lg transition-transform duration-300 shadow-md ${
+                    switchState ? 'translate-x-[34px]' : 'translate-x-[-34px]'
                   }`}
                   style={{
                     background: '#333333',
@@ -165,13 +200,35 @@ const NotificationDetailModal = ({ notification, onClose }: NotificationDetailMo
               <span className="text-sm font-medium text-gray-700">Status</span>
             </div>
             <div className="flex items-center justify-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">Resolved</span>
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => handleStatusChange('resolved')}
+              >
+                <div className={`w-4 h-4 rounded-full border-2 ${
+                  selectedStatus === 'resolved' 
+                    ? 'bg-blue-500 border-blue-500' 
+                    : 'border-gray-300'
+                }`}></div>
+                <span className={`text-sm ${
+                  selectedStatus === 'resolved' 
+                    ? 'font-medium text-gray-900' 
+                    : 'text-gray-500'
+                }`}>Resolved</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-gray-300 rounded-full"></div>
-                <span className="text-sm text-gray-500">Investigating</span>
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => handleStatusChange('investigating')}
+              >
+                <div className={`w-4 h-4 rounded-full border-2 ${
+                  selectedStatus === 'investigating' 
+                    ? 'bg-blue-500 border-blue-500' 
+                    : 'border-gray-300'
+                }`}></div>
+                <span className={`text-sm ${
+                  selectedStatus === 'investigating' 
+                    ? 'font-medium text-gray-900' 
+                    : 'text-gray-500'
+                }`}>Investigating</span>
               </div>
             </div>
           </div>
