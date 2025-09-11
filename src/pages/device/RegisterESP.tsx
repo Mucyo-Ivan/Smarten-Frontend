@@ -285,36 +285,42 @@ const RegisterESP = () => {
           }}
         />
         
-        {/* Content Overlay */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-start text-center px-8" style={{ paddingTop: '18%' }}>
+         {/* Content Overlay */}
+         <div className="relative z-10 h-full flex flex-col items-center justify-start text-center px-8" style={{ paddingTop: '30%' }}>
           <div className="text-white">
-             <div 
-               style={{
-                 width: '100%',
-                 color: 'white',
-                 fontSize: 30,
-                 fontFamily: 'Climate Crisis',
-                 fontWeight: '400',
-                 wordWrap: 'break-word',
-                 marginBottom: '2px'
-               }}
-             >
-               SMART WATER MONITORING
-             </div>
-             <div 
-               style={{
-                 width: '100%',
-                 textAlign: 'center',
-                 color: 'white',
-                 fontSize: 30,
-                 fontFamily: 'Climate Crisis',
-                 fontWeight: '400',
-                 wordWrap: 'break-word',
-                 marginBottom: '24px'
-               }}
-             >
-               SMART LIVES
-             </div>
+              <div 
+                style={{
+                  width: '100%',
+                  color: 'white',
+                  fontSize: 30,
+                  fontFamily: '"Climate Crisis", sans-serif',
+                  fontOpticalSizing: 'auto',
+                  fontWeight: '400',
+                  fontStyle: 'normal',
+                  fontVariationSettings: '"YEAR" 1979',
+                  wordWrap: 'break-word',
+                  marginBottom: '2px'
+                }}
+              >
+                SMART WATER MONITORING
+              </div>
+              <div 
+                style={{
+                  width: '100%',
+                  textAlign: 'center',
+                  color: 'white',
+                  fontSize: 30,
+                  fontFamily: '"Climate Crisis", sans-serif',
+                  fontOpticalSizing: 'auto',
+                  fontWeight: '400',
+                  fontStyle: 'normal',
+                  fontVariationSettings: '"YEAR" 1979',
+                  wordWrap: 'break-word',
+                  marginBottom: '24px'
+                }}
+              >
+                SMART LIVES
+              </div>
              <div 
                style={{
                  width: '100%',
