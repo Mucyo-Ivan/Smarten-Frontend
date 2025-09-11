@@ -311,46 +311,54 @@ const RegisterESP = () => {
           }}
         />
         
-        {/* Content Overlay */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-start text-center px-8" style={{ paddingTop: '18%' }}>
+         {/* Content Overlay */}
+         <div className="relative z-10 h-full flex flex-col items-center justify-start text-center px-8" style={{ paddingTop: '30%' }}>
           <div className="text-white">
-             <div 
-               style={{
-                 width: '100%',
-                 color: 'white',
-                 fontSize: 30,
-                 fontWeight: '900',
-                 wordWrap: 'break-word',
-                 marginBottom: '2px'
-               }}
-             >
-               SMART WATER MONITORING
-             </div>
-             <div 
-               style={{
-                 width: '100%',
-                 textAlign: 'center',
-                 color: 'white',
-                 fontSize: 30,
-                 fontWeight: '900',
-                 wordWrap: 'break-word',
-                 marginBottom: '24px'
-               }}
-             >
-               SMART LIVES
-             </div>
-             <div 
-               style={{
-                 width: '100%',
-                 color: 'white',
-                 fontSize: 16,
-                 fontWeight: '300',
-                 wordWrap: 'break-word'
-               }}
-             >
-               Connect your ESP32 to our system for an immersive experience in revolutionizing water management with smart, sustainable technology!
-             </div>
-          </div>
+              <div 
+                style={{
+                  width: '100%',
+                  color: 'white',
+                  fontSize: 30,
+                  fontFamily: '"Climate Crisis", sans-serif',
+                  fontOpticalSizing: 'auto',
+                  fontWeight: '400',
+                  fontStyle: 'normal',
+                  fontVariationSettings: '"YEAR" 1979',
+                  wordWrap: 'break-word',
+                  marginBottom: '2px'
+                }}
+              >
+                SMART WATER MONITORING
+              </div>
+              <div 
+                style={{
+                  width: '100%',
+                  textAlign: 'center',
+                  color: 'white',
+                  fontSize: 30,
+                  fontFamily: '"Climate Crisis", sans-serif',
+                  fontOpticalSizing: 'auto',
+                  fontWeight: '400',
+                  fontStyle: 'normal',
+                  fontVariationSettings: '"YEAR" 1979',
+                  wordWrap: 'break-word',
+                  marginBottom: '24px'
+                }}
+              >
+                SMART LIVES
+              </div>
+              <div 
+                style={{
+                  width: '100%',
+                  color: 'white',
+                  fontSize: 16,
+                  fontWeight: '300',
+                  wordWrap: 'break-word'
+                }}
+              >
+                Connect your ESP32 to our system for an immersive experience in revolutionizing water management with smart, sustainable technology!
+              </div>
+            </div>
         </div>
       </div>
     </div>

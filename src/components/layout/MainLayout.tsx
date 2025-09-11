@@ -26,6 +26,8 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
       <SidebarNav />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} unreadCount={unreadCount} onShowNotifications={() => setShowNotifications(true)} />
+        {/* Unified horizontal line */}
+        <div className="h-px bg-gray-200 w-full"></div>
         <main className="flex-1 overflow-y-auto">
           {!hideBackButton && (
             <div className="px-4 pt-3">

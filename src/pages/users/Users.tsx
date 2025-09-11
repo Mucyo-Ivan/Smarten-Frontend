@@ -28,7 +28,7 @@ const Users = () => {
   ];
 
   // Dynamic datasets
-  const dayData = Array.from({ length: 31 }, (_, i) => ({ label: `${i + 1}`, value: Math.floor(Math.random() * 100) + 10 }));
+  const dayData = Array.from({ length: 31 }, (_, i) => ({ label: `${i + 1}`, value: Math.floor(Math.random() * 100) + 10, display: `${Math.floor(Math.random() * 100) + 10}k litres` }));
   const monthData = [
     { label: '1st week', value: 20, display: '20k litres' },
     { label: '2nd week', value: 100, display: '100k litres' },
@@ -92,11 +92,11 @@ const Users = () => {
   ];
 
   const regionAssets = {
-    north: { icon: NorthIcon, color: '#FCD34D', btn: 'bg-yellow-200 hover:bg-yellow-300 text-yellow-800', text: 'text-yellow-500' },
-    south: { icon: SouthIcon, color: '#60A5FA', btn: 'bg-blue-200 hover:bg-blue-300 text-blue-800', text: 'text-blue-500' },
-    east: { icon: EastIcon, color: '#FB923C', btn: 'bg-orange-200 hover:bg-orange-300 text-orange-800', text: 'text-orange-500' },
-    west: { icon: WestIcon, color: '#22C55E', btn: 'bg-green-200 hover:bg-green-300 text-green-800', text: 'text-green-500' },
-    kigali: { icon: KigaliIcon, color: '#A855F7', btn: 'bg-purple-200 hover:bg-purple-300 text-purple-800', text: 'text-purple-500' },
+    north: { icon: NorthIcon, color: '#FCD34D', btn: 'bg-yellow-400 hover:bg-yellow-500 text-white', text: 'text-yellow-500' },
+    south: { icon: SouthIcon, color: '#60A5FA', btn: 'bg-blue-400 hover:bg-blue-500 text-white', text: 'text-blue-500' },
+    east: { icon: EastIcon, color: '#FB923C', btn: 'bg-orange-400 hover:bg-orange-500 text-white', text: 'text-orange-500' },
+    west: { icon: WestIcon, color: '#22C55E', btn: 'bg-green-400 hover:bg-green-500 text-white', text: 'text-green-500' },
+    kigali: { icon: KigaliIcon, color: '#A855F7', btn: 'bg-purple-400 hover:bg-purple-500 text-white', text: 'text-purple-500' },
   };
 
   return (
@@ -114,7 +114,9 @@ const Users = () => {
           </div>
               <div className="text-2xl font-bold text-black mb-1">{region.users.replace('k', 'k')}</div>
               <div className="text-xs text-gray-400 mb-2">Users</div>
-              <button className={`rounded-full px-4 py-1 text-xs font-semibold text-white ${regionAssets[region.id].btn} transition`}>View users</button>
+              <Link to={`/users/detail/${region.id}`}>
+                <button className={`rounded-full px-4 py-1 text-xs font-semibold text-white ${regionAssets[region.id].btn} transition`}>View users</button>
+              </Link>
             </div>
           ))}
         </div>
@@ -137,7 +139,7 @@ const Users = () => {
               >Y</button>
             </div>
                 </div>
-          <div className={`flex items-end ${barGap} h-64 mt-4 mb-2 px-2 justify-center`} style={{ minHeight: '220px', overflowX: chartOverflowX }}>
+          <div className={`flex items-end ${barGap} h-64 mt-4 mb-2 px-2 justify-center`} style={{ minHeight: '220px', overflowX: chartOverflowX as any }}>
             {chartBars.map((bar, idx) => {
               // Calculate height, cap for each view
               let barHeight = bar.value * (viewMode === 'year' ? 0.7 : viewMode === 'month' ? 4 : 2) + 40;

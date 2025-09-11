@@ -5,6 +5,7 @@ import LeakageButtonIcon from '../../../Smarten Assets/assets/Leakage button.svg
 import PeopleIcon from '../../../Smarten Assets/assets/People.svg';
 import ToggleRightIcon from '../../../Smarten Assets/assets/toggle-right 1.svg';
 import DropletsIcon from '../../../Smarten Assets/assets/droplets.svg';
+import NotificationDetailModal from './NotificationDetailModal';
 
 interface NotificationsPanelProps {
   onClose: () => void;
@@ -94,6 +95,7 @@ const getIcon = (icon: string) => {
 
 const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps) => {
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [selectedNotification, setSelectedNotification] = useState<typeof initialNotifications[0] | null>(null);
 
   // Group notifications by date
   const grouped = notifications.reduce((acc: Record<string, typeof notifications>, notif) => {
@@ -114,6 +116,14 @@ const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps
 
   const markAsRead = (id: number) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, new: false } : n)));
+  };
+
+  const handleNotificationClick = (notification: typeof initialNotifications[0]) => {
+    setSelectedNotification(notification);
+  };
+
+  const closeModal = () => {
+    setSelectedNotification(null);
   };
 
   return (
@@ -147,7 +157,7 @@ const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps
                     {getIcon(notif.icon)}
                   </span>
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleNotificationClick(notif)}>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900" style={{fontWeight: notif.new ? 600 : 500}}>{notif.title}</span>
                     {notif.new && <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full font-semibold">New</span>}
@@ -155,13 +165,21 @@ const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps
                   <div className="text-xs text-gray-400 mt-0.5">{notif.time}</div>
                 </div>
                 {notif.new && (
-                  <button onClick={() => markAsRead(notif.id)} className="text-blue-600 text-xs font-medium hover:underline">Mark as read</button>
+                  <button onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }} className="text-blue-600 text-xs font-medium hover:underline">Mark as read</button>
                 )}
               </div>
             ))}
           </div>
         ))}
       </div>
+      
+      {/* Notification Detail Modal */}
+      {selectedNotification && (
+        <NotificationDetailModal 
+          notification={selectedNotification} 
+          onClose={closeModal} 
+        />
+      )}
     </div>
   );
 };

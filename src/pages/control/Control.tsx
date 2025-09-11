@@ -611,7 +611,7 @@ const Control = () => {
                           &gt;
                         </button>
                       </div>
-                    </div>
+              </div>
                   )}
             </div>
           </div>

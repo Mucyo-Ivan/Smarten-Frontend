@@ -31,6 +31,7 @@ const provinceLeakageData = {
       severity: 'High',
       action: true,
       status: 'Investigating',
+      pressureDrop: 20,
     },
     history: [
       { time: '06/04/2025 12:00 AM', location: 'Gicumbi', waterLost: '200cm³/s', status: 'Investigating' },
@@ -54,6 +55,7 @@ const provinceLeakageData = {
       severity: 'Medium',
       action: false,
       status: 'Resolved',
+      pressureDrop: 15,
     },
     history: [
       { time: '07/04/2025 01:00 AM', location: 'Ngoma', waterLost: '150cm³/s', status: 'Resolved' },
@@ -74,6 +76,7 @@ const provinceLeakageData = {
       severity: 'Low',
       action: true,
       status: 'Investigating',
+      pressureDrop: 10,
     },
     history: [
       { time: '08/04/2025 02:00 AM', location: 'Huye', waterLost: '100cm³/s', status: 'Investigating' },
@@ -92,6 +95,7 @@ const provinceLeakageData = {
       severity: 'High',
       action: false,
       status: 'Investigating',
+      pressureDrop: 25,
     },
     history: [
       { time: '09/04/2025 03:00 AM', location: 'Rubavu', waterLost: '250cm³/s', status: 'Investigating' },
@@ -110,6 +114,7 @@ const provinceLeakageData = {
       severity: 'Medium',
       action: true,
       status: 'Resolved',
+      pressureDrop: 30,
     },
     history: [
       { time: '10/04/2025 04:00 AM', location: 'Gasabo', waterLost: '300cm³/s', status: 'Resolved' },
@@ -121,14 +126,6 @@ const provinceLeakageData = {
   },
 };
 
-// Add pressureDrop to each province's leakageData
-// (add to each provinceLeakageData.leakageData: pressureDrop: 20, 15, etc. as appropriate)
-// For brevity, only north is shown here, but you should add to all provinces in your real code
-provinceLeakageData.north.leakageData.pressureDrop = 20;
-provinceLeakageData.east.leakageData.pressureDrop = 15;
-provinceLeakageData.south.leakageData.pressureDrop = 10;
-provinceLeakageData.west.leakageData.pressureDrop = 25;
-provinceLeakageData.kigali.leakageData.pressureDrop = 30;
 
 const Leakage = () => {
   const [selectedRegion, setSelectedRegion] = useState('north');
@@ -136,7 +133,13 @@ const Leakage = () => {
   const dropdownRef = useRef(null);
   const [status, setStatus] = useState('Investigating');
   const [editResolved, setEditResolved] = useState(false);
+  const [showResolvedForm, setShowResolvedForm] = useState(false);
   const [resolvedForm, setResolvedForm] = useState({
+    date: '',
+    plumber: '',
+    note: '',
+  });
+  const [resolvedData, setResolvedData] = useState({
     date: '06/04/2025',
     plumber: 'Nshimiyumukiza Aimable',
     note: 'There was a massive leakage that damage the pipe in a great amount, but it has been fixed and water is flowing again',
@@ -161,9 +164,59 @@ const Leakage = () => {
   const region = regions.find(r => r.id === selectedRegion);
   const currentData = provinceLeakageData[selectedRegion];
 
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+    if (newStatus === 'Resolved') {
+      setShowResolvedForm(true);
+      setEditResolved(false);
+    } else {
+      setShowResolvedForm(false);
+      setEditResolved(false);
+    }
+  };
+
+  const handleResolvedFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    const errors = { date: '', plumber: '', note: '' };
+    if (!resolvedForm.date) errors.date = 'Date is required';
+    if (!resolvedForm.plumber) errors.plumber = 'Plumber name is required';
+    if (!resolvedForm.note) errors.note = 'Resolved note is required';
+    
+    setResolvedErrors(errors);
+    
+    if (!errors.date && !errors.plumber && !errors.note) {
+      // Save the resolved data
+      setResolvedData({
+        date: resolvedForm.date,
+        plumber: resolvedForm.plumber,
+        note: resolvedForm.note,
+      });
+      
+      // Hide form and show resolved details
+      setShowResolvedForm(false);
+      setEditResolved(false);
+      
+      // Reset form
+      setResolvedForm({ date: '', plumber: '', note: '' });
+    }
+  };
+
+  const handleEditResolved = () => {
+    setEditResolved(true);
+    setShowResolvedForm(false);
+    // Pre-fill form with current data
+    setResolvedForm({
+      date: resolvedData.date,
+      plumber: resolvedData.plumber,
+      note: resolvedData.note,
+    });
+  };
+
   return (
     <MainLayout>
-      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 mt-6">
+      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
         {/* Province Dropdown */}
         <div className="flex items-center gap-2 mt-6 ml-6">
           <div className="relative">
@@ -256,11 +309,11 @@ const Leakage = () => {
                   {/* Status radio buttons */}
                   <div className="flex items-center gap-4 mt-1">
                     <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="radio" name="status" value="Resolved" checked={status === 'Resolved'} onChange={() => setStatus('Resolved')} className="accent-blue-600 h-4 w-4" />
+                      <input type="radio" name="status" value="Resolved" checked={status === 'Resolved'} onChange={() => handleStatusChange('Resolved')} className="accent-blue-600 h-4 w-4" />
                       <span className="text-sm">Resolved</span>
                     </label>
                     <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="radio" name="status" value="Investigating" checked={status === 'Investigating'} onChange={() => setStatus('Investigating')} className="accent-blue-600 h-4 w-4" />
+                      <input type="radio" name="status" value="Investigating" checked={status === 'Investigating'} onChange={() => handleStatusChange('Investigating')} className="accent-blue-600 h-4 w-4" />
                       <span className="text-sm">Investigating</span>
                     </label>
                   </div>
@@ -278,13 +331,58 @@ const Leakage = () => {
                   </div>
                   <div className={`w-full h-full transition-all duration-300 ${status === 'Resolved' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Resolved' ? 'relative' : 'absolute' }}>
-                    {status === 'Resolved' && !editResolved && (
+                    {status === 'Resolved' && showResolvedForm && (
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
+                        <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
+                        <form onSubmit={handleResolvedFormSubmit} className="flex flex-col w-full gap-4 items-center">
+                          <div className="flex w-full gap-4">
+                            <div className="flex flex-col flex-1">
+                              <label className="text-white text-sm mb-1">Date</label>
+                              <input 
+                                type="date" 
+                                value={resolvedForm.date}
+                                onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
+                                className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                style={{ color: resolvedForm.date ? 'white' : '#9CA3AF' }}
+                                required
+                              />
+                              {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
+                            </div>
+                            <div className="flex flex-col flex-1">
+                              <label className="text-white text-sm mb-1">Plumber</label>
+                              <input 
+                                type="text" 
+                                placeholder="Plumber name" 
+                                value={resolvedForm.plumber}
+                                onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
+                                className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                required
+                              />
+                              {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
+                            </div>
+                          </div>
+                          <div className="flex flex-col w-full">
+                            <label className="text-white text-sm mb-1">Resolved note</label>
+                            <textarea 
+                              placeholder="Write text here..." 
+                              value={resolvedForm.note}
+                              onChange={(e) => setResolvedForm(prev => ({ ...prev, note: e.target.value }))}
+                              className="rounded-lg px-3 py-2 outline-none border-none w-full min-h-[80px]" 
+                              required
+                            />
+                            {resolvedErrors.note && <span className="text-red-300 text-xs mt-1">{resolvedErrors.note}</span>}
+                          </div>
+                          <button type="submit" className="bg-[#0EA5E9] text-white font-semibold rounded-lg px-8 py-2 mt-2 self-center">Save</button>
+                        </form>
+                      </div>
+                    )}
+                    {status === 'Resolved' && !showResolvedForm && !editResolved && (
                       <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white text-base font-semibold">Resolved leakage</span>
                           <button
                             className="h-8 w-8 p-0 flex items-center justify-center hover:bg-blue-400 rounded-full transition"
-                            onClick={() => setEditResolved(true)}
+                            onClick={handleEditResolved}
                             title="Edit"
                           >
                             <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>
@@ -293,16 +391,16 @@ const Leakage = () => {
                         <div className="flex flex-row gap-8 mb-4">
                           <div>
                             <div className="text-xs text-white font-semibold">Date</div>
-                            <div className="text-base text-white/80">{resolvedForm.date}</div>
+                            <div className="text-base text-white/80">{resolvedData.date}</div>
                           </div>
                           <div>
                             <div className="text-xs text-white font-semibold">Plumber</div>
-                            <div className="text-base text-white/80">{resolvedForm.plumber}</div>
+                            <div className="text-base text-white/80">{resolvedData.plumber}</div>
                           </div>
                         </div>
                         <div className="mb-6">
                           <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
-                          <div className="text-sm leading-snug text-white/80">{resolvedForm.note}</div>
+                          <div className="text-sm leading-snug text-white/80">{resolvedData.note}</div>
                         </div>
                         <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-25 select-none pointer-events-none">
                           <img src={SuccessIcon} alt="Success" className="h-8 w-auto" />
@@ -313,20 +411,43 @@ const Leakage = () => {
                     {status === 'Resolved' && editResolved && (
                       <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
                         <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
-                        <form className="flex flex-col w-full gap-4 items-center">
+                        <form onSubmit={handleResolvedFormSubmit} className="flex flex-col w-full gap-4 items-center">
                           <div className="flex w-full gap-4">
                             <div className="flex flex-col flex-1">
                               <label className="text-white text-sm mb-1">Date</label>
-                              <input type="date" className="rounded-lg px-3 py-2 outline-none border-none w-full" />
+                              <input 
+                                type="date" 
+                                value={resolvedForm.date}
+                                onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
+                                className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                style={{ color: resolvedForm.date ? 'white' : '#9CA3AF' }}
+                                required
+                              />
+                              {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
                             </div>
                             <div className="flex flex-col flex-1">
                               <label className="text-white text-sm mb-1">Plumber</label>
-                              <input type="text" placeholder="Plumber name" className="rounded-lg px-3 py-2 outline-none border-none w-full" />
+                              <input 
+                                type="text" 
+                                placeholder="Plumber name" 
+                                value={resolvedForm.plumber}
+                                onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
+                                className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                required
+                              />
+                              {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
                             </div>
                           </div>
                           <div className="flex flex-col w-full">
                             <label className="text-white text-sm mb-1">Resolved note</label>
-                            <textarea placeholder="Write text here..." className="rounded-lg px-3 py-2 outline-none border-none w-full min-h-[80px]" />
+                            <textarea 
+                              placeholder="Write text here..." 
+                              value={resolvedForm.note}
+                              onChange={(e) => setResolvedForm(prev => ({ ...prev, note: e.target.value }))}
+                              className="rounded-lg px-3 py-2 outline-none border-none w-full min-h-[80px]" 
+                              required
+                            />
+                            {resolvedErrors.note && <span className="text-red-300 text-xs mt-1">{resolvedErrors.note}</span>}
                           </div>
                           <button type="submit" className="bg-[#0EA5E9] text-white font-semibold rounded-lg px-8 py-2 mt-2 self-center">Save</button>
                         </form>
@@ -337,10 +458,10 @@ const Leakage = () => {
               </>
             )}
           </div>
-        </div>
-        {/* History and Investigated Leaks side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto w-full mt-6">
-          <div className="lg:col-span-5">
+          
+          {/* History and Investigated Leaks side by side - with minimal spacing */}
+          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto w-full mt-8">
+          <div className="lg:col-span-4">
             <div className="bg-white rounded-xl shadow p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-base">History</span>
@@ -384,7 +505,7 @@ const Leakage = () => {
               )}
             </div>
           </div>
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow p-6 min-h-[260px] flex flex-col">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-base">Investigated leaks</span>
@@ -423,6 +544,7 @@ const Leakage = () => {
               )}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </MainLayout>
