@@ -21,8 +21,32 @@ export const registerCompany = (data) => api.post("/register/", data);
 export const loginCompany = (data) => api.post("/login/", data);
 export const verifyEmail = (data) => api.post("/verify-email/", data);
 
-// ESP
+// Devices
 export const registerEsp = (data) => api.post("/register-esp/", data);
+export const TotalEspPerProvince = () => api.get("/total-esp-per-province/")
+export const TotalSensorPerProvince = () => api.get("/total-sensors-per-province/")
+export const TotalSmartValvePerProvince = () => api.get("/total-smartvalve-per-province/")
+
+export const TotalEspPerDistrict = (province) => {
+  return api.get("/total-esp-per-district/", {
+    params: { province }
+  });
+};
+
+export const TotalSensorPerDistrict = (province) => {
+  return api.get("/total-sensors-per-district/", {
+    params: { province }
+  });
+};
+
+export const TotalSmartValvePerDistrict  = (province) => {
+  return api.get("/total-smartvalve-per-district/", {
+    params: { province }
+  });
+};
+
+
+
 
 // Provinces
 export const getSmartValveLocation = () => api.get("/SmartValveLocation/");

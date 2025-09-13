@@ -59,7 +59,7 @@ const Register = () => {
    
     setTimeout(() => {
       navigate("/login");
-    }, 1000);
+    }, 2000);
 
     }
     catch (error) {

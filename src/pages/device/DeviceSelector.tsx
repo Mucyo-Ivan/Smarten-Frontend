@@ -2,25 +2,40 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import RegionIcon from '@/components/ui/RegionIcon';
-import { ChevronDown, Droplets, Thermometer, Wind, Activity, Zap, Plus } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
+import { TotalEspPerProvince, TotalSensorPerProvince, TotalSmartValvePerProvince, TotalEspPerDistrict, TotalSensorPerDistrict, TotalSmartValvePerDistrict } from '@/services/api.js';
 
 // Import SVG icons
-import NorthIcon from '../../../Smarten Assets/assets/North.svg';
-import SouthIcon from '../../../Smarten Assets/assets/South.svg';
-import EastIcon from '../../../Smarten Assets/assets/East.svg';
-import WestIcon from '../../../Smarten Assets/assets/West.svg';
+import NorthernIcon from '../../../Smarten Assets/assets/North.svg';
+import SouthernIcon from '../../../Smarten Assets/assets/South.svg';
+import EasternIcon from '../../../Smarten Assets/assets/East.svg';
+import WesternIcon from '../../../Smarten Assets/assets/West.svg';
 import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
+
+interface ProvinceRecord {
+  Eastern: number;
+  Kigali: number;
+  Northern: number;
+  Southern: number;
+  Western: number;
+}
 
 const DeviceSelector = () => {
   const [selectedDeviceType, setSelectedDeviceType] = useState<string>('esp32');
-  const [selectedRegion, setSelectedRegion] = useState<string>('north');
+  const [selectedRegion, setSelectedRegion] = useState<string>('Northern');
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [sensorCounts, setSensorCounts] = useState<{[key: string]: number}>({}); // Store sensor counts per district
   const navigate = useNavigate();
-  
+  const [numberEspProvince, setNumberEspProvince] = useState<ProvinceRecord | null>(null);
+  const [numberSensorProvince, setNumberSensorProvince] = useState<ProvinceRecord | null>(null);
+  const [numberSmartValveProvince, setNumberSmartValveProvince] = useState<ProvinceRecord | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [numberEsp32District, setNumberEsp32District] = useState<{ [key: string]: number }>({});
+  const [numberSensorDistrict, setNumberSensorDistrict] = useState<{ [key: string]: number }>({});
+  const [numberSmartValveDistrict, setNumberSmartValveDistrict] = useState<{ [key: string]: number }>({});
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -28,12 +43,123 @@ const DeviceSelector = () => {
         setDropdownOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownRef]);
+
+  // Fetch Total Number of ESP per Province
+  useEffect(() => {
+    const getTotalEspPerProvince = async () => {
+      try {
+        setIsLoading(true);
+        const res = await TotalEspPerProvince();
+        console.log("[Devices] Received total number of ESP per province ", res.data);
+        setNumberEspProvince(res.data);
+      } catch (err: any) {
+        console.log("Error while fetching total number of ESP per province ", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getTotalEspPerProvince();
+  }, []);
+
+  // Fetch Total Number of Sensors per Province
+  useEffect(() => {
+    const getTotalSensorPerProvince = async () => {
+      try {
+        setIsLoading(true);
+        const res = await TotalSensorPerProvince();
+        console.log("[Devices] Received total number of Sensors per province ", res.data);
+        setNumberSensorProvince(res.data);
+      } catch (err: any) {
+        console.log("Error while fetching total number of Sensors per province ", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getTotalSensorPerProvince();
+  }, []);
+
+  // Fetch Total Number of Smart Valve per Province
+  useEffect(() => {
+    const getTotalSmartValvePerProvince = async () => {
+      try {
+        setIsLoading(true);
+        const res = await TotalSmartValvePerProvince();
+        console.log("[Devices] Received total number of Smart Valve per province ", res.data);
+        setNumberSmartValveProvince(res.data);
+      } catch (err: any) {
+        console.log("Error while fetching total number of Smart Valve per province ", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getTotalSmartValvePerProvince();
+  }, []);
+
+  // Fetch Total Number of ESP per District
+  useEffect(() => {
+    const getTotalEspPerDistrict = async () => {
+      if (!selectedRegion) return;
+      try {
+        setIsLoading(true);
+        const res = await TotalEspPerDistrict(selectedRegion);
+        console.log("[Devices] Received total number of ESP32 per district ", res.data);
+        setNumberEsp32District(res.data);
+      } catch (err: any) {
+        console.log("Error while fetching total number of ESP32 per district ", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getTotalEspPerDistrict();
+  }, [selectedRegion]);
+
+  // Fetch Total Number of Sensor per District
+  useEffect(() => {
+    const getTotalSensorPerDistrict = async () => {
+      if (!selectedRegion) return;
+      try {
+        setIsLoading(true);
+        const res = await TotalSensorPerDistrict(selectedRegion);
+        console.log("[Devices] Received total number of sensors per district ", res.data);
+        setNumberSensorDistrict(res.data);
+      } catch (err: any) {
+        console.log("Error while fetching total number of sensors per district ", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getTotalSensorPerDistrict();
+  }, [selectedRegion]);
+
+  // Fetch Total Number of Smart Valve per District
+  useEffect(() => {
+    const getTotalSmartValvePerDistrict = async () => {
+      if (!selectedRegion) return;
+      try {
+        setIsLoading(true);
+        const res = await TotalSmartValvePerDistrict(selectedRegion);
+        console.log("[Devices] Received total number of smart valve per district ", res.data);
+        setNumberSmartValveDistrict(res.data);
+      } catch (err: any) {
+        console.log("Error while fetching total number of smart valve per district ", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getTotalSmartValvePerDistrict();
+  }, [selectedRegion]);
 
   const deviceTypes = [
     { id: 'esp32', name: 'ESP32' },
@@ -42,90 +168,56 @@ const DeviceSelector = () => {
   ];
 
   const regions = [
-    { id: 'north', name: 'North', value: 20000, icon: NorthIcon, color: '#FCD34D', text: 'ESP32', sensor: { flow: 20000 }, smartValves: 20000 },
-    { id: 'south', name: 'South', value: 59000, icon: SouthIcon, color: '#60A5FA', text: 'ESP32', sensor: { flow: 20000 }, smartValves: 20000 },
-    { id: 'east', name: 'East', value: 100000, icon: EastIcon, color: '#FB923C', text: 'ESP32', sensor: { flow: 20000 }, smartValves: 20000 },
-    { id: 'west', name: 'West', value: 420000, icon: WestIcon, color: '#22C55E', text: 'ESP32', sensor: { flow: 20000 }, smartValves: 20000 },
-    { id: 'kigali', name: 'Kigali', value: 120000, icon: KigaliIcon, color: '#A855F7', text: 'ESP32', sensor: { flow: 20000 }, smartValves: 20000 },
+    { id: 'Northern', name: 'Northern', value: 0, icon: NorthernIcon, color: '#FCD34D', text: 'ESP32', sensor: { flow: 0 }, smartValves: 0 },
+    { id: 'Southern', name: 'Southern', value: 0, icon: SouthernIcon, color: '#60A5FA', text: 'ESP32', sensor: { flow: 0 }, smartValves: 0 },
+    { id: 'Eastern', name: 'Eastern', value: 0, icon: EasternIcon, color: '#FB923C', text: 'ESP32', sensor: { flow: 0 }, smartValves: 0 },
+    { id: 'Western', name: 'Western', value: 0, icon: WesternIcon, color: '#22C55E', text: 'ESP32', sensor: { flow: 0 }, smartValves: 0 },
+    { id: 'Kigali', name: 'Kigali', value: 0, icon: KigaliIcon, color: '#A855F7', text: 'ESP32', sensor: { flow: 0 }, smartValves: 0 },
   ];
 
   const provinceDistricts = {
-    north: [
-      { id: 'rulindo', name: 'Rulindo' },
-      { id: 'burera', name: 'Burera' },
-      { id: 'musanze', name: 'Musanze' },
-      { id: 'gicumbi', name: 'Gicumbi' },
-      { id: 'gakenke', name: 'Gakenke' },
+    Northern: [
+      { id: 'Rulindo', name: 'Rulindo' },
+      { id: 'Burera', name: 'Burera' },
+      { id: 'Musanze', name: 'Musanze' },
+      { id: 'Gicumbi', name: 'Gicumbi' },
+      { id: 'Gakenke', name: 'Gakenke' },
     ],
-    south: [
-      { id: 'huye', name: 'Huye' },
-      { id: 'nyanza', name: 'Nyanza' },
-      { id: 'gisagara', name: 'Gisagara' },
-      { id: 'nyaruguru', name: 'Nyaruguru' },
-      { id: 'kamonyi', name: 'Kamonyi' },
-      { id: 'ruhango', name: 'Ruhango' },
-      { id: 'muhanga', name: 'Muhanga' },
-      { id: 'nyamagabe', name: 'Nyamagabe' },
+    Southern: [
+      { id: 'Huye', name: 'Huye' },
+      { id: 'Nyanza', name: 'Nyanza' },
+      { id: 'Gisagara', name: 'Gisagara' },
+      { id: 'Nyaruguru', name: 'Nyaruguru' },
+      { id: 'Kamonyi', name: 'Kamonyi' },
+      { id: 'Ruhango', name: 'Ruhango' },
+      { id: 'Muhanga', name: 'Muhanga' },
+      { id: 'Nyamagabe', name: 'Nyamagabe' },
     ],
-    east: [
-      { id: 'bugesera', name: 'Bugesera' },
-      { id: 'nyagatare', name: 'Nyagatare' },
-      { id: 'gatsibo', name: 'Gatsibo' },
-      { id: 'kayonza', name: 'Kayonza' },
-      { id: 'kirehe', name: 'Kirehe' },
-      { id: 'ngoma', name: 'Ngoma' },
-      { id: 'rwamagana', name: 'Rwamagana' },
+    Eastern: [
+      { id: 'Bugesera', name: 'Bugesera' },
+      { id: 'Nyagatare', name: 'Nyagatare' },
+      { id: 'Gatsibo', name: 'Gatsibo' },
+      { id: 'Kayonza', name: 'Kayonza' },
+      { id: 'Kirehe', name: 'Kirehe' },
+      { id: 'Ngoma', name: 'Ngoma' },
+      { id: 'Rwamagana', name: 'Rwamagana' },
     ],
-    west: [
-      { id: 'nyabihu', name: 'Nyabihu' },
-      { id: 'karongi', name: 'Karongi' },
-      { id: 'ngororero', name: 'Ngororero' },
-      { id: 'nyamasheke', name: 'Nyamasheke' },
-      { id: 'rubavu', name: 'Rubavu' },
-      { id: 'rusizi', name: 'Rusizi' },
-      { id: 'rutsiro', name: 'Rutsiro' },
+    Western: [
+      { id: 'Nyabihu', name: 'Nyabihu' },
+      { id: 'Karongi', name: 'Karongi' },
+      { id: 'Ngororero', name: 'Ngororero' },
+      { id: 'Nyamasheke', name: 'Nyamasheke' },
+      { id: 'Rubavu', name: 'Rubavu' },
+      { id: 'Rusizi', name: 'Rusizi' },
+      { id: 'Rutsiro', name: 'Rutsiro' },
     ],
-    kigali: [
-      { id: 'gasabo', name: 'Gasabo' },
-      { id: 'nyarugenge', name: 'Nyarugenge' },
-      { id: 'kicukiro', name: 'Kicukiro' },
+    Kigali: [
+      { id: 'Gasabo', name: 'Gasabo' },
+      { id: 'Nyarugenge', name: 'Nyarugenge' },
+      { id: 'Kicukiro', name: 'Kicukiro' },
     ],
   };
-  
-  // Generate random sensor counts for each district
-  useEffect(() => {
-    const counts: {[key: string]: number} = {};
-    
-    // Generate counts for all districts across all regions
-    Object.values(provinceDistricts).forEach(districts => {
-      districts.forEach(district => {
-        // Generate a random number between 5 and 25 for sensors
-        counts[district.id] = Math.floor(Math.random() * 20) + 5;
-      });
-    });
-    
-    setSensorCounts(counts);
-  }, []);
 
-  // Get random sensor type for sensor view
-  const getSensorType = (districtId: string) => {
-    const sensorTypes = ['Water Quality', 'Temperature', 'Flow Rate', 'Pressure', 'Humidity'];
-    const sensorIcons = [Droplets, Thermometer, Wind, Activity, Zap];
-    
-    // Use the district ID to consistently get the same sensor type for a district
-    const index = districtId.length % sensorTypes.length;
-    return {
-      name: sensorTypes[index],
-      Icon: sensorIcons[index]
-    };
-  };
-  
-  // Get districts based on selected region
-  const getDistricts = () => {
-    if (!selectedRegion) return [];
-    return provinceDistricts[selectedRegion as keyof typeof provinceDistricts] || [];
-  };
-  
   // Get appropriate color for the selected device type
   const getDeviceColor = () => {
     switch (selectedDeviceType) {
@@ -135,8 +227,6 @@ const DeviceSelector = () => {
         return '#10b981';
       case 'smart-valves':
         return '#f97316';
-      case 'lora':
-        return '#8b5cf6';
       default:
         return '#0095ff';
     }
@@ -151,45 +241,55 @@ const DeviceSelector = () => {
         return 'Sensors';
       case 'smart-valves':
         return 'Smart Valves';
-      case 'lora':
-        return 'Lora';
       default:
         return 'ESP32';
     }
   };
 
-  const districts = getDistricts();
+  // Get districts based on selected region
+  const getDistricts = () => {
+    if (!selectedRegion) return [];
+    return provinceDistricts[selectedRegion as keyof typeof provinceDistricts] || [];
+  };
 
-  // Render a district card with consistent styling but dynamic data
-  const renderDistrictCard = (district: any, bgColor: string, bgGradient: string) => (
-    <div key={district.id} className="bg-white rounded-3xl shadow-sm overflow-hidden w-[200px]">
-      <div className={bgColor} style={{backgroundImage: bgGradient}}>
+  // Get count for a district based on selected device type
+  const getDistrictCount = (districtId: string) => {
+    switch (selectedDeviceType) {
+      case 'esp32':
+        return numberEsp32District[districtId] || 0;
+      case 'sensors':
+        return numberSensorDistrict[districtId] || 0;
+      case 'smart-valves':
+        return numberSmartValveDistrict[districtId] || 0;
+      default:
+        return 0;
+    }
+  };
+
+  // Render a district card with dynamic data
+  const renderDistrictCard = (district: any) => (
+    <div key={district.id} className="bg-white rounded-3xl shadow-md overflow-hidden w-[200px] flex flex-col items-center">
+      <div
+        className="w-full py-3 text-center font-bold text-lg"
+        style={{
+          background: `repeating-linear-gradient(90deg, ${regions.find(r => r.id === selectedRegion)?.color}CC, ${regions.find(r => r.id === selectedRegion)?.color}CC 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 24px)`,
+          color: '#fff',
+          letterSpacing: '1px',
+        }}
+      >
         {district.name}
       </div>
-      <div className="p-5">
-        <div className="text-3xl font-bold text-center mb-0">
-          {selectedDeviceType === 'sensors' ? sensorCounts[district.id] || 0 : district.count}
-        </div>
-        <div className="text-sm text-gray-500 text-center mb-4">
-          {selectedDeviceType === 'sensors' ? (
-            <div className="flex items-center justify-center gap-1">
-              {React.createElement(getSensorType(district.id).Icon, { size: 16, className: 'text-[#10b981]' })}
-              <span>{getSensorType(district.id).name}</span>
-            </div>
-          ) : (
-            getDeviceTitle()
-          )}
-        </div>
-        <div className="flex justify-center">
-          <Link to={`/device/list/${district.id}?type=${selectedDeviceType}`}>
-            <button 
-              className="text-white text-sm py-1 px-4 rounded-full"
-              style={{ backgroundColor: selectedDeviceType === 'sensors' ? '#10b981' : '#0095ff' }}
-            >
-              See Devices
-            </button>
-          </Link>
-        </div>
+      <div className="p-5 w-full flex flex-col items-center">
+        <div className="text-3xl font-extrabold text-center mb-0">{getDistrictCount(district.id)}</div>
+        <div className="text-sm text-gray-500 text-center mb-4">{getDeviceTitle()}</div>
+        <Link to={`/device/list/${district.id}?type=${selectedDeviceType}`} className="w-full flex justify-center">
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full px-4 py-1.5 transition-all duration-200 shadow"
+            style={{ fontSize: '13px' }}
+          >
+            See Devices
+          </button>
+        </Link>
       </div>
     </div>
   );
@@ -202,7 +302,7 @@ const DeviceSelector = () => {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900">Choose a device</h1>
             {selectedDeviceType === 'esp32' && (
-              <Button 
+              <Button
                 onClick={() => navigate('/device/register-esp')}
                 className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
               >
@@ -211,7 +311,7 @@ const DeviceSelector = () => {
               </Button>
             )}
           </div>
-          
+
           {/* Device Type Selector */}
           <div className="inline-flex bg-white rounded-full p-1 border border-gray-200 shadow-sm mb-8 mx-auto">
             {deviceTypes.map((type) => (
@@ -236,7 +336,9 @@ const DeviceSelector = () => {
             {regions.map((region) => (
               <div
                 key={region.id}
-                className={`bg-white rounded-xl shadow-md p-5 cursor-pointer flex flex-col items-center border-2 transition-all duration-200 ${selectedRegion === region.id ? 'border-blue-500' : 'border-transparent'}`}
+                className={`bg-white rounded-xl shadow-md p-5 cursor-pointer flex flex-col items-center border-2 transition-all duration-200 ${
+                  selectedRegion === region.id ? 'border-blue-500' : 'border-transparent'
+                }`}
                 onClick={() => setSelectedRegion(region.id)}
                 style={{ minWidth: 180 }}
               >
@@ -244,170 +346,94 @@ const DeviceSelector = () => {
                   <div className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: `${region.color}33` }}>
                     <img src={region.icon} alt={region.name} className="w-5 h-5" />
                   </div>
-                  <span className="font-bold text-base" style={{ color: region.color }}>{region.name}</span>
+                  <span className="font-bold text-base" style={{ color: region.color }}>
+                    {region.name}
+                  </span>
                 </div>
-                <div className="text-3xl font-extrabold text-gray-900 mb-1">{
-                  selectedDeviceType === 'esp32' ? region.value.toLocaleString() :
-                  selectedDeviceType === 'sensors' ? region.sensor.flow.toLocaleString() :
-                  selectedDeviceType === 'smart-valves' ? region.smartValves.toLocaleString() :
-                  region.value.toLocaleString()
-                }</div>
-                <div className="text-xs font-medium text-gray-500">
-                  {selectedDeviceType === 'esp32' && 'ESP32'}
-                  {selectedDeviceType === 'sensors' && 'Water Flow sensor'}
-                  {selectedDeviceType === 'smart-valves' && 'Smart Valves'}
+                <div className="text-3xl font-extrabold text-gray-900 mb-1">
+                  {selectedDeviceType === 'esp32' && numberEspProvince?.[region.id]?.toLocaleString()}
+                  {selectedDeviceType === 'sensors' && numberSensorProvince?.[region.id]?.toLocaleString()}
+                  {selectedDeviceType === 'smart-valves' && numberSmartValveProvince?.[region.id]?.toLocaleString()}
                 </div>
+                <div className="text-xs font-medium text-gray-500">{getDeviceTitle()}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Province Dropdown and District Cards Section - Always Visible */}
+        {/* Province Dropdown and District Cards Section */}
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="relative">
               <button
                 className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-200 shadow-sm text-base font-semibold focus:outline-none"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
                 style={{ minWidth: 120 }}
-          >
-                <span className="w-7 h-7 flex items-center justify-center rounded-full" style={{ background: `${regions.find(r => r.id === selectedRegion)?.color}33` }}>
-                  <img src={regions.find(r => r.id === selectedRegion)?.icon} alt={regions.find(r => r.id === selectedRegion)?.name} className="w-4 h-4" />
+              >
+                <span
+                  className="w-7 h-7 flex items-center justify-center rounded-full"
+                  style={{ background: `${regions.find((r) => r.id === selectedRegion)?.color}33` }}
+                >
+                  <img
+                    src={regions.find((r) => r.id === selectedRegion)?.icon}
+                    alt={regions.find((r) => r.id === selectedRegion)?.name}
+                    className="w-4 h-4"
+                  />
                 </span>
-                <span style={{ color: regions.find(r => r.id === selectedRegion)?.color, fontWeight: 700 }}>
-                  {regions.find(r => r.id === selectedRegion)?.name}
+                <span style={{ color: regions.find((r) => r.id === selectedRegion)?.color, fontWeight: 700 }}>
+                  {regions.find((r) => r.id === selectedRegion)?.name}
                 </span>
                 <ChevronDown className={`ml-1 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} size={18} />
               </button>
-          {dropdownOpen && (
-                <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg z-20 border border-gray-100 flex flex-col" ref={dropdownRef}>
-              {regions.map(region => (
-                    <button
-                  key={region.id}
-                      className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-50 rounded-xl text-left"
-                  onClick={() => {
-                    setSelectedRegion(region.id);
-                    setDropdownOpen(false);
-                  }}
-                      style={{ width: '100%' }}
+              {dropdownOpen && (
+                <div
+                  className="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg z-20 border border-gray-100 flex flex-col"
+                  ref={dropdownRef}
                 >
+                  {regions.map((region) => (
+                    <button
+                      key={region.id}
+                      className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-50 rounded-xl text-left"
+                      onClick={() => {
+                        setSelectedRegion(region.id);
+                        setDropdownOpen(false);
+                      }}
+                      style={{ width: '100%' }}
+                    >
                       <span className="w-6 h-6 flex items-center justify-center rounded-full" style={{ background: `${region.color}33` }}>
                         <img src={region.icon} alt={region.name} className="w-4 h-4" />
                       </span>
                       <span style={{ color: region.color, fontWeight: 700 }}>{region.name}</span>
                     </button>
-              ))}
-            </div>
-          )}
-            </div>
-            <span className="ml-2 text-lg font-semibold">On the district level</span>
-        </div>
-        
-          {/* District Cards - Conditional Rendering */}
-              {selectedRegion === 'north' ? (
-                <>
-              <div className="flex flex-wrap gap-8 justify-center w-full mb-8">
-                {provinceDistricts['north'].slice(0, 3).map((district) => (
-                  <div key={district.id} className="bg-white rounded-3xl shadow-md overflow-hidden w-[200px] flex flex-col items-center">
-                    <div
-                      className="w-full py-3 text-center font-bold text-lg"
-                      style={{
-                        background: `repeating-linear-gradient(90deg, ${regions.find(r => r.id === selectedRegion)?.color}CC, ${regions.find(r => r.id === selectedRegion)?.color}CC 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 24px)`,
-                        color: '#fff',
-                        letterSpacing: '1px',
-                      }}
-                    >
-                      {district.name}
-                    </div>
-                    <div className="p-5 w-full flex flex-col items-center">
-                      <div className="text-3xl font-extrabold text-center mb-0">20</div>
-                      <div className="text-sm text-gray-500 text-center mb-4">
-                        {selectedDeviceType === 'esp32' && 'ESP32'}
-                        {selectedDeviceType === 'sensors' && 'Water Flow sensor'}
-                        {selectedDeviceType === 'smart-valves' && 'Smart Valves'}
-                      </div>
-                      <Link to={`/device/list/${district.id}?type=${selectedDeviceType}`} className="w-full flex justify-center">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full px-4 py-1.5 transition-all duration-200 shadow"
-                          style={{ fontSize: '13px' }}
-                        >
-                          See Devices
-                        </button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-8 justify-center w-full">
-                <div className="flex-1"></div>
-                {provinceDistricts['north'].slice(3, 5).map((district) => (
-                  <div key={district.id} className="bg-white rounded-3xl shadow-md overflow-hidden w-[200px] flex flex-col items-center mx-auto">
-                    <div
-                      className="w-full py-3 text-center font-bold text-lg"
-                      style={{
-                        background: `repeating-linear-gradient(90deg, ${regions.find(r => r.id === selectedRegion)?.color}CC, ${regions.find(r => r.id === selectedRegion)?.color}CC 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 24px)`,
-                        color: '#fff',
-                        letterSpacing: '1px',
-                      }}
-                    >
-                      {district.name}
-                    </div>
-                    <div className="p-5 w-full flex flex-col items-center">
-                      <div className="text-3xl font-extrabold text-center mb-0">20</div>
-                      <div className="text-sm text-gray-500 text-center mb-4">
-                        {selectedDeviceType === 'esp32' && 'ESP32'}
-                        {selectedDeviceType === 'sensors' && 'Water Flow sensor'}
-                        {selectedDeviceType === 'smart-valves' && 'Smart Valves'}
-                      </div>
-                      <Link to={`/device/list/${district.id}?type=${selectedDeviceType}`} className="w-full flex justify-center">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full px-4 py-1.5 transition-all duration-200 shadow"
-                          style={{ fontSize: '13px' }}
-                        >
-                          See Devices
-                        </button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex-1"></div>
-                  </div>
-                </>
-          ) : (
-            <div className="flex flex-wrap gap-8 justify-center">
-              {provinceDistricts[selectedRegion]?.map((district) => (
-                <div key={district.id} className="bg-white rounded-3xl shadow-md overflow-hidden w-[200px] flex flex-col items-center">
-                  <div
-                    className="w-full py-3 text-center font-bold text-lg"
-                    style={{
-                      background: `repeating-linear-gradient(90deg, ${regions.find(r => r.id === selectedRegion)?.color}CC, ${regions.find(r => r.id === selectedRegion)?.color}CC 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 12px, ${regions.find(r => r.id === selectedRegion)?.color}99 24px)`,
-                      color: '#fff',
-                      letterSpacing: '1px',
-                    }}
-                  >
-                    {district.name}
-                  </div>
-                  <div className="p-5 w-full flex flex-col items-center">
-                    <div className="text-3xl font-extrabold text-center mb-0">20</div>
-                    <div className="text-sm text-gray-500 text-center mb-4">
-                      {selectedDeviceType === 'esp32' && 'ESP32'}
-                      {selectedDeviceType === 'sensors' && 'Water Flow sensor'}
-                      {selectedDeviceType === 'smart-valves' && 'Smart Valves'}
-                </div>
-                    <Link to={`/device/list/${district.id}?type=${selectedDeviceType}`} className="w-full flex justify-center">
-                      <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full px-4 py-1.5 transition-all duration-200 shadow"
-                        style={{ fontSize: '13px' }}
-                      >
-                        See Devices
-                      </button>
-                    </Link>
-                </div>
-                </div>
-              ))}
+                  ))}
                 </div>
               )}
             </div>
+            <span className="ml-2 text-lg font-semibold">On the district level</span>
+          </div>
+
+          {/* Loading and Error States */}
+          {isLoading && <div className="text-center text-gray-500 mb-4">Loading...</div>}
+          {error && <div className="text-center text-red-500 mb-4">{error}</div>}
+
+          {/* District Cards */}
+          {selectedRegion === 'Northern' ? (
+            <>
+              <div className="flex flex-wrap gap-8 justify-center w-full mb-8">
+                {getDistricts().slice(0, 3).map((district) => renderDistrictCard(district))}
+              </div>
+              <div className="flex flex-wrap gap-8 justify-center w-full">
+                <div className="flex-1"></div>
+                {getDistricts().slice(3, 5).map((district) => renderDistrictCard(district))}
+                <div className="flex-1"></div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-wrap gap-8 justify-center">
+              {getDistricts().map((district) => renderDistrictCard(district))}
+            </div>
+          )}
+        </div>
       </div>
     </MainLayout>
   );

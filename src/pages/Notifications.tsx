@@ -1,76 +1,12 @@
-
-import { useState } from 'react';
+import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { useNotificationContext } from './NotificationContext'; // Adjust path as needed
 
-const Notifications = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'alert',
-      title: 'Leakage Detected',
-      message: 'Water leakage detected at Nyarugenge district. Immediate attention required.',
-      time: '5 minutes ago',
-      read: false,
-      location: 'Kigali, Nyarugenge'
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'High Water Pressure',
-      message: 'Water pressure at Kicukiro has exceeded normal levels.',
-      time: '15 minutes ago',
-      read: false,
-      location: 'Kigali, Kicukiro'
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'System Maintenance Complete',
-      message: 'Scheduled maintenance for Gasabo water system has been completed successfully.',
-      time: '1 hour ago',
-      read: true,
-      location: 'Kigali, Gasabo'
-    },
-    {
-      id: 4,
-      type: 'success',
-      title: 'Leak Resolved',
-      message: 'The water leak at Musanze has been successfully repaired.',
-      time: '2 hours ago',
-      read: true,
-      location: 'North, Musanze'
-    },
-    {
-      id: 5,
-      type: 'alert',
-      title: 'Device Offline',
-      message: 'ESP32 device at Huye district is not responding.',
-      time: '3 hours ago',
-      read: false,
-      location: 'South, Huye'
-    },
-  ]);
-
-  const markAsRead = (id: number) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const removeNotification = (id: number) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
+const Notifications: React.FC = () => {
+  const { notifications, unreadCount, markAsRead, removeNotification, markAllAsRead } = useNotificationContext();
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -100,15 +36,20 @@ const Notifications = () => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
   return (
     <MainLayout title="Notifications">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Bell className="w-6 h-6 text-gray-600" />
+            <div className="relative">
+              <Bell className="w-6 h-6 text-gray-600" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
               <p className="text-gray-600">
@@ -142,21 +83,21 @@ const Notifications = () => {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="mt-1">
-                        {getIcon(notification.type)}
-                      </div>
+                      <div className="mt-1">{getIcon(notification.type)}</div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                          <h3
+                            className={`font-medium ${
+                              !notification.read ? 'text-gray-900' : 'text-gray-700'
+                            }`}
+                          >
                             {notification.title}
                           </h3>
                           {!notification.read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           )}
                         </div>
-                        <p className="text-gray-600 text-sm mb-2">
-                          {notification.message}
-                        </p>
+                        <p className="text-gray-600 text-sm mb-2">{notification.message}</p>
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <span>{notification.time}</span>
                           <span>•</span>
