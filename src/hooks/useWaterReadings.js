@@ -14,10 +14,10 @@ export const useWaterReadings = (province) => {
   
   // Use data from context instead of local state
   const waterData = monitorData.waterData.filter(item => item.province === province);
-  const districtData = monitorData.districtData;
-  const criticalReadings = monitorData.criticalReadings;
-  const pastHour = monitorData.pastHour;
-  const dailyAverage = monitorData.dailyAverage;
+  const districtData = monitorData.districtData.filter(item => item.province === province);
+  const criticalReadings = monitorData.criticalReadings.filter(item => item.province === province);
+  const pastHour = monitorData.pastHour[province] || { average: 0, status: 'normal' };
+  const dailyAverage = monitorData.dailyAverage[province] || { average: 0, status: 'normal' };
 
   useEffect(() => {
     if (!province) {

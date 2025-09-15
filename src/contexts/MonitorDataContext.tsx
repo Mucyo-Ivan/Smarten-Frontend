@@ -14,6 +14,7 @@ interface DistrictDataPoint {
   flow_rate: number;
   status: string;
   timestamp: string;
+  province: string;
 }
 
 interface CriticalReading {
@@ -37,8 +38,8 @@ interface MonitorData {
   waterData: WaterDataPoint[];
   districtData: DistrictDataPoint[];
   criticalReadings: CriticalReading[];
-  pastHour: PastHourData;
-  dailyAverage: DailyAverageData;
+  pastHour: { [province: string]: PastHourData };
+  dailyAverage: { [province: string]: DailyAverageData };
   lastUpdated: string;
   currentDay: string;
 }
@@ -64,8 +65,8 @@ const getDefaultData = (): MonitorData => ({
   waterData: [],
   districtData: [],
   criticalReadings: [],
-  pastHour: { average: 0, status: 'normal' },
-  dailyAverage: { average: 0, status: 'normal' },
+  pastHour: {},
+  dailyAverage: {},
   lastUpdated: new Date().toISOString(),
   currentDay: getCurrentDay(),
 });
@@ -157,11 +158,15 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
             flow_rate: (district.flow_rate_lph || 0) / 3600,
             status: district.status || 'normal',
             timestamp: data.timestamp || new Date().toISOString(),
+            province: data.province || province,
           }));
           
           setMonitorData(prev => ({
             ...prev,
-            districtData: [...newDistricts].slice(-MAX_DISTRICT_DATA_POINTS),
+            districtData: [
+              ...prev.districtData.filter(item => item.province !== province),
+              ...newDistricts
+            ].slice(-MAX_DISTRICT_DATA_POINTS),
             lastUpdated: new Date().toISOString(),
           }));
         }
@@ -177,7 +182,10 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
           
           setMonitorData(prev => ({
             ...prev,
-            criticalReadings: processedReadings,
+            criticalReadings: [
+              ...prev.criticalReadings.filter(item => item.province !== province),
+              ...processedReadings
+            ],
             lastUpdated: new Date().toISOString(),
           }));
         }
@@ -187,8 +195,11 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
           setMonitorData(prev => ({
             ...prev,
             pastHour: {
-              average: (data.past_hour.average || 0) ,
-              status: data.past_hour.status || 'normal'
+              ...prev.pastHour,
+              [province]: {
+                average: (data.past_hour.average || 0),
+                status: data.past_hour.status || 'normal'
+              }
             },
             lastUpdated: new Date().toISOString(),
           }));
@@ -199,8 +210,11 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
           setMonitorData(prev => ({
             ...prev,
             dailyAverage: {
-              average: (data.daily_average.average || 0),
-              status: data.daily_average.status || 'normal'
+              ...prev.dailyAverage,
+              [province]: {
+                average: (data.daily_average.average || 0),
+                status: data.daily_average.status || 'normal'
+              }
             },
             lastUpdated: new Date().toISOString(),
           }));

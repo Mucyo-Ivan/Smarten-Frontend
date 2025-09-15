@@ -142,7 +142,6 @@ const getLatestDistrictData = () => {
   if (!waterData.length || !districtData.length) return [];
 
   const latestPoint = waterData
-    .filter(item => item.province.toLowerCase() === selectedProvince.toLowerCase())
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
 
   if (!latestPoint) return [];
