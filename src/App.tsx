@@ -33,6 +33,7 @@ import RegisterESP from "./pages/device/RegisterESP";
 import RegisterESPSuccess from "./pages/device/RegisterESPSuccess";
 import ErrorBoundary from "./pages/ErrorBoundary";
 import { NotificationProvider } from './pages/NotificationContext';
+import { MonitorDataProvider } from './contexts/MonitorDataContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,7 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
   <NotificationProvider>
+  <MonitorDataProvider>
   <BrowserRouter>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -84,6 +86,7 @@ const App = () => (
       </QueryClientProvider>
     </ThemeProvider>
   </BrowserRouter>
+  </MonitorDataProvider>
   </NotificationProvider> 
   </ErrorBoundary>
 );

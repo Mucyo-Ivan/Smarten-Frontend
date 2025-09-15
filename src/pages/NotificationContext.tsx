@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
   id: number;
-  type: 'alert' | 'warning' | 'success' | 'info';
+  type: 'alert' | 'warning' | 'success' | 'info' ;
   title: string;
   message: string;
   time: string;
@@ -81,24 +81,24 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
           id: alert.leak_id,
           type: alert.severity === 'HIGH' ? 'alert' : 'warning',
           title: 'Leakage Detected',
-          message: `Water leakage detected at  ${alert.district}. Flow Rate: ${alert.flow_rate_lph} L/h. Immediate attention required.`,
-          time: new Date(alert.timestamp).toLocaleTimeString(),
+          message: `Water leakage detected at ${alert.village}, ${alert.district}. Flow Rate: ${alert.flow_rate_lph} L/h. Immediate attention required.`,
+          time: alert.timestamp,
           read: false,
           location: `${alert.village}, ${alert.district}, ${alert.province}, ${alert.country}`,
         };
 
         setNotifications((prev) => {
           if (prev.some((n) => n.id === newNotification.id)) {
-            return prev;
+            return prev; // Prevent duplicates
           }
 
-          // Show toast notification
+          // Show toast notification only for leak alerts
           toast({
             title: newNotification.title,
             description: (
               <div>
                 <p>{newNotification.message}</p>
-                <p className="text-xs text-white mt-1">{newNotification.location} • {newNotification.time}</p>
+                <p className="text-xs text-gray-500 mt-1">{newNotification.location} • {newNotification.time}</p>
               </div>
             ),
             variant: alert.severity === 'HIGH' ? 'destructive' : 'default',

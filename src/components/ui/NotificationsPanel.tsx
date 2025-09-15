@@ -6,6 +6,7 @@ import PeopleIcon from '../../../Smarten Assets/assets/People.svg';
 import ToggleRightIcon from '../../../Smarten Assets/assets/toggle-right 1.svg';
 import DropletsIcon from '../../../Smarten Assets/assets/droplets.svg';
 import NotificationDetailModal from './NotificationDetailModal';
+import { useNotificationContext } from '@/pages/NotificationContext';
 
 interface NotificationsPanelProps {
   onClose: () => void;
@@ -93,33 +94,29 @@ const getIcon = (icon: string) => {
   }
 };
 
-const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps) => {
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [selectedNotification, setSelectedNotification] = useState<typeof initialNotifications[0] | null>(null);
+const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
+  const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
-  // Group notifications by date
-  const grouped = notifications.reduce((acc: Record<string, typeof notifications>, notif) => {
-    acc[notif.date] = acc[notif.date] || [];
-    acc[notif.date].push(notif);
+  // Group notifications by date (convert to the format expected by the UI)
+  const grouped = notifications.reduce((acc: Record<string, any[]>, notif) => {
+    const date = new Date(notif.time).toLocaleDateString();
+    acc[date] = acc[date] || [];
+    acc[date].push({
+      id: notif.id,
+      type: notif.type,
+      title: notif.title,
+      time: new Date(notif.time).toLocaleTimeString(),
+      date: date,
+      new: !notif.read,
+      icon: notif.type === 'alert' ? 'leakage' : notif.type === 'warning' ? 'critical' : 'user'
+    });
     return acc;
   }, {});
 
-  const unread = notifications.filter(n => n.new).length;
-  // Notify parent about unread count changes when it changes
-  useEffect(() => {
-    if (onChangeUnread) onChangeUnread(unread);
-  }, [unread, onChangeUnread]);
-
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, new: false })));
-  };
-
-  const markAsRead = (id: number) => {
-    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, new: false } : n)));
-  };
-
-  const handleNotificationClick = (notification: typeof initialNotifications[0]) => {
+  const handleNotificationClick = (notification: any) => {
     setSelectedNotification(notification);
+    markAsRead(notification.id);
   };
 
   const closeModal = () => {
@@ -135,8 +132,8 @@ const NotificationsPanel = ({ onClose, onChangeUnread }: NotificationsPanelProps
         </button>
       </div>
       <div className="flex items-center justify-between px-6 py-3">
-        <span className="text-xs text-gray-500">Unread: {unread}</span>
-        {unread > 0 && (
+        <span className="text-xs text-gray-500">Unread: {unreadCount}</span>
+        {unreadCount > 0 && (
           <button onClick={markAllAsRead} className="text-blue-600 text-xs font-medium hover:underline">Mark all as read</button>
         )}
       </div>

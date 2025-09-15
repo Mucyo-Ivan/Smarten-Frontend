@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { useNotificationContext } from './NotificationContext'; // Adjust path as needed
+import { useNotificationContext } from './NotificationContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const Notifications: React.FC = () => {
   const { notifications, unreadCount, markAsRead, removeNotification, markAllAsRead } = useNotificationContext();
+  const [selectedNotification, setSelectedNotification] = useState<null | { id: number; title: string; message: string; location: string; time: string }>(null);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -33,6 +35,13 @@ const Notifications: React.FC = () => {
       case 'info':
       default:
         return 'border-l-blue-500';
+    }
+  };
+
+  const handleNotificationClick = (notification: { id: number; type: string; title: string; message: string; location: string; time: string }) => {
+    if (notification.type === 'alert' || notification.type === 'warning') {
+      setSelectedNotification(notification);
+      markAsRead(notification.id); // Mark as read when clicked
     }
   };
 
@@ -79,7 +88,8 @@ const Notifications: React.FC = () => {
                   key={notification.id}
                   className={`p-6 border-l-4 ${getBorderColor(notification.type)} ${
                     !notification.read ? 'bg-blue-50/30' : 'bg-white'
-                  } hover:bg-gray-50 transition-colors duration-200`}
+                  } hover:bg-gray-50 transition-colors duration-200 cursor-pointer`}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -110,7 +120,10 @@ const Notifications: React.FC = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering popup
+                            markAsRead(notification.id);
+                          }}
                           className="text-blue-500 hover:text-blue-600"
                         >
                           Mark as read
@@ -119,7 +132,10 @@ const Notifications: React.FC = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => removeNotification(notification.id)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering popup
+                          removeNotification(notification.id);
+                        }}
                         className="text-gray-400 hover:text-red-500"
                       >
                         <X className="w-4 h-4" />
@@ -140,6 +156,29 @@ const Notifications: React.FC = () => {
               <p className="text-gray-600">You're all caught up! No new notifications to show.</p>
             </CardContent>
           </Card>
+        )}
+
+        {/* Popup for Leak Alerts */}
+        {selectedNotification && (
+          <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{selectedNotification.title}</DialogTitle>
+                <DialogDescription>
+                  <p>{selectedNotification.message}</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    <strong>Location:</strong> {selectedNotification.location}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <strong>Time:</strong> {selectedNotification.time}
+                  </p>
+                </DialogDescription>
+              </DialogHeader>
+              <Button onClick={() => setSelectedNotification(null)} className="mt-4">
+                Close
+              </Button>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </MainLayout>

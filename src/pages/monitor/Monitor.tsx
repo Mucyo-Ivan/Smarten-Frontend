@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Activity, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, Activity, ChevronDown, RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
-import {useWaterReadings} from '@/hooks/useWaterReadings'
+import {useWaterReadings} from '@/hooks/useWaterReadings';
+import { useMonitorData } from '@/contexts/MonitorDataContext';
 
 // Import province icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
@@ -94,8 +96,10 @@ const Monitor = () => {
   const [activeDataPoint, setActiveDataPoint] = useState<number | null>(null);
   const chartRef = useRef<any>(null);
 
- // Use WebSocket hook
- const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage } = useWaterReadings(selectedProvince);
+  // Use WebSocket hook
+  const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
+  const { clearData, getConnectionStatus } = useMonitorData();
+  
   console.log("Fetched real time data ",waterData)
   
   
@@ -160,7 +164,7 @@ console.log(latestDistrictData)
       'Western': { baseFlow: 26, flowMultiplier: 1.1 },
       'Kigali': { baseFlow: 30, flowMultiplier: 1.3 }
     };
-    return provinceData[provinceName as keyof typeof provinceData] || provinceData['North'];
+    return provinceData[provinceName as keyof typeof provinceData] || provinceData['Northern'];
   };
 
   const generateChartData = () => {
@@ -205,7 +209,7 @@ console.log(latestDistrictData)
     { id: 'north', name: 'Northern', color: 'bg-[#F7D917]', letter: 'N', iconSrc: NorthIcon },
     { id: 'south', name: 'Southern', color: 'bg-[#396EB0]', letter: 'S', iconSrc: SouthIcon },
     { id: 'east', name: 'Eastern', color: 'bg-[#FD7E14]', letter: 'E', iconSrc: EastIcon },
-    { id: 'west', name: 'Wesern', color: 'bg-[#22C55E]', letter: 'W', iconSrc: WestIcon },
+    { id: 'west', name: 'Western', color: 'bg-[#22C55E]', letter: 'W', iconSrc: WestIcon },
     { id: 'kigali', name: 'Kigali', color: 'bg-[#AF52DE]', letter: 'K', iconSrc: KigaliIcon },
   ];
 
@@ -267,6 +271,57 @@ console.log(latestDistrictData)
 
   return (
     <MainLayout title={selectedProvince}>
+      {/* Data Status Indicator */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {isDataStale && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-md">
+              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+              <span className="text-sm text-yellow-700">Data may be outdated</span>
+            </div>
+          )}
+          {connectionStatus === 'connected' && !isDataStale && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md">
+              <Activity className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-green-700">Live data</span>
+            </div>
+          )}
+          {connectionStatus === 'error' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-md">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <span className="text-sm text-red-700">Connection error</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Connection Status for All Provinces */}
+          <div className="flex items-center gap-1">
+            {['Northern', 'Southern', 'Eastern', 'Western', 'Kigali'].map(province => {
+              const status = getConnectionStatus()[province];
+              return (
+                <div
+                  key={province}
+                  className={`w-2 h-2 rounded-full ${
+                    status?.isConnected ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                  title={`${province}: ${status?.isConnected ? 'Connected' : 'Disconnected'}`}
+                />
+              );
+            })}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearData}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Clear Data
+          </Button>
+        </div>
+      </div>
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Column - Main Chart */}

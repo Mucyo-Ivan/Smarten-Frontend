@@ -6,6 +6,7 @@ import SidebarNav from './SidebarNav';
 import Header from './Header';
 import Footer from './Footer';
 import NotificationsPanel, { initialNotifications } from '../ui/NotificationsPanel';
+import { useNotificationContext } from '@/pages/NotificationContext';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -14,9 +15,7 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children, title }: MainLayoutProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(
-    initialNotifications.filter(n => n.new).length
-  );
+  const { unreadCount } = useNotificationContext();
   const navigate = useNavigate();
   const location = useLocation();
   const defaultRootPaths = ['/dashboard', '/monitor', '/device', '/control', '/leakage', '/users', '/settings', '/'];
@@ -40,7 +39,7 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
         </main>
         <Footer />
         {showNotifications && (
-          <NotificationsPanel onClose={() => setShowNotifications(false)} onChangeUnread={setUnreadCount} />
+          <NotificationsPanel onClose={() => setShowNotifications(false)} />
         )}
       </div>
     </div>
