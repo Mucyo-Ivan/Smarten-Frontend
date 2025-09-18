@@ -25,8 +25,8 @@ const Dashboard = () => {
     const latestData = waterData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
     
     if (latestData) {
-      // Convert from cm³/h to cm³/min (divide by 60)
-      return (latestData.flow_rate_lph / 60).toFixed(2);
+      // Convert from lph (liters per hour) to cm³/min: lph * 1000 / 60
+      return (latestData.flow_rate_lph * 1000 / 60).toFixed(2);
     }
     return '0.00';
   };

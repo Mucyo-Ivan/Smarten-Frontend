@@ -132,7 +132,7 @@ const Monitor = () => {
 
     const chartData = filteredData.map(item => ({
       time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`, // Format as '20h'
-      flow: Math.round(item.flow_rate_lph / 60), // Convert to cm³/min to match dashboard
+      flow: Math.round(item.flow_rate_lph * 1000 / 60), // Convert from lph to cm³/min: lph * 1000 / 60
     }));
 
     // If only one data point, add a starting point at zero for line connectivity
@@ -494,7 +494,7 @@ const latestWaterData = getLatestWaterData();
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-small px-1">{(latestWaterData.flow_rate_lph / 60).toFixed(2)}cm³/min</span>
+                        <span className="text-base font-small px-1">{(latestWaterData.flow_rate_lph * 1000 / 60).toFixed(2)}cm³/min</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
@@ -523,7 +523,7 @@ const latestWaterData = getLatestWaterData();
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-medium px-1 ">{(latestWaterData.flow_rate_lph / 60).toFixed(2)}cm³/min</span>
+                        <span className="text-base font-medium px-1 ">{(latestWaterData.flow_rate_lph * 1000 / 60).toFixed(2)}cm³/min</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
