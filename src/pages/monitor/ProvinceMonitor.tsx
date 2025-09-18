@@ -130,30 +130,15 @@ const ProvinceMonitor = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 bg-gray-50 min-h-screen space-y-6">
+      <div className="pt-2 px-6 pb-6 bg-gray-50 min-h-screen space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{currentProvince?.name}</h1>
-              <p className="text-gray-600">Real-time monitoring and analytics</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              Export Data
-            </Button>
-            <div className="text-sm text-gray-500">Last updated: 2 minutes ago</div>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{currentProvince?.name}</h1>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left Column - Main Chart */}
+          <div className="md:col-span-2">
         {/* Real Time Monitoring Chart */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -164,15 +149,8 @@ const ProvinceMonitor = () => {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">
-                    {timeRange === 'D' ? '16:00 PM' : timeRange === 'M' ? 'This Month' : 'This Year'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium">
-                    {timeRange === 'D' ? '24 L/h' : timeRange === 'M' ? '1.8K L/h' : '9.5K L/h'}
-                  </span>
+                      <span className="text-sm text-gray-500">{currentTime}</span>
+                      <Clock className="w-4 h-4 text-gray-500" />
                 </div>
               </div>
               <div className="flex gap-1">
@@ -192,57 +170,140 @@ const ProvinceMonitor = () => {
           </CardHeader>
           <CardContent>
             <div className="h-80">
+                  {chartData.length === 0 && timeRange === 'D' ? (
+                    <div className="flex items-center justify-center h-full text-gray-500">Loading real-time data...</div>
+                  ) : (
               <LineChart 
                 data={chartData} 
                 lines={[
-                  { dataKey: 'water flow', stroke: '#3b82f6', name: 'Water Flow (L/h)' },
-                ]}
-              />
+                        { dataKey: 'water flow', stroke: '#3b82f6', name: 'Water Flow (cm³/min)' },
+                      ]}
+                    />
+                  )}
+                  <div className="flex items-center justify-end space-x-6 absolute bottom-[-15px] right-4">
+                    <div className="flex items-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
+                      <span className="text-xs text-gray-600">water flow</span>
+                    </div>
+                  </div>
             </div>
           </CardContent>
         </Card>
+          </div>
+          
+          {/* Right Column - Past Hour and Average */}
+          <div>
+            {/* Past Hour Card */}
+            <div className="bg-white mb-6 rounded-lg shadow-sm">
+              <div className="p-4">
+                <div className="flex flex-col mb-2">
+                  <div className="text-base font-medium mb-1">Past Minute</div>
+                  <div className="flex items-center">
+                    <Clock className="w-3 h-3 mr-1 text-gray-400" />
+                    <span className="text-xs text-gray-400">{currentTime}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center my-2 relative">
+                  {/* Blue Circle for Flow */}
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
+                      <div className="text-center">
+                        <span className="text-base font-small px-1">{pastHour.average.toFixed(2)}cm³/s</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-600">Water Flow</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center mt-3">
+                  <div className="flex items-center">
+                    <Activity className="w-4 h-4 mr-1 text-black" />
+                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
+                     {pastHour.status}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Average Card */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-4">
+                <div className="text-base font-medium mb-3">Average</div>
+                
+                <div className="flex items-center justify-center my-2 relative">
+                  {/* Blue Circle for Flow */}
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
+                      <div className="text-center">
+                        <span className="text-base font-medium px-1 ">{dailyAverage.average.toFixed(2)}cm³/s</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-600">Water Flow</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center mt-3">
+                  <div className="flex items-center">
+                    <Activity className="w-4 h-4 mr-1 text-black" />
+                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
+                    {dailyAverage.status}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {/* Districts Data */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Districts Overview</CardTitle>
-            <p className="text-sm text-gray-500">Current readings by district in {currentProvince?.name}</p>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-hidden rounded-lg border border-gray-200">
+        {/* History Section */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center">
+              <h2 className="text-lg font-medium">History</h2>
+              <span className="text-sm text-gray-500 ml-1">(past hour)</span>
+            </div>
+            <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md">
+              See more
+            </button>
+          </div>
+          
+          {/* History Table */}
+          <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
               <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">N°</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">District</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Water Flow</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Status</th>
+              <thead>
+                <tr className="border-b">
+                  <th className="py-3 px-4 text-left text-sm font-medium">N°</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">District</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">Waterflow</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium">Status</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {processedDistrictData.length > 0 ? (
-                    processedDistrictData.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.id}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.district}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.waterflow}</td>
-                        <td className="px-4 py-3">
-                          <StatusBadge status={item.status as any} />
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                        No district data available
+              <tbody>
+                {processedDistrictData.length > 0 ? (
+                  processedDistrictData.map((item) => (
+                    <tr key={item.id} className="border-b">
+                      <td className="py-3 px-4 text-sm">{item.id}</td>
+                      <td className="py-3 px-4 text-sm">{item.district}</td>
+                      <td className="py-3 px-4 text-sm">{item.waterflow}</td>
+                      <td className="py-3 px-4">
+                        <StatusBadge status={item.status as any} />
                       </td>
                     </tr>
-                  )}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-3 px-4 text-sm text-gray-500 text-center">
+                      No district data available 
+                    </td>
+                  </tr>
+                )}
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </MainLayout>
   );
