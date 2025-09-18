@@ -1,17 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal } from 'lucide-react';
+import { useMonitorData } from '@/contexts/MonitorDataContext';
 
 const Dashboard = () => {
+  const { monitorData } = useMonitorData();
+  
+  // Province mapping for WebSocket data
+  const provinceMapping = {
+    'north': 'Northern',
+    'south': 'Southern', 
+    'east': 'Eastern',
+    'west': 'Western',
+    'kigali': 'Kigali'
+  };
+
+  // Get real-time data for each province
+  const getProvinceData = (provinceId: string) => {
+    const provinceName = provinceMapping[provinceId as keyof typeof provinceMapping];
+    const waterData = monitorData.waterData.filter(item => item.province === provinceName);
+    const latestData = waterData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    
+    if (latestData) {
+      // Convert from cm³/h to cm³/min (divide by 60)
+      return (latestData.flow_rate_lph / 60).toFixed(2);
+    }
+    return '0.00';
+  };
+
   const regions = [
     { 
       id: 'north', 
       name: 'North', 
-      value: 20, 
-      unit: 'cm³/h', 
+      value: getProvinceData('north'), 
+      unit: 'cm³/min', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-yellow-500',
@@ -21,8 +46,8 @@ const Dashboard = () => {
     { 
       id: 'south', 
       name: 'South', 
-      value: 59, 
-      unit: 'cm³/h', 
+      value: getProvinceData('south'), 
+      unit: 'cm³/min', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-blue-500',
@@ -32,8 +57,8 @@ const Dashboard = () => {
     { 
       id: 'east', 
       name: 'East', 
-      value: 100, 
-      unit: 'cm³/h', 
+      value: getProvinceData('east'), 
+      unit: 'cm³/min', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-orange-500',
@@ -43,8 +68,8 @@ const Dashboard = () => {
     { 
       id: 'west', 
       name: 'West', 
-      value: 420, 
-      unit: 'cm³/h', 
+      value: getProvinceData('west'), 
+      unit: 'cm³/min', 
       bgColor: 'bg-white',
       textColor: 'text-black', 
       iconBg: 'bg-green-500',
@@ -54,8 +79,8 @@ const Dashboard = () => {
     { 
       id: 'kigali', 
       name: 'Kigali', 
-      value: 120, 
-      unit: 'cm³/h', 
+      value: getProvinceData('kigali'), 
+      unit: 'cm³/min', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-purple-500',
@@ -120,7 +145,7 @@ const Dashboard = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-black leading-tight mb-1">{region.value}</div>
-                  <div className="text-xs font-medium text-black">cm³/h</div>
+                  <div className="text-xs font-medium text-black">{region.unit}</div>
                   <div className="text-xs font-medium text-black">Total water Flow</div>
                 </div>
               </div>

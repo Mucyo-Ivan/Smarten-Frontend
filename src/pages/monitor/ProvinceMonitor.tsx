@@ -1,40 +1,58 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import LineChart from '@/components/ui/LineChart';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Download, AlertTriangle, ArrowLeft, Clock, Activity } from 'lucide-react';
+import { useWaterReadings } from '@/hooks/useWaterReadings';
+import { useMonitorData } from '@/contexts/MonitorDataContext';
 
 const ProvinceMonitor = () => {
   const { province } = useParams();
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
+  const [currentTime, setCurrentTime] = useState('16:00 PM');
+  
+  // Province mapping for WebSocket data
+  const provinceMapping = {
+    'north': 'Northern',
+    'south': 'Southern', 
+    'east': 'Eastern',
+    'west': 'Western',
+    'kigali': 'Kigali'
+  };
+
+  const selectedProvince = provinceMapping[province as keyof typeof provinceMapping] || 'Northern';
+  
+  // Use WebSocket hook for real-time data
+  const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
+  const { clearData, getConnectionStatus } = useMonitorData();
   
   const provinceData = {
     north: {
-      name: 'North Province',
+      name: 'Northern',
       districts: ['Gicumbi', 'Musanze', 'Gakenke', 'Rulindo', 'Burera'],
       color: 'bg-yellow-500'
     },
     south: {
-      name: 'South Province', 
+      name: 'Southern', 
       districts: ['Nyanza', 'Gisagara', 'Nyaruguru', 'Huye', 'Nyamagabe', 'Ruhango', 'Muhanga', 'Kamonyi'],
       color: 'bg-blue-500'
     },
     east: {
-      name: 'East Province',
+      name: 'Eastern',
       districts: ['Rwamagana', 'Nyagatare', 'Gatsibo', 'Kayonza', 'Kirehe', 'Ngoma', 'Bugesera'],
       color: 'bg-orange-500'
     },
     west: {
-      name: 'West Province',
+      name: 'Western',
       districts: ['Nyabihu', 'Karongi', 'Ngororero', 'Nyamasheke', 'Rubavu', 'Rusizi', 'Rutsiro'],
       color: 'bg-green-500'
     },
     kigali: {
-      name: 'Kigali City',
+      name: 'Kigali',
       districts: ['Nyarugenge', 'Gasabo', 'Kicukiro'],
       color: 'bg-purple-500'
     }
@@ -42,32 +60,73 @@ const ProvinceMonitor = () => {
 
   const currentProvince = provinceData[province as keyof typeof provinceData];
 
-  const chartData = timeRange === 'D' ? [
-    { name: '00:00', 'water flow': 20 },
-    { name: '04:00', 'water flow': 25 },
-    { name: '08:00', 'water flow': 15 },
-    { name: '12:00', 'water flow': 30 },
-    { name: '16:00', 'water flow': 22 },
-    { name: '20:00', 'water flow': 18 },
-    { name: '24:00', 'water flow': 24 },
-  ] : timeRange === 'M' ? [
-    { name: 'Week 1', 'water flow': 180 },
-    { name: 'Week 2', 'water flow': 200 },
-    { name: 'Week 3', 'water flow': 170 },
-    { name: 'Week 4', 'water flow': 220 },
-  ] : [
-    { name: '2021', 'water flow': 8760 },
-    { name: '2022', 'water flow': 9200 },
-    { name: '2023', 'water flow': 8800 },
-    { name: '2024', 'water flow': 9500 },
-  ];
+  // Update current time
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+      setCurrentTime(formattedTime);
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Process WebSocket data for daily chart
+  const processChartData = (rawData: { flow_rate_lph: number; status: string; timestamp: string; province: string }[]) => {
+    if (!rawData.length) return [];
+
+    const filteredData = rawData
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .slice(-60); // Limit to last 60 points for performance
+
+    return filteredData.map(item => ({
+      time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`,
+      'water flow': Math.round(item.flow_rate_lph / 60), // Convert to cm³/min
+    }));
+  };
+
+  // Filter district data for the latest graph point
+  const getLatestDistrictData = () => {
+    if (!waterData.length || !districtData.length) return [];
+
+    const latestPoint = waterData
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+
+    if (!latestPoint) return [];
+
+    return districtData
+      .filter(item => item.timestamp === latestPoint.timestamp)
+      .sort((a, b) => a.district.localeCompare(b.district));
+  };
+
+  const latestDistrictData = getLatestDistrictData();
+
+  const chartData = timeRange === 'D' ? processChartData(waterData) : 
+    timeRange === 'M' ? [
+      { name: 'Week 1', 'water flow': 180 },
+      { name: 'Week 2', 'water flow': 200 },
+      { name: 'Week 3', 'water flow': 170 },
+      { name: 'Week 4', 'water flow': 220 },
+    ] : [
+      { name: '2021', 'water flow': 8760 },
+      { name: '2022', 'water flow': 9200 },
+      { name: '2023', 'water flow': 8800 },
+      { name: '2024', 'water flow': 9500 },
+    ];
   
-  const districtData = currentProvince?.districts.map((district, index) => ({
+  // Use real-time district data from WebSocket
+  const processedDistrictData = latestDistrictData.map((item, index) => ({
     id: index + 1,
-    district,
-    waterflow: `${180 + index * 20} L/s`,
-    status: index % 3 === 0 ? 'normal' : index % 3 === 1 ? 'underflow' : 'overflow'
-  })) || [];
+    district: item.district,
+    waterflow: `${item.flow_rate.toFixed(2)} cm³/s`,
+    status: item.status
+  }));
 
   return (
     <MainLayout>
@@ -161,16 +220,24 @@ const ProvinceMonitor = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {districtData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">{item.id}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.district}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{item.waterflow}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={item.status as any} />
+                  {processedDistrictData.length > 0 ? (
+                    processedDistrictData.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.id}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.district}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{item.waterflow}</td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={item.status as any} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                        No district data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
