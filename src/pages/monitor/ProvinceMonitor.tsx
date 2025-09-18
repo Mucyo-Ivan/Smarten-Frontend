@@ -119,6 +119,16 @@ const ProvinceMonitor = () => {
 
   const latestDistrictData = getLatestDistrictData();
 
+  // Get latest water data for consistent display (same as dashboard)
+  const getLatestWaterData = () => {
+    if (!waterData.length) return { flow_rate_lph: 0, status: 'normal' };
+    
+    return waterData
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+  };
+
+  const latestWaterData = getLatestWaterData();
+
   const chartData = timeRange === 'D' ? processChartData(waterData) : 
     timeRange === 'M' ? [
       { name: 'Week 1', 'water flow': 180 },
@@ -146,7 +156,7 @@ const ProvinceMonitor = () => {
         {/* Header */}
         <div className="flex items-center gap-3">
           <img src={currentProvince?.icon} alt={currentProvince?.name} className="h-8 w-8 object-contain" />
-          <h1 className="text-2xl font-bold text-gray-900">{currentProvince?.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{currentProvince?.name}</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -222,7 +232,7 @@ const ProvinceMonitor = () => {
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-small px-1">{pastHour.average.toFixed(2)}cm³/s</span>
+                        <span className="text-base font-small px-1">{(latestWaterData.flow_rate_lph / 60).toFixed(2)}cm³/min</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
@@ -234,7 +244,7 @@ const ProvinceMonitor = () => {
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                     {pastHour.status}
+                     {latestWaterData.status}
                     </div>
                   </div>
                 </div>
@@ -251,7 +261,7 @@ const ProvinceMonitor = () => {
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-medium px-1 ">{dailyAverage.average.toFixed(2)}cm³/s</span>
+                        <span className="text-base font-medium px-1 ">{(latestWaterData.flow_rate_lph / 60).toFixed(2)}cm³/min</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
@@ -262,7 +272,7 @@ const ProvinceMonitor = () => {
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                    {dailyAverage.status}
+                    {latestWaterData.status}
                     </div>
                   </div>
                 </div>
