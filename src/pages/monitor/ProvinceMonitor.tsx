@@ -2,11 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
-import LineChart from '@/components/ui/LineChart';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, AlertTriangle, ArrowLeft, Clock, Activity } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 import { useWaterReadings } from '@/hooks/useWaterReadings';
 import { useMonitorData } from '@/contexts/MonitorDataContext';
 
@@ -16,6 +16,27 @@ import SouthIcon from '../../../Smarten Assets/assets/South.svg';
 import EastIcon from '../../../Smarten Assets/assets/East.svg';
 import WestIcon from '../../../Smarten Assets/assets/West.svg';
 import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
+
+// Custom tooltip component for the chart
+const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 shadow-md rounded-md border border-gray-100">
+        <div className="flex justify-center items-center text-xs text-gray-500 mb-1">
+          <Clock className="w-3 h-3 mr-1" />
+          <span>{label}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1 text-xs">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <span>{payload[0]?.value} cm³/min</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 const ProvinceMonitor = () => {
   const { province } = useParams();
@@ -97,10 +118,74 @@ const ProvinceMonitor = () => {
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
       .slice(-60); // Limit to last 60 points for performance
 
-    return filteredData.map(item => ({
+    const chartData = filteredData.map(item => ({
       time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`,
-      'water flow': Math.round(item.flow_rate_lph / 60), // Convert to cm³/min
+      flow: Math.round(item.flow_rate_lph / 60), // Convert to cm³/min to match dashboard
     }));
+
+    // If only one data point, add a starting point at zero for line connectivity
+    if (chartData.length === 1) {
+      const firstPoint = chartData[0];
+      const startTime = new Date(firstPoint.time + ':00');
+      startTime.setMinutes(startTime.getMinutes() - 1); // 1 minute before
+      
+      return [
+        {
+          time: `${startTime.getHours()}:${startTime.getMinutes().toString().padStart(2, '0')}`,
+          flow: 0
+        },
+        ...chartData
+      ];
+    }
+
+    return chartData;
+  };
+
+  // Get province-specific data constants (same as Monitor.tsx)
+  const getProvinceData = (provinceName: string) => {
+    const provinceData = {
+      'Northern': { baseFlow: 24, flowMultiplier: 1.0 },
+      'Southern': { baseFlow: 28, flowMultiplier: 1.2 },
+      'Eastern': { baseFlow: 22, flowMultiplier: 0.9 },
+      'Western': { baseFlow: 26, flowMultiplier: 1.1 },
+      'Kigali': { baseFlow: 30, flowMultiplier: 1.3 }
+    };
+    return provinceData[provinceName as keyof typeof provinceData] || provinceData['Northern'];
+  };
+
+  const generateChartData = () => {
+    if (timeRange === 'D') {
+      return processChartData(waterData); // Use WebSocket for 'D'
+    } 
+    const { baseFlow, flowMultiplier } = getProvinceData(selectedProvince);
+    const provinceVariation = selectedProvince.charCodeAt(0) / 100;
+    
+    if (timeRange === 'M') {
+      const data = [];
+      const weeks = ['1st week', '2nd week', '3rd week', '4th week'];
+      for (let i = 0; i < weeks.length; i++) {
+        const waterFlow = Math.round((baseFlow + (10 * flowMultiplier) * 
+          Math.sin((i / weeks.length) * Math.PI * (6 + provinceVariation))) / 60); // Convert to cm³/min
+        data.push({
+          time: weeks[i],
+          flow: waterFlow
+        });
+      }
+      return data;
+    } else {
+      // Year view
+      const data = [];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 0; i < months.length; i++) {
+        const waterFlow = Math.round((baseFlow + (8 * flowMultiplier) * 
+          Math.sin((i / months.length) * Math.PI * (2 + provinceVariation))) / 60); // Convert to cm³/min
+        data.push({
+          time: months[i],
+          flow: waterFlow
+        });
+      }
+      return data;
+    }
   };
 
   // Filter district data for the latest graph point
@@ -129,18 +214,7 @@ const ProvinceMonitor = () => {
 
   const latestWaterData = getLatestWaterData();
 
-  const chartData = timeRange === 'D' ? processChartData(waterData) : 
-    timeRange === 'M' ? [
-      { name: 'Week 1', 'water flow': 180 },
-      { name: 'Week 2', 'water flow': 200 },
-      { name: 'Week 3', 'water flow': 170 },
-      { name: 'Week 4', 'water flow': 220 },
-    ] : [
-      { name: '2021', 'water flow': 8760 },
-      { name: '2022', 'water flow': 9200 },
-      { name: '2023', 'water flow': 8800 },
-      { name: '2024', 'water flow': 9500 },
-    ];
+  const chartData = generateChartData();
   
   // Use real-time district data from WebSocket
   const processedDistrictData = latestDistrictData.map((item, index) => ({
@@ -192,23 +266,54 @@ const ProvinceMonitor = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-                  {chartData.length === 0 && timeRange === 'D' ? (
-                    <div className="flex items-center justify-center h-full text-gray-500">Loading real-time data...</div>
-                  ) : (
-              <LineChart 
-                data={chartData} 
-                lines={[
-                        { dataKey: 'water flow', stroke: '#3b82f6', name: 'Water Flow (cm³/min)' },
-                      ]}
+            <div className="h-80 relative">
+              {chartData.length === 0 && timeRange === 'D' ? (
+                <div className="flex items-center justify-center h-full text-gray-500">Loading real-time data...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
+                    <defs>
+                      <linearGradient id="flowLineGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#0095ff" />
+                        <stop offset="100%" stopColor="#0095ff" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis 
+                      dataKey="time" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 9, fill: '#888' }}
+                      interval={0}
+                      tickFormatter={(value) => value}
+                      padding={{ left: 30, right: 30 }}
                     />
-                  )}
-                  <div className="flex items-center justify-end space-x-6 absolute bottom-[-15px] right-4">
-                    <div className="flex items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
-                      <span className="text-xs text-gray-600">water flow</span>
-                    </div>
-                  </div>
+                    <YAxis hide />
+                    <Tooltip 
+                      content={<CustomTooltip />}
+                      cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                      allowEscapeViewBox={{ x: true, y: true }}
+                      wrapperStyle={{ zIndex: 100 }}
+                    />
+                    <Line 
+                      type="monotone"
+                      dataKey="flow" 
+                      stroke="url(#flowLineGradient)" 
+                      strokeWidth={2} 
+                      dot={false}
+                      activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
+                      isAnimationActive={false}
+                      connectNulls={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+              <div className="flex items-center justify-end space-x-6 absolute bottom-[-15px] right-4">
+                <div className="flex items-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
+                  <span className="text-xs text-gray-600">water flow</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

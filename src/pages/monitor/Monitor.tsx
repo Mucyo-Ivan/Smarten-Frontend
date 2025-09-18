@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-xs">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span>{payload[0]?.value} cm³/h</span>
+            <span>{payload[0]?.value} cm³/min</span>
           </div>
         </div>
       </div>
@@ -125,17 +125,33 @@ const Monitor = () => {
   const processChartData = (rawData: { flow_rate_lph: number; status: string; timestamp: string; province: string }[]) => {
     if (!rawData.length) return [];
 
-
     const filteredData = rawData
     .filter(item => item.province === selectedProvince)
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .slice(-60); // Limit to last 100 points for performance
+    .slice(-60); // Limit to last 60 points for performance
 
-  return filteredData.map(item => ({
-    time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`, // Format as '20h'
-    flow: Math.round(item.flow_rate_lph), // Use flow_rate_lph
-  }));
-};
+    const chartData = filteredData.map(item => ({
+      time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`, // Format as '20h'
+      flow: Math.round(item.flow_rate_lph / 60), // Convert to cm³/min to match dashboard
+    }));
+
+    // If only one data point, add a starting point at zero for line connectivity
+    if (chartData.length === 1) {
+      const firstPoint = chartData[0];
+      const startTime = new Date(firstPoint.time + ':00');
+      startTime.setMinutes(startTime.getMinutes() - 1); // 1 minute before
+      
+      return [
+        {
+          time: `${startTime.getHours()}:${startTime.getMinutes().toString().padStart(2, '0')}`,
+          flow: 0
+        },
+        ...chartData
+      ];
+    }
+
+    return chartData;
+  };
 
 // Filter district data for the latest graph point
 const getLatestDistrictData = () => {
@@ -153,6 +169,16 @@ const getLatestDistrictData = () => {
 
 const latestDistrictData = getLatestDistrictData();  
 console.log(latestDistrictData)
+
+// Get latest water data for consistent display (same as dashboard and provincial monitor)
+const getLatestWaterData = () => {
+  if (!waterData.length) return { flow_rate_lph: 0, status: 'normal' };
+  
+  return waterData
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+};
+
+const latestWaterData = getLatestWaterData();
 
   // Get province-specific data constants
   const getProvinceData = (provinceName: string) => {
@@ -434,6 +460,7 @@ console.log(latestDistrictData)
                           dot={false}
                           activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
                           isAnimationActive={false}
+                          connectNulls={false}
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -467,7 +494,7 @@ console.log(latestDistrictData)
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-small px-1">{pastHour.average.toFixed(2)}cm³/s</span>
+                        <span className="text-base font-small px-1">{(latestWaterData.flow_rate_lph / 60).toFixed(2)}cm³/min</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
@@ -479,7 +506,7 @@ console.log(latestDistrictData)
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                     {pastHour.status}
+                     {latestWaterData.status}
                     </div>
                   </div>
                 </div>
@@ -496,7 +523,7 @@ console.log(latestDistrictData)
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-medium px-1 ">{dailyAverage.average.toFixed(2)}cm³/s</span>
+                        <span className="text-base font-medium px-1 ">{(latestWaterData.flow_rate_lph / 60).toFixed(2)}cm³/min</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-600">Water Flow</span>
@@ -507,7 +534,7 @@ console.log(latestDistrictData)
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                    {dailyAverage.status}
+                    {latestWaterData.status}
                     </div>
                   </div>
                 </div>
