@@ -10,6 +10,13 @@ import { Download, AlertTriangle, ArrowLeft, Clock, Activity } from 'lucide-reac
 import { useWaterReadings } from '@/hooks/useWaterReadings';
 import { useMonitorData } from '@/contexts/MonitorDataContext';
 
+// Import province icons
+import NorthIcon from '../../../Smarten Assets/assets/North.svg';
+import SouthIcon from '../../../Smarten Assets/assets/South.svg';
+import EastIcon from '../../../Smarten Assets/assets/East.svg';
+import WestIcon from '../../../Smarten Assets/assets/West.svg';
+import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
+
 const ProvinceMonitor = () => {
   const { province } = useParams();
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
@@ -34,27 +41,32 @@ const ProvinceMonitor = () => {
     north: {
       name: 'Northern',
       districts: ['Gicumbi', 'Musanze', 'Gakenke', 'Rulindo', 'Burera'],
-      color: 'bg-yellow-500'
+      color: 'bg-yellow-500',
+      icon: NorthIcon
     },
     south: {
       name: 'Southern', 
       districts: ['Nyanza', 'Gisagara', 'Nyaruguru', 'Huye', 'Nyamagabe', 'Ruhango', 'Muhanga', 'Kamonyi'],
-      color: 'bg-blue-500'
+      color: 'bg-blue-500',
+      icon: SouthIcon
     },
     east: {
       name: 'Eastern',
       districts: ['Rwamagana', 'Nyagatare', 'Gatsibo', 'Kayonza', 'Kirehe', 'Ngoma', 'Bugesera'],
-      color: 'bg-orange-500'
+      color: 'bg-orange-500',
+      icon: EastIcon
     },
     west: {
       name: 'Western',
       districts: ['Nyabihu', 'Karongi', 'Ngororero', 'Nyamasheke', 'Rubavu', 'Rusizi', 'Rutsiro'],
-      color: 'bg-green-500'
+      color: 'bg-green-500',
+      icon: WestIcon
     },
     kigali: {
       name: 'Kigali',
       districts: ['Nyarugenge', 'Gasabo', 'Kicukiro'],
-      color: 'bg-purple-500'
+      color: 'bg-purple-500',
+      icon: KigaliIcon
     }
   };
 
@@ -132,7 +144,8 @@ const ProvinceMonitor = () => {
     <MainLayout>
       <div className="pt-2 px-6 pb-6 bg-gray-50 min-h-screen space-y-4">
         {/* Header */}
-        <div>
+        <div className="flex items-center gap-3">
+          <img src={currentProvince?.icon} alt={currentProvince?.name} className="h-8 w-8 object-contain" />
           <h1 className="text-2xl font-bold text-gray-900">{currentProvince?.name}</h1>
         </div>
 
