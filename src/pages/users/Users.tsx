@@ -27,7 +27,7 @@ const Users = () => {
     { id: 'kigali', name: 'Kigali', users: '120,000', growth: '+18%', color: 'bg-purple-50', iconBg: 'bg-purple-500', buttonColor: 'bg-purple-500 hover:bg-purple-600' },
   ];
 
-  // Dynamic datasets
+
   const dayData = Array.from({ length: 31 }, (_, i) => ({ label: `${i + 1}`, value: Math.floor(Math.random() * 100) + 10, display: `${Math.floor(Math.random() * 100) + 10}k litres` }));
   const monthData = [
     { label: '1st week', value: 20, display: '20k litres' },
