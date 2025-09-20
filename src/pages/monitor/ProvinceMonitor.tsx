@@ -18,7 +18,7 @@ import WestIcon from '../../../Smarten Assets/assets/West.svg';
 import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
 
 // Custom tooltip component for the chart
-const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 shadow-md rounded-md border border-gray-100">
@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-xs">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span>{payload[0]?.value} cm³/min</span>
+            <span>{payload[0]?.value} lph</span>
           </div>
         </div>
       </div>
@@ -42,6 +42,13 @@ const ProvinceMonitor = () => {
   const { province } = useParams();
   const [timeRange, setTimeRange] = useState<'D' | 'M' | 'Y'>('D');
   const [currentTime, setCurrentTime] = useState('16:00 PM');
+  const [selectedHistoricalData, setSelectedHistoricalData] = useState<{
+    waterData: any;
+    districtData: any[];
+    criticalReadings: any[];
+    timestamp: string;
+  } | null>(null);
+  const [isHistoricalView, setIsHistoricalView] = useState(false);
   
   // Province mapping for WebSocket data
   const provinceMapping = {
@@ -115,28 +122,19 @@ const ProvinceMonitor = () => {
     if (!rawData.length) return [];
 
     const filteredData = rawData
+      .filter(item => item.flow_rate_lph != null && 
+                     !isNaN(item.flow_rate_lph) && 
+                     item.flow_rate_lph >= 0)
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
       .slice(-60); // Limit to last 60 points for performance
 
     const chartData = filteredData.map(item => ({
       time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`,
-      flow: Math.round(item.flow_rate_lph * 1000 / 60), // Convert from lph to cm³/min: lph * 1000 / 60
+      flow: item.flow_rate_lph, // Display flow_rate_lph directly as sent by backend
+      timestamp: item.timestamp,
+      status: item.status,
+      fullData: item // Store the complete data for this point
     }));
-
-    // If only one data point, add a starting point at zero for line connectivity
-    if (chartData.length === 1) {
-      const firstPoint = chartData[0];
-      const startTime = new Date(firstPoint.time + ':00');
-      startTime.setMinutes(startTime.getMinutes() - 1); // 1 minute before
-      
-      return [
-        {
-          time: `${startTime.getHours()}:${startTime.getMinutes().toString().padStart(2, '0')}`,
-          flow: 0
-        },
-        ...chartData
-      ];
-    }
 
     return chartData;
   };
@@ -214,13 +212,35 @@ const ProvinceMonitor = () => {
 
   const latestWaterData = getLatestWaterData();
 
+  // Function to get historical data for a specific timestamp
+  const getHistoricalDataForTimestamp = (timestamp: string) => {
+    // Find the water data point for this timestamp
+    const waterPoint = waterData.find(item => item.timestamp === timestamp);
+    if (!waterPoint) return null;
+
+    // Get district data for this timestamp
+    const districtDataForTimestamp = districtData.filter(item => item.timestamp === timestamp);
+    
+    // Get critical readings for this timestamp (if any)
+    const criticalReadingsForTimestamp = criticalReadings.filter(item => 
+      new Date(item.timestamp || '').getTime() <= new Date(timestamp).getTime()
+    );
+
+    return {
+      waterData: waterPoint,
+      districtData: districtDataForTimestamp,
+      criticalReadings: criticalReadingsForTimestamp,
+      timestamp: timestamp
+    };
+  };
+
   const chartData = generateChartData();
   
   // Use real-time district data from WebSocket
   const processedDistrictData = latestDistrictData.map((item, index) => ({
     id: index + 1,
     district: item.district,
-    waterflow: `${item.flow_rate.toFixed(2)} cm³/s`,
+    waterflow: `${item.flow_rate.toFixed(2)} lph`,
     status: item.status
   }));
 
@@ -271,7 +291,20 @@ const ProvinceMonitor = () => {
                 <div className="flex items-center justify-center h-full text-gray-500">Loading real-time data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
+                  <LineChart 
+                    data={chartData} 
+                    margin={{ top: 20, right: 10, left: 0, bottom: 20 }}
+                    onClick={(data) => {
+                      if (data && data.activePayload && data.activePayload[0]) {
+                        const pointData = data.activePayload[0].payload;
+                        if (pointData && pointData.fullData) {
+                          const historicalData = getHistoricalDataForTimestamp(pointData.fullData.timestamp);
+                          setSelectedHistoricalData(historicalData);
+                          setIsHistoricalView(true);
+                        }
+                      }
+                    }}
+                  >
                     <defs>
                       <linearGradient id="flowLineGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#0095ff" />
@@ -298,10 +331,10 @@ const ProvinceMonitor = () => {
                     <Line 
                       type="monotone"
                       dataKey="flow" 
-                      stroke="url(#flowLineGradient)" 
-                      strokeWidth={2} 
-                      dot={false}
-                      activeDot={{ r: 4, fill: '#fff', stroke: '#0095ff', strokeWidth: 2 }}
+                      stroke="#0095ff"
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: '#0095ff', stroke: '#fff', strokeWidth: 2 }}
+                      activeDot={{ r: 6, fill: '#fff', stroke: '#0095ff', strokeWidth: 3 }}
                       isAnimationActive={false}
                       connectNulls={false}
                     />
@@ -337,10 +370,17 @@ const ProvinceMonitor = () => {
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-small px-1">{(latestWaterData.flow_rate_lph * 1000 / 60).toFixed(2)}cm³/min</span>
+                        <span className="text-base font-small px-1">
+                          {isHistoricalView && selectedHistoricalData 
+                            ? selectedHistoricalData.waterData.flow_rate_lph.toFixed(2)
+                            : pastHour.average.toFixed(2)
+                          } lph
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-600">Water Flow</span>
+                    <span className="text-xs text-gray-600">
+                      {isHistoricalView ? 'Historical Flow' : 'Past Hour Average'}
+                    </span>
                   </div>
                 </div>
                 
@@ -349,7 +389,7 @@ const ProvinceMonitor = () => {
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                     {latestWaterData.status}
+                     {pastHour.status}
                     </div>
                   </div>
                 </div>
@@ -366,10 +406,10 @@ const ProvinceMonitor = () => {
                   <div className="flex flex-col items-center">
                     <div className="flex items-center justify-center w-30 h-20 rounded-full bg-blue-500 text-white z-10 mb-1">
                       <div className="text-center">
-                        <span className="text-base font-medium px-1 ">{(latestWaterData.flow_rate_lph * 1000 / 60).toFixed(2)}cm³/min</span>
+                        <span className="text-base font-medium px-1 ">{dailyAverage.average.toFixed(2)} lph</span>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-600">Water Flow</span>
+                    <span className="text-xs text-gray-600">Daily Average</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-center mt-3">
@@ -377,7 +417,7 @@ const ProvinceMonitor = () => {
                     <Activity className="w-4 h-4 mr-1 text-black" />
                     <span className="mr-1 text-xs font-bold text-black">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
-                    {latestWaterData.status}
+                    {dailyAverage.status}
                     </div>
                   </div>
                 </div>
@@ -391,11 +431,29 @@ const ProvinceMonitor = () => {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               <h2 className="text-lg font-medium">History</h2>
-              <span className="text-sm text-gray-500 ml-1">(past hour)</span>
+              <span className="text-sm text-gray-500 ml-1">
+                {isHistoricalView && selectedHistoricalData 
+                  ? `(${new Date(selectedHistoricalData.timestamp).toLocaleTimeString()})`
+                  : '(past hour)'
+                }
+              </span>
             </div>
-            <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md">
-              See more
-            </button>
+            <div className="flex gap-2">
+              {isHistoricalView && (
+                <button 
+                  className="bg-gray-500 text-white text-sm px-3 py-1 rounded-md"
+                  onClick={() => {
+                    setIsHistoricalView(false);
+                    setSelectedHistoricalData(null);
+                  }}
+                >
+                  Back to Current
+                </button>
+              )}
+              <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md">
+                See more
+              </button>
+            </div>
           </div>
           
           {/* History Table */}
@@ -431,6 +489,149 @@ const ProvinceMonitor = () => {
                 </tbody>
               </table>
             </div>
+        </div>
+
+        {/* Historical Data Display */}
+        {selectedHistoricalData && (
+          <div className="mt-8 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium">Historical Data</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedHistoricalData(null)}
+                className="text-xs"
+              >
+                Close
+              </Button>
+            </div>
+            
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium">
+                  {new Date(selectedHistoricalData.timestamp).toLocaleString()}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Water Flow Data */}
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <h3 className="text-sm font-medium text-blue-800 mb-2">Water Flow</h3>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {selectedHistoricalData.waterData.flow_rate_lph.toFixed(2)} lph
+                  </div>
+                  <StatusBadge status={selectedHistoricalData.waterData.status as any} />
+                </div>
+                
+                {/* District Count */}
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <h3 className="text-sm font-medium text-green-800 mb-2">Districts</h3>
+                  <div className="text-2xl font-bold text-green-900">
+                    {selectedHistoricalData.districtData.length}
+                  </div>
+                  <span className="text-xs text-green-600">Active districts</span>
+                </div>
+              </div>
+            </div>
+
+            {/* District Data for Selected Time */}
+            {selectedHistoricalData.districtData.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm mb-4">
+                <h3 className="text-lg font-medium p-4 border-b">District Data at {new Date(selectedHistoricalData.timestamp).toLocaleTimeString()}</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-3 px-4 text-left text-sm font-medium">N°</th>
+                        <th className="py-3 px-4 text-left text-sm font-medium">District</th>
+                        <th className="py-3 px-4 text-left text-sm font-medium">Waterflow</th>
+                        <th className="py-3 px-4 text-left text-sm font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedHistoricalData.districtData.map((item, index) => (
+                        <tr key={`${item.timestamp}-${item.district}`} className="border-b">
+                          <td className="py-3 px-4 text-sm">{index + 1}</td>
+                          <td className="py-3 px-4 text-sm">{item.district}</td>
+                          <td className="py-3 px-4 text-sm">{item.flow_rate.toFixed(2)} lph</td>
+                          <td className="py-3 px-4">
+                            <StatusBadge status={item.status as any} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Critical Readings for Selected Time */}
+            {selectedHistoricalData.criticalReadings.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm">
+                <h3 className="text-lg font-medium p-4 border-b">Critical Readings at {new Date(selectedHistoricalData.timestamp).toLocaleTimeString()}</h3>
+                <div className="p-4">
+                  {selectedHistoricalData.criticalReadings.map((reading, index) => (
+                    <div key={index} className="bg-red-50 p-3 rounded-lg mb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mr-2">
+                          <Activity className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="font-medium">{reading.province}/{reading.district}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-6">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                            <span className="text-sm">{reading.waterflow.toFixed(2)} lph</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <Activity className="w-3 h-3 mr-1 text-black" />
+                          <span className="mr-1 text-xs font-bold text-black">Status</span>
+                          <StatusBadge status={reading.status as any} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Current Critical Readings Section */}
+        <div className="mt-8 mb-6">
+          <h2 className="text-lg font-medium mb-4">Current Critical Readings (Last 24 Hours)</h2>
+          {criticalReadings.length > 0 ? (
+            criticalReadings.map((reading, index) => (
+              <div key={index} className="bg-white p-4 rounded-lg shadow-sm mb-4">
+                <div className="flex items-center mb-2">
+                  <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                    <Activity className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="font-medium">{reading.province}/{reading.district}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                      <span className="text-sm">{reading.waterflow.toFixed(2)} lph</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <Activity className="w-3 h-3 mr-1 text-black" />
+                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <StatusBadge status={reading.status as any} />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="text-sm text-gray-500 text-center">No critical readings available</div>
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>

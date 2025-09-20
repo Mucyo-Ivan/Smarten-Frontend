@@ -155,7 +155,7 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
           const newDistricts = data.districts.map((district, index) => ({
             id: Date.now() + index,
             district: district.district || 'Unknown',
-            flow_rate: (district.flow_rate_lph || 0) * 1000 / 3600, // Convert from lph to cm³/s: lph * 1000 / 3600
+            flow_rate: district.flow_rate_lph || 0, // Keep as lph to match backend
             status: district.status || 'normal',
             timestamp: data.timestamp || new Date().toISOString(),
             province: data.province || province,
@@ -177,7 +177,7 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
             province: reading.province || province,
             district: reading.district || 'Unknown',
             status: reading.status || 'normal',
-            waterflow: (Number(reading.waterflow) * 1000 / 3600).toFixed(2) + ' cm³/s' || '0.00 cm³/s', // Convert from lph to cm³/s
+            waterflow: Number(reading.waterflow) || 0, // Keep as number for calculations
           }));
           
           setMonitorData(prev => ({

@@ -18,15 +18,13 @@ const Dashboard = () => {
     'kigali': 'Kigali'
   };
 
-  // Get real-time data for each province
+  // Get daily average data for each province
   const getProvinceData = (provinceId: string) => {
     const provinceName = provinceMapping[provinceId as keyof typeof provinceMapping];
-    const waterData = monitorData.waterData.filter(item => item.province === provinceName);
-    const latestData = waterData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    const dailyAverage = monitorData.dailyAverage[provinceName];
     
-    if (latestData) {
-      // Convert from lph (liters per hour) to cm³/min: lph * 1000 / 60
-      return (latestData.flow_rate_lph * 1000 / 60).toFixed(2);
+    if (dailyAverage && dailyAverage.average) {
+      return dailyAverage.average.toFixed(2);
     }
     return '0.00';
   };
@@ -36,7 +34,7 @@ const Dashboard = () => {
       id: 'north', 
       name: 'North', 
       value: getProvinceData('north'), 
-      unit: 'cm³/min', 
+      unit: 'lph', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-yellow-500',
@@ -47,7 +45,7 @@ const Dashboard = () => {
       id: 'south', 
       name: 'South', 
       value: getProvinceData('south'), 
-      unit: 'cm³/min', 
+      unit: 'lph', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-blue-500',
@@ -58,7 +56,7 @@ const Dashboard = () => {
       id: 'east', 
       name: 'East', 
       value: getProvinceData('east'), 
-      unit: 'cm³/min', 
+      unit: 'lph', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-orange-500',
@@ -69,7 +67,7 @@ const Dashboard = () => {
       id: 'west', 
       name: 'West', 
       value: getProvinceData('west'), 
-      unit: 'cm³/min', 
+      unit: 'lph', 
       bgColor: 'bg-white',
       textColor: 'text-black', 
       iconBg: 'bg-green-500',
@@ -80,7 +78,7 @@ const Dashboard = () => {
       id: 'kigali', 
       name: 'Kigali', 
       value: getProvinceData('kigali'), 
-      unit: 'cm³/min', 
+      unit: 'lph', 
       bgColor: 'bg-white', 
       textColor: 'text-black',
       iconBg: 'bg-purple-500',
@@ -146,7 +144,7 @@ const Dashboard = () => {
                 <div className="text-center">
                   <div className="text-3xl font-bold text-black leading-tight mb-1">{region.value}</div>
                   <div className="text-xs font-medium text-black">{region.unit}</div>
-                  <div className="text-xs font-medium text-black">Total water Flow</div>
+                  <div className="text-xs font-medium text-black">Daily Average</div>
                 </div>
               </div>
             </Link>
