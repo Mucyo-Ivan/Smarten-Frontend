@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
   title?: string;
@@ -19,6 +20,12 @@ interface HeaderProps {
 
 const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <header className="h-16 bg-white flex items-center justify-end px-6">
@@ -67,7 +74,7 @@ const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) =>
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/login')}>
+              <DropdownMenuItem onClick={handleLogout}>
                 <User className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>

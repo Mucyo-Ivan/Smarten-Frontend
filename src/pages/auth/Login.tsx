@@ -6,20 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import SmartenLogo from '@/components/ui/SmartenLogo';
-import {loginCompany} from '@/services/api.js';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoginCredentials } from '@/Types/auth';
 
 
-interface FormData {
-  email: string;
-  password: string;
-}
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<LoginCredentials>({
     email:"",
     password:"",
 })
+   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -41,30 +39,26 @@ const Login = () => {
     setSuccess("");
   
     try {
-    const res = await loginCompany(formData);
+      
+    await login(formData);
     setSuccess("✅ Login successful! Welcome back.");
-    console.log("Response:", res.data);
     toast({
       title: "Login successful",
       description: "Welcome back to SMARTEN",
     });
-      // ✅ Store JWT token securely
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem('user', JSON.stringify({ email: formData.email, name: 'WASAC Admin' }));
-    localStorage.setItem('isAuthenticated', 'true');
     setTimeout(() => {
       navigate("/dashboard");
     }, 1000);
 
     }
     catch (error) {
-      setError(error.response?.data?.message || "❌ Login failed");
+      setError(error|| "❌ Login failed");
       toast({
         title: "Login failed",
         description: "Please enter valid credentials",
         variant: "destructive",
       });
-      
+      console.log("Login failed ",error)
     }
     finally {
       setIsLoading(false);

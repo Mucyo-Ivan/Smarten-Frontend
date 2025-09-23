@@ -34,6 +34,8 @@ import RegisterESPSuccess from "./pages/device/RegisterESPSuccess";
 import ErrorBoundary from "./pages/ErrorBoundary";
 import { NotificationProvider } from './pages/NotificationContext';
 import { MonitorDataProvider } from './contexts/MonitorDataContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,50 +47,59 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <ErrorBoundary>
-  <NotificationProvider>
-  <MonitorDataProvider>
-  <BrowserRouter>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/device" element={<DeviceSelector />} />
-            <Route path="/device/:province" element={<ProvinceDevices />} />
-            <Route path="/device/list/:regionId" element={<DeviceList />} />
-            <Route path="/device/detail/:deviceId" element={<DeviceDetail />} />
-            <Route path="/device/register-esp" element={<RegisterESP />} />
-            <Route path="/device/register-esp/success" element={<RegisterESPSuccess />} />
-            <Route path="/control" element={<Control />} />
-            <Route path="/control/:province" element={<ProvinceControl />} />
-            <Route path="/control/report/:regionId" element={<ControlReport />} />
-            <Route path="/monitor" element={<Monitor />} />
-            <Route path="/monitor/:province" element={<ProvinceMonitor />} />
-            <Route path="/leakage" element={<Leakage />} />
-            <Route path="/leakage/:regionId" element={<LeakageReport />} />
-            <Route path="/readings/:regionId" element={<ReadingsReport />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/users/detail/:province" element={<UsersDetail />} />
-            <Route path="/users/:userId" element={<UserDetail />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/edit" element={<EditProfile />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
-  </BrowserRouter>
-  </MonitorDataProvider>
-  </NotificationProvider> 
-  </ErrorBoundary>
+  
+    <ErrorBoundary>
+    <NotificationProvider>
+    <MonitorDataProvider>
+    <BrowserRouter>
+    <AuthProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+
+              <Route element={<ProtectedRoute/>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/device" element={<DeviceSelector />} />
+              <Route path="/device/:province" element={<ProvinceDevices />} />
+              <Route path="/device/list/:regionId" element={<DeviceList />} />
+              <Route path="/device/detail/:deviceId" element={<DeviceDetail />} />
+              <Route path="/device/register-esp" element={<RegisterESP />} />
+              <Route path="/device/register-esp/success" element={<RegisterESPSuccess />} />
+              <Route path="/control" element={<Control />} />
+              <Route path="/control/:province" element={<ProvinceControl />} />
+              <Route path="/control/report/:regionId" element={<ControlReport />} />
+              <Route path="/monitor" element={<Monitor />} />
+              <Route path="/monitor/:province" element={<ProvinceMonitor />} />
+              <Route path="/leakage" element={<Leakage />} />
+              <Route path="/leakage/:regionId" element={<LeakageReport />} />
+              <Route path="/readings/:regionId" element={<ReadingsReport />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/users/detail/:province" element={<UsersDetail />} />
+              <Route path="/users/:userId" element={<UserDetail />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/edit" element={<EditProfile />} />
+              <Route path="/notifications" element={<Notifications />} />
+              </Route>
+
+
+             
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
+    </MonitorDataProvider>
+    </NotificationProvider>
+    </ErrorBoundary>
 );
 
 export default App;

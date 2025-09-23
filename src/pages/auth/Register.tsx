@@ -5,18 +5,14 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import {registerCompany} from '@/services/api.js';
+// import {registerCompany} from '@/services/api.js';
 import SmartenLogo from '@/components/ui/SmartenLogo';
 
+import { useAuth } from '@/contexts/AuthContext';
+import { FormData } from '@/Types/auth';
 
-interface FormData {
-  name: string;
-  email: string;
-  registration_number: string;
-  password: string;
-  phone:number;
-  
-}
+
+
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +25,7 @@ const Register = () => {
   })
 
   const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
@@ -49,9 +46,8 @@ const Register = () => {
     setSuccess("");
   
     try {
-    const res = await registerCompany(formData);
+    await register(formData);
     setSuccess("✅ Registered successfully! Please check your email.");
-    console.log("Response:", res.data);
     toast({
       title: "Account created",
       description: "Your account has been created successfully",
@@ -69,6 +65,7 @@ const Register = () => {
         description: "Please enter valid credentials",
         variant: "destructive",
       });
+      console.log("Login failed ",error)
     }
     finally {
       setIsLoading(false);
