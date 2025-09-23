@@ -14,10 +14,10 @@ import SuccessIcon from '../../../Smarten Assets/assets/Success.png';
 import AlertIcon from '../../../Smarten Assets/assets/Alert.svg';
 
 const regions = [
-  { id: 'north', name: 'North', icon: NorthIcon, color: '#FCD34D' },
-  { id: 'south', name: 'South', icon: SouthIcon, color: '#60A5FA' },
-  { id: 'east', name: 'East', icon: EastIcon, color: '#FB923C' },
-  { id: 'west', name: 'West', icon: WestIcon, color: '#22C55E' },
+  { id: 'north', name: 'Northern', icon: NorthIcon, color: '#FCD34D' },
+  { id: 'south', name: 'Southern', icon: SouthIcon, color: '#60A5FA' },
+  { id: 'east', name: 'Eastern', icon: EastIcon, color: '#FB923C' },
+  { id: 'west', name: 'Western', icon: WestIcon, color: '#22C55E' },
   { id: 'kigali', name: 'Kigali', icon: KigaliIcon, color: '#A855F7' },
 ];
 
