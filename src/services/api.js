@@ -77,4 +77,6 @@ export const getAllLeaks = (province) => {
   });
 };
 
+export const getRecentLeak = () => api.get("/recent-leak/");
+
 export default api;

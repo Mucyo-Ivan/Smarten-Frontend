@@ -3,11 +3,25 @@ import { Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal, RefreshCw } from 'lucide-react';
 import { useMonitorData } from '@/contexts/MonitorDataContext';
+import { getRecentLeak } from '@/services/api.js';
 
 const Dashboard = () => {
   const { monitorData } = useMonitorData();
+  
+  // State for recent leakage data
+  const [recentLeakage, setRecentLeakage] = useState({
+    waterLost: '20',
+    timeTaken: '20',
+    location: 'Kigali, Kicukiro-Kamashahi',
+    status: 'Resolved',
+    severity: 'High',
+    occurredAt: '',
+    leakId: null
+  });
+  const [leakageLoading, setLeakageLoading] = useState(false);
+  const [leakageError, setLeakageError] = useState('');
   
   // Province mapping for WebSocket data
   const provinceMapping = {
@@ -16,6 +30,62 @@ const Dashboard = () => {
     'east': 'Eastern',
     'west': 'Western',
     'kigali': 'Kigali'
+  };
+
+  // Fetch recent leakage data
+  useEffect(() => {
+    const fetchRecentLeakage = async () => {
+      try {
+        setLeakageLoading(true);
+        setLeakageError('');
+        const res = await getRecentLeak();
+        console.log("Received Recent Leakage Data ", res.data);
+        
+        if (res.data.leak) {
+          const leak = res.data.leak;
+          const occurredDate = new Date(leak.occurred_at);
+          const now = new Date();
+          const timeDiff = Math.floor((now - occurredDate) / (1000 * 60)); // minutes
+          
+          setRecentLeakage({
+            waterLost: leak.water_lost_litres.toFixed(2),
+            timeTaken: timeDiff.toString(),
+            location: leak.location,
+            status: mapLeakageStatus(leak.status),
+            severity: leak.severity,
+            occurredAt: leak.occurred_at,
+            leakId: leak.leak_id
+          });
+        }
+      } catch (err) {
+        setLeakageError(err.message || 'Failed to fetch recent leakage data');
+        console.log("Failed to fetch recent leakage data", err.message);
+        // Keep default values on error
+      } finally {
+        setLeakageLoading(false);
+      }
+    };
+    
+    fetchRecentLeakage();
+    
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(fetchRecentLeakage, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Map backend status to frontend status
+  const mapLeakageStatus = (status) => {
+    switch (status.toUpperCase()) {
+      case 'INVESTIGATING':
+        return 'Investigating';
+      case 'RESOLVED':
+        return 'Resolved';
+      case 'PENDING':
+        return 'Pending';
+      default:
+        return 'Resolved';
+    }
   };
 
   // Get daily average data for each province
@@ -156,57 +226,80 @@ const Dashboard = () => {
           {/* Leakage Detection */}
           <Card className="border shadow-sm">
             <CardHeader className="pb-0">
-              <CardTitle className="text-base font-semibold">Leakage Detection</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold">Leakage Detection</CardTitle>
+                {leakageLoading && (
+                  <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                )}
+              </div>
             </CardHeader>
             <CardContent className="p-3">
               <div className="text-sm text-gray-500 mb-4 text-center">Recent</div>
-              <div className="flex justify-between px-2">
-                <div>
-                  <div className="flex items-baseline">
-                    <span className="text-3xl font-bold">20</span>
-                    <span className="text-xs text-gray-500 ml-1">cm³</span>
+              {leakageError ? (
+                <div className="text-center text-red-500 text-sm py-4">
+                  Failed to load data
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between px-2">
+                    <div>
+                      <div className="flex items-baseline">
+                        <span className="text-3xl font-bold">{recentLeakage.waterLost}</span>
+                        <span className="text-xs text-gray-500 ml-1">L</span>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-2">water lost</div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: '#1DA1F2'}}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                          {/* Top arrow - pointing left */}
+                          <line x1="4" y1="9" x2="20" y2="9" stroke="white" strokeWidth="2" />
+                          <polyline points="8,5 4,9 8,13" stroke="white" strokeWidth="2" fill="none" />
+                          
+                          {/* Bottom arrow - pointing right */}
+                          <line x1="4" y1="15" x2="20" y2="15" stroke="white" strokeWidth="2" />
+                          <polyline points="16,11 20,15 16,19" stroke="white" strokeWidth="2" fill="none" />
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-baseline">
+                        <span className="text-3xl font-bold">{recentLeakage.timeTaken}</span>
+                        <span className="text-xs text-gray-500 ml-1">min</span>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-2">Time taken</div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 mt-2">water lost</div>
-                </div>
-                
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: '#1DA1F2'}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                      {/* Top arrow - pointing left */}
-                      <line x1="4" y1="9" x2="20" y2="9" stroke="white" strokeWidth="2" />
-                      <polyline points="8,5 4,9 8,13" stroke="white" strokeWidth="2" fill="none" />
-                      
-                      {/* Bottom arrow - pointing right */}
-                      <line x1="4" y1="15" x2="20" y2="15" stroke="white" strokeWidth="2" />
-                      <polyline points="16,11 20,15 16,19" stroke="white" strokeWidth="2" fill="none" />
-                    </svg>
+                  
+                  <div className="mt-5">
+                    <div className="flex items-center gap-1 mb-3">
+                      <MapPin className="w-3 h-3 text-gray-500" />
+                      <span className="text-xs text-gray-600">{recentLeakage.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className={`w-3 h-3 ${
+                        recentLeakage.status === 'Resolved' ? 'text-green-500' : 
+                        recentLeakage.status === 'Investigating' ? 'text-blue-500' : 
+                        'text-yellow-500'
+                      }`} />
+                      <span className={`text-xs ${
+                        recentLeakage.status === 'Resolved' ? 'text-green-500' : 
+                        recentLeakage.status === 'Investigating' ? 'text-blue-500' : 
+                        'text-yellow-500'
+                      }`}>{recentLeakage.status}</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div>
-                  <div className="flex items-baseline">
-                    <span className="text-3xl font-bold">20</span>
-                    <span className="text-xs text-gray-500 ml-1">min</span>
-                  </div>
-                  <div className="text-sm text-gray-500 mt-2">Time taken</div>
-                </div>
-              </div>
-              
-              <div className="mt-5">
-                <div className="flex items-center gap-1 mb-3">
-                  <MapPin className="w-3 h-3 text-gray-500" />
-                  <span className="text-xs text-gray-600">Kigali, Kicukiro-Kamashahi</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3 text-green-500" />
-                  <span className="text-xs text-green-500">Resolved</span>
-                </div>
-              </div>
+                </>
+              )}
               
               <div className="mt-6">
-                <button className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md w-32 py-2 mx-auto block" style={{fontSize: '12px'}}>
-                  See more
-                </button>
+                <Link to="/leakage">
+                  <button className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md w-32 py-2 mx-auto block" style={{fontSize: '12px'}}>
+                    See more
+                  </button>
+                </Link>
               </div>
             </CardContent>
           </Card>
