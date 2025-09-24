@@ -1,8 +1,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { ChevronDown, AlertCircle, CheckCircle, Activity } from 'lucide-react';
+import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getAllLeaks } from '@/services/api.js';
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
 import SouthIcon from '../../../Smarten Assets/assets/South.svg';
@@ -147,6 +148,142 @@ const Leakage = () => {
   const [resolvedErrors, setResolvedErrors] = useState({ date: '', plumber: '', note: '' });
   const [resolvedFeedback, setResolvedFeedback] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Get the province name for the API call
+  const getProvinceName = (regionId: string) => {
+    const region = regions.find(r => r.id === regionId);
+    return region?.name || 'Northern';
+  };
+
+  // State for leakage data (following control page pattern)
+  const [leakageData, setLeakageData] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [totalLeaks, setTotalLeaks] = useState(0);
+  // Fetch leakage data (following control page pattern)
+  useEffect(() => {
+    const fetchLeakageData = async () => {
+      try {
+        setDataLoading(true);
+        setError('');
+        const res = await getAllLeaks(getProvinceName(selectedRegion));
+        console.log("Received Leakage Data ", res.data);
+        
+        // Process the data to match frontend format
+        const processedData = res.data.leaks.map(leak => ({
+          id: leak.leak_id,
+          time: formatDateTime(leak.occurred_at),
+          location: leak.location,
+          waterLost: `${leak.water_lost_litres.toFixed(2)}L`,
+          status: mapStatus(leak.status),
+          severity: leak.severity,
+          occurredAt: leak.occurred_at,
+          district: leak.esp_device.district,
+          village: leak.esp_device.village
+        }));
+        
+        setLeakageData(processedData);
+        setTotalLeaks(res.data.total_leaks);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch leakage data');
+        console.log("Failed to fetch leakage data", err.message);
+        // Set mock data as fallback
+        setLeakageData(getMockLeakageData(selectedRegion));
+        setTotalLeaks(getMockLeakageData(selectedRegion).length);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    
+    fetchLeakageData();
+  }, [selectedRegion]);
+
+  // Format datetime for display
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    
+    return `${day}/${month}/${year} ${displayHours}:${minutes} ${period}`;
+  };
+
+  // Map backend status to frontend status
+  const mapStatus = (status) => {
+    switch (status.toUpperCase()) {
+      case 'INVESTIGATING':
+        return 'Investigating';
+      case 'RESOLVED':
+        return 'Resolved';
+      case 'PENDING':
+        return 'Pending';
+      default:
+        return 'Investigating';
+    }
+  };
+
+  // Mock data fallback
+  const getMockLeakageData = (regionId) => {
+    const mockData = {
+      north: [
+        {
+          id: 1001,
+          time: '20/09/2025 1:25 PM',
+          location: 'Inshuti, Bibare, Muko, Musanze, Northern',
+          waterLost: '0.08L',
+          status: 'Investigating',
+          severity: 'HIGH',
+          occurredAt: '2025-09-20T13:25:48Z',
+          district: 'Musanze',
+          village: 'Inshuti'
+        }
+      ],
+      south: [],
+      east: [],
+      west: [],
+      kigali: []
+    };
+    return mockData[regionId] || [];
+  };
+
+  // Refetch function
+  const refetch = () => {
+    const fetchLeakageData = async () => {
+      try {
+        setDataLoading(true);
+        setError('');
+        const res = await getAllLeaks(getProvinceName(selectedRegion));
+        console.log("Received Leakage Data ", res.data);
+        
+        const processedData = res.data.leaks.map(leak => ({
+          id: leak.leak_id,
+          time: formatDateTime(leak.occurred_at),
+          location: leak.location,
+          waterLost: `${leak.water_lost_litres.toFixed(2)}L`,
+          status: mapStatus(leak.status),
+          severity: leak.severity,
+          occurredAt: leak.occurred_at,
+          district: leak.esp_device.district,
+          village: leak.esp_device.village
+        }));
+        
+        setLeakageData(processedData);
+        setTotalLeaks(res.data.total_leaks);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch leakage data');
+        console.log("Failed to fetch leakage data", err.message);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    
+    fetchLeakageData();
+  };
+
   useEffect(() => {
     setLoading(true);
     const timeout = setTimeout(() => setLoading(false), 700); // Simulate loading
@@ -464,17 +601,48 @@ const Leakage = () => {
           <div className="lg:col-span-4">
             <div className="bg-white rounded-xl shadow p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-base">History</span>
-                <Button variant="ghost" className="text-sm text-blue-500 px-2 py-1 h-auto">See more</Button>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-base">History</span>
+                  {totalLeaks > 0 && (
+                    <span className="text-xs text-gray-500">({totalLeaks} leaks)</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={refetch}
+                    disabled={dataLoading}
+                    className="text-sm text-blue-500 px-2 py-1 h-auto"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-1 ${dataLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                  <Button variant="ghost" className="text-sm text-blue-500 px-2 py-1 h-auto">See more</Button>
+                </div>
               </div>
-              {loading ? (
+              {dataLoading ? (
                 <div className="flex items-center justify-center min-h-[120px]">
                   <svg className="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
                 </div>
-              ) : currentData.history.length === 0 ? (
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center min-h-[120px] text-red-400">
+                  <AlertCircle className="w-8 h-8 mb-2" />
+                  <span className="text-sm">Failed to load data</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={refetch}
+                    className="mt-2"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              ) : leakageData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[120px] text-gray-400">
                   <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>
-                  <span className="mt-2">No history available.</span>
+                  <span className="mt-2">No leakage history available for {getProvinceName(selectedRegion)}.</span>
                 </div>
               ) : (
                 <table className="w-full text-sm overflow-x-auto">
@@ -487,8 +655,8 @@ const Leakage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                  {currentData.history.map((row, i) => (
-                    <tr key={i} className="border-t border-gray-100">
+                  {leakageData.map((row, i) => (
+                    <tr key={row.id} className="border-t border-gray-100">
                       <td className="py-2 text-xs text-gray-700">
                         <div>{row.time.split(' ')[0]}</div>
                         <div className="text-[11px] text-gray-400 leading-tight">{row.time.split(' ').slice(1).join(' ')}</div>

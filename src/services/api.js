@@ -71,6 +71,10 @@ export const getAllCommands = () => api.get("/all-commands/");
 export const getProvinceCommandCount = () => api.get("/province-command-count/");
 
 // Leakages
-export const getAllLeaks = () => api.get("/all-leaks/");
+export const getAllLeaks = (province) => {
+  return api.get("/all-leaks/", {
+    params: { province }
+  });
+};
 
 export default api;
