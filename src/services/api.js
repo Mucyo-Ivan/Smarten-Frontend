@@ -79,4 +79,10 @@ export const getAllLeaks = (province) => {
 
 export const getRecentLeak = () => api.get("/recent-leak/");
 
+export const getInvestigatingLeaks = (province) => {
+  return api.get("/investigating-leaks/", {
+    params: { province }
+  });
+};
+
 export default api;

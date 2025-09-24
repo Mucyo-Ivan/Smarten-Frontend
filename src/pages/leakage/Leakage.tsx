@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getAllLeaks } from '@/services/api.js';
+import { getAllLeaks, getInvestigatingLeaks } from '@/services/api.js';
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
 import SouthIcon from '../../../Smarten Assets/assets/South.svg';
@@ -160,6 +160,12 @@ const Leakage = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [error, setError] = useState('');
   const [totalLeaks, setTotalLeaks] = useState(0);
+
+  // State for investigating leaks data
+  const [investigatingLeaks, setInvestigatingLeaks] = useState([]);
+  const [investigatingLoading, setInvestigatingLoading] = useState(false);
+  const [investigatingError, setInvestigatingError] = useState('');
+  const [totalInvestigating, setTotalInvestigating] = useState(0);
   // Fetch leakage data (following control page pattern)
   useEffect(() => {
     const fetchLeakageData = async () => {
@@ -196,6 +202,46 @@ const Leakage = () => {
     };
     
     fetchLeakageData();
+  }, [selectedRegion]);
+
+  // Fetch investigating leaks data
+  useEffect(() => {
+    const fetchInvestigatingLeaks = async () => {
+      try {
+        setInvestigatingLoading(true);
+        setInvestigatingError('');
+        const res = await getInvestigatingLeaks(getProvinceName(selectedRegion));
+        console.log("Received Investigating Leaks Data ", res.data);
+        
+        if (res.data.leaks) {
+          // Process the data to match frontend format
+          const processedData = res.data.leaks.map(leak => ({
+            id: leak.leak_id,
+            time: formatDateTime(leak.occurred_at),
+            description: `Leakage detected in ${leak.esp_device.district}`,
+            location: leak.location,
+            waterLost: leak.water_lost_litres.toFixed(2),
+            severity: leak.severity,
+            occurredAt: leak.occurred_at,
+            district: leak.esp_device.district,
+            village: leak.esp_device.village
+          }));
+          
+          setInvestigatingLeaks(processedData);
+          setTotalInvestigating(res.data.total_leaks);
+        }
+      } catch (err) {
+        setInvestigatingError(err.message || 'Failed to fetch investigating leaks data');
+        console.log("Failed to fetch investigating leaks data", err.message);
+        // Set mock data as fallback
+        setInvestigatingLeaks(getMockInvestigatingData(selectedRegion));
+        setTotalInvestigating(getMockInvestigatingData(selectedRegion).length);
+      } finally {
+        setInvestigatingLoading(false);
+      }
+    };
+    
+    fetchInvestigatingLeaks();
   }, [selectedRegion]);
 
   // Format datetime for display
@@ -240,6 +286,41 @@ const Leakage = () => {
           occurredAt: '2025-09-20T13:25:48Z',
           district: 'Musanze',
           village: 'Inshuti'
+        }
+      ],
+      south: [],
+      east: [],
+      west: [],
+      kigali: []
+    };
+    return mockData[regionId] || [];
+  };
+
+  // Mock investigating leaks data fallback
+  const getMockInvestigatingData = (regionId) => {
+    const mockData = {
+      north: [
+        {
+          id: 1001,
+          time: '20/09/2025 1:25 PM',
+          description: 'Leakage detected in Musanze',
+          location: 'Inshuti, Bibare, Muko, Musanze, Northern',
+          waterLost: '0.08L',
+          severity: 'HIGH',
+          occurredAt: '2025-09-20T13:25:48Z',
+          district: 'Musanze',
+          village: 'Inshuti'
+        },
+        {
+          id: 1002,
+          time: '20/09/2025 1:20 PM',
+          description: 'Leakage detected in Nyabihu',
+          location: 'Nyabihu, Western',
+          waterLost: '0.05L',
+          severity: 'MEDIUM',
+          occurredAt: '2025-09-20T13:20:00Z',
+          district: 'Nyabihu',
+          village: 'Nyabihu'
         }
       ],
       south: [],
@@ -677,35 +758,40 @@ const Leakage = () => {
             <div className="bg-white rounded-xl shadow p-6 min-h-[260px] flex flex-col">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-base">Investigated leaks</span>
-                <span className="text-xs text-gray-500">{currentData.investigatedLeaks.length}</span>
+                <span className="text-xs text-gray-500">{totalInvestigating}</span>
               </div>
-              {loading ? (
+              {investigatingLoading ? (
                 <div className="flex items-center justify-center min-h-[100px]">
                   <svg className="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
                 </div>
-              ) : currentData.investigatedLeaks.length === 0 ? (
+              ) : investigatingError ? (
+                <div className="flex flex-col items-center justify-center min-h-[100px] text-red-400">
+                  <AlertCircle className="w-8 h-8 mb-2" />
+                  <span className="text-sm">Failed to load data</span>
+                </div>
+              ) : investigatingLeaks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[100px] text-gray-400">
                   <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>
-                  <span className="mt-2">No investigated leaks.</span>
+                  <span className="mt-2">No investigating leaks for {getProvinceName(selectedRegion)}.</span>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4 mt-2 overflow-y-auto" style={{maxHeight: 220}}>
-                  {currentData.investigatedLeaks.slice(0, 4).map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
+                  {investigatingLeaks.slice(0, 4).map((item, idx) => (
+                    <div key={item.id} className="flex items-start gap-2">
                       <div className="flex flex-col items-center mr-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                        {idx !== currentData.investigatedLeaks.length - 1 && <div className="h-6 w-0.5 bg-blue-200 mx-auto mt-1"></div>}
+                        {idx !== investigatingLeaks.length - 1 && <div className="h-6 w-0.5 bg-blue-200 mx-auto mt-1"></div>}
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-gray-500">{item.date}</p>
-                        <p className="text-sm text-gray-900">{item.desc}</p>
+                        <p className="text-xs text-gray-500">{item.time}</p>
+                        <p className="text-sm text-gray-900">{item.description}</p>
                       </div>
                       <Button variant="link" className="text-blue-500 text-xs px-0 py-0 h-auto ml-2">Resolve</Button>
                     </div>
                   ))}
                 </div>
               )}
-              {currentData.investigatedLeaks.length > 4 && (
+              {investigatingLeaks.length > 4 && (
                 <Button variant="ghost" className="text-blue-500 text-xs mt-2 self-center" onClick={() => window.location.href = '/leakage/investigated-leaks'}>
                   See more
                 </Button>
