@@ -4,7 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getAllLeaks, getInvestigatingLeaks, resolveLeakage } from '@/services/api.js';
+import { getAllLeaks, getInvestigatingLeaks, resolveLeakage, getRecentLeakageProvince } from '@/services/api.js';
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
 import SouthIcon from '../../../Smarten Assets/assets/South.svg';
@@ -248,6 +248,45 @@ const Leakage = () => {
     fetchLeakageData();
   }, [selectedRegion]);
 
+  // Fetch recent leakage for the selected province
+  useEffect(() => {
+    const fetchRecentLeakageProvince = async () => {
+      try {
+        const res = await getRecentLeakageProvince(getProvinceName(selectedRegion));
+        console.log("Received Recent Leakage Province Data ", res.data);
+        
+        if (res.data.leak) {
+          const leak = res.data.leak;
+          const occurredDate = new Date(leak.occurred_at);
+          const [day, month, year] = occurredDate.toLocaleDateString('en-GB').split('/');
+          const time = occurredDate.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          });
+          
+          setMainLeakageData({
+            date: `${day}/${month}/${year}`,
+            time: time,
+            waterLoss: leak.water_lost_litres,
+            location: leak.location,
+            severity: leak.severity === 'HIGH' ? 'High' : leak.severity === 'LOW' ? 'Low' : 'Medium',
+            action: true,
+            status: mapStatus(leak.status)
+          });
+          
+          setSelectedLeakId(leak.leak_id);
+          setStatus(mapStatus(leak.status));
+        }
+      } catch (err) {
+        console.log("Failed to fetch recent leakage province data", err.message);
+        // Keep current data or use fallback
+      }
+    };
+    
+    fetchRecentLeakageProvince();
+  }, [selectedRegion]);
+
   // Fetch investigating leaks data
   useEffect(() => {
     const fetchInvestigatingLeaks = async () => {
@@ -376,7 +415,40 @@ const Leakage = () => {
   };
 
   // Refetch function
-  const refetch = () => {
+  const refetch = async () => {
+    // Fetch recent leakage for main card
+    try {
+      const res = await getRecentLeakageProvince(getProvinceName(selectedRegion));
+      console.log("Refetch - Received Recent Leakage Province Data ", res.data);
+      
+      if (res.data.leak) {
+        const leak = res.data.leak;
+        const occurredDate = new Date(leak.occurred_at);
+        const [day, month, year] = occurredDate.toLocaleDateString('en-GB').split('/');
+        const time = occurredDate.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        });
+        
+        setMainLeakageData({
+          date: `${day}/${month}/${year}`,
+          time: time,
+          waterLoss: leak.water_lost_litres,
+          location: leak.location,
+          severity: leak.severity === 'HIGH' ? 'High' : leak.severity === 'LOW' ? 'Low' : 'Medium',
+          action: true,
+          status: mapStatus(leak.status)
+        });
+        
+        setSelectedLeakId(leak.leak_id);
+        setStatus(mapStatus(leak.status));
+      }
+    } catch (err) {
+      console.log("Failed to refetch recent leakage province data", err.message);
+    }
+
+    // Fetch history data
     const fetchLeakageData = async () => {
       try {
         setDataLoading(true);
@@ -406,7 +478,7 @@ const Leakage = () => {
       }
     };
     
-    fetchLeakageData();
+    await fetchLeakageData();
   };
 
   useEffect(() => {
@@ -473,9 +545,38 @@ const Leakage = () => {
       setStatus('Resolved');
       setResolvedForm({ date: '', plumber: '', note: '' });
 
-      // Refetch lists and update main card to latest investigating leak
+      // Refetch recent leakage province data and investigating leaks
       await Promise.all([
-        (async () => refetch())(),
+        (async () => {
+          try {
+            const res = await getRecentLeakageProvince(getProvinceName(selectedRegion));
+            if (res.data.leak) {
+              const leak = res.data.leak;
+              const occurredDate = new Date(leak.occurred_at);
+              const [day, month, year] = occurredDate.toLocaleDateString('en-GB').split('/');
+              const time = occurredDate.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+              });
+              
+              setMainLeakageData({
+                date: `${day}/${month}/${year}`,
+                time: time,
+                waterLoss: leak.water_lost_litres,
+                location: leak.location,
+                severity: leak.severity === 'HIGH' ? 'High' : leak.severity === 'LOW' ? 'Low' : 'Medium',
+                action: true,
+                status: mapStatus(leak.status)
+              });
+              
+              setSelectedLeakId(leak.leak_id);
+              setStatus(mapStatus(leak.status));
+            }
+          } catch (err) {
+            console.log("Failed to refetch recent leakage province data", err.message);
+          }
+        })(),
         (async () => {
           try {
             setInvestigatingLoading(true);
@@ -494,16 +595,12 @@ const Leakage = () => {
               }));
               setInvestigatingLeaks(processed);
               setTotalInvestigating(resInv.data.total_leaks);
-              if (processed.length > 0) {
-                setSelectedLeakId(processed[0].id);
-                applyLeakToMainCard(processed[0]);
-                setStatus('Investigating');
-              }
             }
           } finally {
             setInvestigatingLoading(false);
           }
-        })()
+        })(),
+        (async () => refetch())()
       ]);
     } catch (err) {
       console.error('Failed to save resolved leak', err);
