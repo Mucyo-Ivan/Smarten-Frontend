@@ -85,4 +85,7 @@ export const getInvestigatingLeaks = (province) => {
   });
 };
 
+// Resolve a leakage
+export const resolveLeakage = (data) => api.post("/resolved-leak/", data);
+
 export default api;

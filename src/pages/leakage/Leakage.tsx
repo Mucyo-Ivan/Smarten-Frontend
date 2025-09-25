@@ -3,7 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getAllLeaks, getInvestigatingLeaks } from '@/services/api.js';
+import { useToast } from '@/hooks/use-toast';
+import { getAllLeaks, getInvestigatingLeaks, resolveLeakage } from '@/services/api.js';
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
 import SouthIcon from '../../../Smarten Assets/assets/South.svg';
@@ -129,6 +130,7 @@ const provinceLeakageData = {
 
 
 const Leakage = () => {
+  const { toast } = useToast();
   const [selectedRegion, setSelectedRegion] = useState('north');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -141,9 +143,9 @@ const Leakage = () => {
     note: '',
   });
   const [resolvedData, setResolvedData] = useState({
-    date: '06/04/2025',
-    plumber: 'Nshimiyumukiza Aimable',
-    note: 'There was a massive leakage that damage the pipe in a great amount, but it has been fixed and water is flowing again',
+    date: '',
+    plumber: '',
+    note: '',
   });
   const [resolvedErrors, setResolvedErrors] = useState({ date: '', plumber: '', note: '' });
   const [resolvedFeedback, setResolvedFeedback] = useState('');
@@ -166,6 +168,42 @@ const Leakage = () => {
   const [investigatingLoading, setInvestigatingLoading] = useState(false);
   const [investigatingError, setInvestigatingError] = useState('');
   const [totalInvestigating, setTotalInvestigating] = useState(0);
+
+  // State for main leakage detection card (real-time data)
+  const [mainLeakageData, setMainLeakageData] = useState({
+    date: '',
+    time: '',
+    waterLoss: 0,
+    location: '',
+    severity: '',
+    action: false,
+    status: 'Investigating'
+  });
+  // Currently selected leak details (to show in main card)
+  const [selectedLeak, setSelectedLeak] = useState<{ id?: number; date?: string; time?: string; waterLoss?: number; location?: string; severity?: string; status?: string } | null>(null);
+  const [selectedLeakId, setSelectedLeakId] = useState<number | null>(null);
+
+  // Helper: format yyyy-mm-dd to dd-mm-yyyy
+  const formatToDDMMYYYY = (value: string) => {
+    if (!value) return '';
+    const [yyyy, mm, dd] = value.split('-');
+    return `${dd}-${mm}-${yyyy}`;
+  };
+
+  // Helper: apply a leak to the main left card UI
+  const applyLeakToMainCard = (leak: any) => {
+    if (!leak) return;
+    const [d, t, period] = leak.time.split(' ');
+    setMainLeakageData({
+      date: d,
+      time: `${t} ${period || ''}`.trim(),
+      waterLoss: Number(leak.waterLost),
+      location: leak.location,
+      severity: leak.severity === 'HIGH' ? 'High' : leak.severity === 'LOW' ? 'Low' : 'Medium',
+      action: true, // Set to true when a leak is detected
+      status: 'Investigating'
+    });
+  };
   // Fetch leakage data (following control page pattern)
   useEffect(() => {
     const fetchLeakageData = async () => {
@@ -190,6 +228,12 @@ const Leakage = () => {
         
         setLeakageData(processedData);
         setTotalLeaks(res.data.total_leaks);
+        
+        // Update main card with the most recent leak
+        if (processedData.length > 0) {
+          applyLeakToMainCard(processedData[0]);
+          setSelectedLeakId(processedData[0].id);
+        }
       } catch (err) {
         setError(err.message || 'Failed to fetch leakage data');
         console.log("Failed to fetch leakage data", err.message);
@@ -393,31 +437,79 @@ const Leakage = () => {
     }
   };
 
-  const handleResolvedFormSubmit = (e: React.FormEvent) => {
+  const handleResolvedFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form
     const errors = { date: '', plumber: '', note: '' };
     if (!resolvedForm.date) errors.date = 'Date is required';
     if (!resolvedForm.plumber) errors.plumber = 'Plumber name is required';
     if (!resolvedForm.note) errors.note = 'Resolved note is required';
-    
     setResolvedErrors(errors);
-    
-    if (!errors.date && !errors.plumber && !errors.note) {
-      // Save the resolved data
+    if (errors.date || errors.plumber || errors.note) return;
+
+    try {
+      setLoading(true);
+      // Determine current investigating leak id to resolve: use most recent from investigatingLeaks or selected item if present
+      const leakId = selectedLeakId || investigatingLeaks[0]?.id || leakageData[0]?.id;
+      if (!leakId) throw new Error('No leakage selected to resolve');
+
+      const payload = {
+        leakage: leakId,
+        resolved_date: formatToDDMMYYYY(resolvedForm.date),
+        plumber_name: resolvedForm.plumber,
+        resolved_note: resolvedForm.note,
+      };
+      const res = await resolveLeakage(payload);
+      console.log('Resolved leak response', res.data);
+
+      // Update UI immediately
       setResolvedData({
-        date: resolvedForm.date,
-        plumber: resolvedForm.plumber,
-        note: resolvedForm.note,
+        date: payload.resolved_date,
+        plumber: payload.plumber_name,
+        note: payload.resolved_note,
       });
-      
-      // Hide form and show resolved details
+      toast({ title: 'Leak resolved', description: 'Resolved note saved successfully.' });
       setShowResolvedForm(false);
       setEditResolved(false);
-      
-      // Reset form
+      setStatus('Resolved');
       setResolvedForm({ date: '', plumber: '', note: '' });
+
+      // Refetch lists and update main card to latest investigating leak
+      await Promise.all([
+        (async () => refetch())(),
+        (async () => {
+          try {
+            setInvestigatingLoading(true);
+            const resInv = await getInvestigatingLeaks(getProvinceName(selectedRegion));
+            if (resInv.data.leaks) {
+              const processed = resInv.data.leaks.map((leak: any) => ({
+                id: leak.leak_id,
+                time: formatDateTime(leak.occurred_at),
+                description: `Leakage detected in ${leak.esp_device.district}`,
+                location: leak.location,
+                waterLost: leak.water_lost_litres.toFixed(2),
+                severity: leak.severity,
+                occurredAt: leak.occurred_at,
+                district: leak.esp_device.district,
+                village: leak.esp_device.village
+              }));
+              setInvestigatingLeaks(processed);
+              setTotalInvestigating(resInv.data.total_leaks);
+              if (processed.length > 0) {
+                setSelectedLeakId(processed[0].id);
+                applyLeakToMainCard(processed[0]);
+                setStatus('Investigating');
+              }
+            }
+          } finally {
+            setInvestigatingLoading(false);
+          }
+        })()
+      ]);
+    } catch (err) {
+      console.error('Failed to save resolved leak', err);
+      toast({ title: 'Failed to save', description: 'Please try again.', variant: 'destructive' as any });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -488,14 +580,14 @@ const Leakage = () => {
                 <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
                   <span className="text-lg font-semibold mb-2">Leakage Detection</span>
                   {/* Date and time centered */}
-                  <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                    <div className="text-xs font-semibold text-black">{currentData.leakageData.date}</div>
-                    <div className="text-xs text-gray-400 -mt-1 mb-2">{currentData.leakageData.time}</div>
+                    <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+                    <div className="text-xs font-semibold text-black">{mainLeakageData.date}</div>
+                    <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time}</div>
                   </div>
                   {/* Water loss centered */}
                   <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
                     <div className="flex items-end gap-1">
-                      <div className="text-3xl font-bold">{currentData.leakageData.waterLoss}</div>
+                      <div className="text-3xl font-bold">{mainLeakageData.waterLoss}</div>
                       <span className="text-base font-normal align-top mb-1">cm³</span>
                     </div>
                     <div className="text-xs text-gray-400">water lost</div>
@@ -505,19 +597,19 @@ const Leakage = () => {
                   {/* Location */}
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    <span>{currentData.leakageData.location}</span>
+                    <span>{mainLeakageData.location}</span>
                   </div>
                   {/* Severity */}
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
                     <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
                     <span className="font-medium">Severity:</span>
-                    <span className="text-black font-semibold">{currentData.leakageData.severity}</span>
+                    <span className="text-black font-semibold">{mainLeakageData.severity}</span>
                   </div>
                   {/* Action */}
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
                     <CheckCircle size={16} className="text-black" />
                     <span className="font-medium">Action:</span>
-                    <span className="text-black">{currentData.leakageData.action ? 'Yes' : 'No'}</span>
+                    <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
                   </div>
                   {/* Status */}
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
@@ -609,7 +701,7 @@ const Leakage = () => {
                         <div className="flex flex-row gap-8 mb-4">
                           <div>
                             <div className="text-xs text-white font-semibold">Date</div>
-                            <div className="text-base text-white/80">{resolvedData.date}</div>
+                            <div className="text-base text-black">{resolvedData.date}</div>
                           </div>
                           <div>
                             <div className="text-xs text-white font-semibold">Plumber</div>
@@ -777,7 +869,21 @@ const Leakage = () => {
               ) : (
                 <div className="flex flex-col gap-4 mt-2 overflow-y-auto" style={{maxHeight: 220}}>
                   {investigatingLeaks.slice(0, 4).map((item, idx) => (
-                    <div key={item.id} className="flex items-start gap-2">
+                    <div key={item.id} className="flex items-start gap-2 cursor-pointer" onClick={() => {
+                      setSelectedLeakId(item.id);
+                      // Populate main card from clicked investigated leak
+                      setStatus('Investigating');
+                      setShowResolvedForm(false);
+                      setEditResolved(false);
+                      // Map details to the left card data
+                      const [d, t, period] = item.time.split(' ');
+                      currentData.leakageData.date = d;
+                      currentData.leakageData.time = `${t} ${period || ''}`.trim();
+                      currentData.leakageData.waterLoss = Number(item.waterLost);
+                      currentData.leakageData.location = item.location;
+                      currentData.leakageData.severity = item.severity === 'HIGH' ? 'High' : item.severity === 'LOW' ? 'Low' : 'Medium';
+                      currentData.leakageData.status = 'Investigating';
+                    }}>
                       <div className="flex flex-col items-center mr-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                         {idx !== investigatingLeaks.length - 1 && <div className="h-6 w-0.5 bg-blue-200 mx-auto mt-1"></div>}
