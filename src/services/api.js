@@ -8,61 +8,117 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000, // 15s timeout to avoid hanging requests
 });
+
+// A no-auth axios instance to call endpoints that must NOT include Authorization
+export const noAuthApi = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 15000,
+});
+
+// Single-flight refresh control
+let isRefreshing = false;
+let refreshPromise = null; // Promise resolving to new accessToken
+let pendingRequests = [];
+
+function subscribeTokenRefresh(cb) {
+  pendingRequests.push(cb);
+}
+
+function onRefreshed(token) {
+  pendingRequests.forEach((cb) => cb(token));
+  pendingRequests = [];
+}
+
+function refreshAccessToken() {
+  if (!isRefreshing) {
+    isRefreshing = true;
+    const refreshToken = localStorage.getItem('refreshToken');
+    refreshPromise = (async () => {
+      if (!refreshToken) throw new Error('No refresh token available');
+      const response = await noAuthApi.post('/refresh/', { refreshToken });
+      const { accessToken, refreshToken: newRefreshToken, user } = response.data;
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', newRefreshToken);
+      if (user) localStorage.setItem('user', JSON.stringify(user));
+      return accessToken;
+    })()
+      .then((token) => {
+        onRefreshed(token);
+        return token;
+      })
+      .finally(() => {
+        isRefreshing = false;
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
 
 // Attach accessToken if available
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
+  const url = config?.url || '';
+  // Do NOT attach Authorization for public/refresh endpoints
+  const isPublicEndpoint = /\/(refresh|login|register|logout)\/?(\?.*)?$/.test(url);
+  if (isPublicEndpoint) {
+    if (config.headers && config.headers.Authorization) {
+      delete config.headers.Authorization;
+    }
+    return config;
+  }
+
+  const token = localStorage.getItem('accessToken');
+  if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 },
-  (error) => Promise.reject(error)
+(error) => Promise.reject(error)
 );
 
-
-// Add a response interceptor to handle token expiration
+// Add a response interceptor to handle token expiration and network aborts
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const originalRequest = error.config || {};
+
+    // Retry once on ECONNABORTED (timeout/abort)
+    if ((error.code === 'ECONNABORTED' || error.message === 'Request aborted') && !originalRequest._abortedRetry) {
+      originalRequest._abortedRetry = true;
+      return api(originalRequest);
+    }
+
+    // Handle both 401 and 403 errors for token expiration
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        // Call refresh token endpoint
-        const response = await axios.post('http://127.0.0.1:8000/api/company/refresh/', {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken} = response.data;
-
-        // Store new tokens
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
-
-        // Update the original request with the new token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Queue this request until refresh completes
+        const newToken = await (refreshPromise || refreshAccessToken());
+        // Update header and retry
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
         // If refresh fails, log out the user
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        localStorage.removeItem('isAuthenticated');
-        window.location.href = '/login'; // Redirect to login
+        try {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('isAuthenticated');
+        } catch {}
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   }
 );
-
 
 // Authentication
 export const registerCompany = (data) => api.post("/register/", data);
@@ -84,9 +140,10 @@ export const logoutUser = async (refreshToken) => {
     console.warn('logoutUser: No refreshToken provided');
     throw new Error('Refresh token is required');
   }
-  console.log('logoutUser payload:', { refreshToken });
+  const accessToken = localStorage.getItem('accessToken');
+  console.log('logoutUser payload:', { refreshToken, accessTokenPresent: !!accessToken });
   try {
-    const response = await api.post('/logout/', { refreshToken }, {
+    const response = await api.post('/logout/', { refreshToken, accessToken }, {
       headers: {
         'Content-Type': 'application/json',
         // If backend requires accessToken or refreshToken in headers, uncomment:
@@ -104,7 +161,8 @@ export const logoutUser = async (refreshToken) => {
 export const refreshToken = async (refreshToken) => {
   console.log('refreshToken payload:', { refreshToken });
   try {
-    const response = await api.post('/refresh/', { refreshToken });
+    // Use noAuthApi to ensure no Authorization header is sent
+    const response = await noAuthApi.post('/refresh/', { refreshToken });
     console.log('refreshToken response:', response.data);
     return response;
   } catch (error) {

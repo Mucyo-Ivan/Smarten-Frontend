@@ -19,104 +19,69 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     accessToken: null,
     isAuthenticated: false,
   });
+  const [refreshTimerId, setRefreshTimerId] = useState<number | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation(); // Add useLocation to check current path
 
-  // Axios interceptor for token refresh
+  // Note: Token refresh is now handled globally in api.js interceptor
+
+  // Proactively refresh access token before expiry (assumes 15 min lifetime)
   useEffect(() => {
-    const interceptor = api.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-        if (
-          error.response?.status === 401 &&
-          !originalRequest._retry &&
-          authState.isAuthenticated
-        ) {
-          originalRequest._retry = true; // Prevent infinite retry loop
-          console.log('401 detected, attempting token refresh');
-          try {
-            const refreshTokenStored = localStorage.getItem('refreshToken');
-            if (!refreshTokenStored) {
-              throw new Error('No refresh token available');
-            }
-            const response = await refreshToken(refreshTokenStored);
-            const { accessToken, refreshToken: newRefreshToken, user } = response.data;
-            console.log("New refreshToken ",refreshToken)
+    // Clear any existing timer
+    if (refreshTimerId) {
+      window.clearTimeout(refreshTimerId);
+    }
 
-            // Validate user data
-            if (
-              !user ||
-              typeof user.email !== 'string' ||
-              typeof user.name !== 'string' ||
-              typeof user.registration_number !== 'string' ||
-              typeof user.phone !== 'string'
-            ) {
-              throw new Error('Invalid user data from refresh');
-            }
+    if (!authState.isAuthenticated) {
+      return;
+    }
 
-            // Update localStorage
-            try {
-              localStorage.setItem('accessToken', accessToken);
-              localStorage.setItem('refreshToken', newRefreshToken);
-              localStorage.setItem('user', JSON.stringify(user));
-              localStorage.setItem('isAuthenticated', 'true');
-              console.log('Tokens refreshed and stored:', { accessToken, refreshToken: newRefreshToken });
-            } catch (e) {
-              console.error('Error updating localStorage:', e);
-              throw new Error('Failed to store refreshed tokens');
-            }
-
-            // Update auth state
-            setAuthState({
-              user,
-              accessToken,
-              isAuthenticated: true,
-            });
-
-            // Update API headers
-            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
-
-            console.log('Retrying original request with new accessToken');
-            return api(originalRequest); // Retry the original request
-          } catch (refreshError: any) {
-            console.error('Token refresh failed:', refreshError.response?.data || refreshError.message);
-            // Log out on refresh failure
-            try {
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('user');
-              localStorage.removeItem('isAuthenticated');
-              console.log('localStorage cleared due to refresh failure');
-            } catch (e) {
-              console.error('Error clearing localStorage:', e);
-            }
-            setAuthState({
-              user: null,
-              accessToken: null,
-              isAuthenticated: false,
-            });
-            delete api.defaults.headers.common['Authorization'];
-            toast({
-              title: 'Session expired',
-              description: 'Your session has expired. Please log in again.',
-              variant: 'destructive',
-            });
-            navigate('/login', { replace: true });
-            return Promise.reject(refreshError);
-          }
+    // Schedule refresh ~1 minute before 15-minute expiry
+    const SCHEDULE_MS = 14 * 60 * 1000; // 14 minutes
+    const id = window.setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('refreshToken');
+        if (!token) {
+          throw new Error('No refresh token available');
         }
-        return Promise.reject(error);
-      }
-    );
+        const response = await refreshToken(token);
+        const { accessToken, refreshToken: newRefreshToken, user } = response.data;
 
-    // Cleanup interceptor on unmount
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        setAuthState((prev) => ({
+          user: user ?? prev.user,
+          accessToken,
+          isAuthenticated: true,
+        }));
+        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      } catch (e) {
+        // On failure, clear session and redirect
+        try {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('isAuthenticated');
+        } catch {}
+        setAuthState({ user: null, accessToken: null, isAuthenticated: false });
+        toast({
+          title: 'Session expired',
+          description: 'Please log in again.',
+          variant: 'destructive',
+        });
+        navigate('/login', { replace: true });
+      }
+    }, SCHEDULE_MS);
+
+    setRefreshTimerId(id);
     return () => {
-      api.interceptors.response.eject(interceptor);
+      window.clearTimeout(id);
     };
-  }, [authState.isAuthenticated, navigate, toast]);
+  }, [authState.isAuthenticated, toast, navigate]);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -389,6 +354,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
+      if (refreshTimerId) {
+        window.clearTimeout(refreshTimerId);
+      }
       // Clear localStorage
       try {
         localStorage.removeItem('accessToken');
