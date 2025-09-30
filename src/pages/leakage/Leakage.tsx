@@ -1,5 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -130,6 +131,7 @@ const provinceLeakageData = {
 
 
 const Leakage = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedRegion, setSelectedRegion] = useState('north');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -899,7 +901,11 @@ const Leakage = () => {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => { setHistoryPage(1); refetch(); }}
+                    onClick={() => {
+                      setHistoryPage(1);
+                      const provinceName = getProvinceName(selectedRegion);
+                      navigate(`/leakage/history?province=${encodeURIComponent(provinceName)}`);
+                    }}
                     className="text-sm text-blue-500 px-2 py-1 h-auto"
                   >
                     See more

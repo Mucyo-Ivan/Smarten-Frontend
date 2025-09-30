@@ -1,5 +1,6 @@
 
 import { Toaster } from "@/components/ui/toaster";
+import LeakageHistory from "@/pages/leakage/LeakageHistory";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="/monitor" element={<Monitor />} />
               <Route path="/monitor/:province" element={<ProvinceMonitor />} />
               <Route path="/leakage" element={<Leakage />} />
+              <Route path="/leakage/history" element={<LeakageHistory />} />
               <Route path="/leakage/:regionId" element={<LeakageReport />} />
               <Route path="/readings/:regionId" element={<ReadingsReport />} />
               <Route path="/users" element={<Users />} />
