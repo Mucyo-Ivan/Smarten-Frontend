@@ -25,7 +25,6 @@ export interface FormData {
   }
   
   export interface AuthState {
-    user: User | null;
     accessToken: string | null;
     isAuthenticated: boolean;
   }

@@ -6,8 +6,16 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
-    port: 8080,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        // If your Django URLs do NOT start with /api, uncomment the line below:
+        // rewrite: (p) => p.replace(/^\/api/, ''),
+      },
+    },
+    // host: "::",
+    // port: 8080,
   },
   plugins: [
     react(),

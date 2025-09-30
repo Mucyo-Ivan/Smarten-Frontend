@@ -1,55 +1,54 @@
 import axios from "axios";
 
-const API_BASE = "http://127.0.0.1:8000/api/company";
+// const API_BASE = "http://127.0.0.1:8000/api/company"; // Update as needed
+const API_BASE = "/api/company"; // relative path via proxy
 
-// Create Axios instance
+// Create Axios instance with credentials
 export const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
-  // timeout: 15000, // 15s timeout to avoid hanging requests
+  withCredentials: true, // Enable cookies
 });
 
-// A no-auth axios instance to call endpoints that must NOT include Authorization
+// No-auth instance for public endpoints
 export const noAuthApi = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
-  
+  withCredentials: true, // Enable cookies
 });
 
 // Single-flight refresh control
 let isRefreshing = false;
-let refreshPromise = null; // Promise resolving to new accessToken
+let refreshPromise = null;
 let pendingRequests = [];
 
 function subscribeTokenRefresh(cb) {
   pendingRequests.push(cb);
 }
 
-function onRefreshed(token) {
-  pendingRequests.forEach((cb) => cb(token));
+function onRefreshed() {
+  pendingRequests.forEach((cb) => cb());
   pendingRequests = [];
 }
 
 function refreshAccessToken() {
   if (!isRefreshing) {
     isRefreshing = true;
-    const refreshToken = localStorage.getItem('refreshToken');
-    refreshPromise = (async () => {
-      if (!refreshToken) throw new Error('No refresh token available');
-      const response = await noAuthApi.post('/refresh/', { refreshToken });
-      const { accessToken, refreshToken: newRefreshToken, user } = response.data;
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', newRefreshToken);
-      if (user) localStorage.setItem('user', JSON.stringify(user));
-      return accessToken;
-    })()
-      .then((token) => {
-        onRefreshed(token);
-        return token;
+    refreshPromise = noAuthApi.post('/refresh/', {})
+      .then(() => {
+        // No tokens/user returned; cookies are set by backend
+        localStorage.setItem('isAuthenticated', 'true');
+        onRefreshed();
+      })
+      .catch((error) => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
+        console.log("Error during token refresh:", error);
+        throw error;
       })
       .finally(() => {
         isRefreshing = false;
@@ -59,86 +58,58 @@ function refreshAccessToken() {
   return refreshPromise;
 }
 
-// Attach accessToken if available
+// Remove Authorization header; use cookies
 api.interceptors.request.use((config) => {
   const url = config?.url || '';
-  // Do NOT attach Authorization for public/refresh endpoints
-  const isPublicEndpoint = /\/(refresh|login|register|logout)\/?(\?.*)?$/.test(url);
-  if (isPublicEndpoint) {
-    if (config.headers && config.headers.Authorization) {
-      delete config.headers.Authorization;
-    }
-    return config;
-  }
-
-  const token = localStorage.getItem('accessToken');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const isPublicEndpoint = /\/(refresh|login|register|logout|validate-token)\/?(\?.*)?$/.test(url);
+  if (isPublicEndpoint && config.headers.Authorization) {
+    delete config.headers.Authorization;
   }
   return config;
-},
-(error) => Promise.reject(error)
-);
+}, (error) => Promise.reject(error));
 
-// Add a response interceptor to handle token expiration and network aborts
+// Response interceptor for token expiration
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config || {};
-
-    // Retry once on ECONNABORTED (timeout/abort)
-    if ((error.code === 'ECONNABORTED' || error.message === 'Request aborted') && !originalRequest._abortedRetry) {
-      originalRequest._abortedRetry = true;
-      return api(originalRequest);
-    }
-
-    // Handle both 401 and 403 errors for token expiration
     if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // Queue this request until refresh completes
-        const newToken = await (refreshPromise || refreshAccessToken());
-        // Update header and retry
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        await refreshAccessToken();
         return api(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        // If refresh fails, log out the user
-        try {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          localStorage.removeItem('isAuthenticated');
-        } catch {}
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
-
     return Promise.reject(error);
   }
 );
 
 // Authentication
-export const registerCompany= async (data) =>{
+export const registerCompany = async (data) => {
   console.log("registerCompany payload: ", data);
-  try{
-    const res= await api.post('/register/',data);
-    console.log('registerCompany response: ',res.data);
-    return res
-  }
-  catch(error){
-    console.log('registerCompany error',error.res?.data || error.message);
-    throw error; 
+  try {
+    const res = await noAuthApi.post('/register/', data);
+    console.log('registerCompany response: ', res.data);
+    return res;
+  } catch (error) {
+    console.error('registerCompany error', error.response?.data || error.message);
+    throw error;
   }
 };
-export const verifyEmail = (data) => api.post("/verify-email/", data);
+
+export const verifyEmail = (data) => noAuthApi.post("/verify-email/", data);
+
 export const loginCompany = async (data) => {
-  console.log('loginCompany payload:', data); // Debug payload
+  console.log('loginCompany payload:', data);
   try {
-    const response = await api.post('/login/', data); // Remove trailing slash
-    console.log('loginCompany response:', response.data); // Debug response
+    const response = await noAuthApi.post('/login/', data);
+    console.log('loginCompany response:', response.data);
     return response;
   } catch (error) {
     console.error('loginCompany error:', error.response?.data || error.message);
@@ -146,21 +117,10 @@ export const loginCompany = async (data) => {
   }
 };
 
-export const logoutUser = async (refreshToken) => {
-  if (!refreshToken) {
-    console.warn('logoutUser: No refreshToken provided');
-    throw new Error('Refresh token is required');
-  }
-  const accessToken = localStorage.getItem('accessToken');
-  console.log('logoutUser payload:', { refreshToken, accessTokenPresent: !!accessToken });
+export const logoutUser = async () => {
+  console.log('logoutUser: Sending POST /logout/');
   try {
-    const response = await api.post('/logout/', { refreshToken, accessToken }, {
-      headers: {
-        'Content-Type': 'application/json',
-        // If backend requires accessToken or refreshToken in headers, uncomment:
-        // Authorization: `Bearer ${refreshToken}`,
-      },
-    });
+    const response = await noAuthApi.post('/logout/', {});
     console.log('logoutUser response:', response.data);
     return response;
   } catch (error) {
@@ -169,15 +129,26 @@ export const logoutUser = async (refreshToken) => {
   }
 };
 
-export const refreshToken = async (refreshToken) => {
-  console.log('refreshToken payload:', { refreshToken });
+export const refreshToken = async () => {
+  console.log('refreshToken: Sending POST /refresh/');
   try {
-    // Use noAuthApi to ensure no Authorization header is sent
-    const response = await noAuthApi.post('/refresh/', { refreshToken });
+    const response = await noAuthApi.post('/refresh/', {});
     console.log('refreshToken response:', response.data);
     return response;
   } catch (error) {
     console.error('refreshToken error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const validateToken = async () => {
+  console.log('validateToken: Sending GET /validate-token/');
+  try {
+    const response = await noAuthApi.get('/validate-token/');
+    console.log('validateToken response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('validateToken error:', error.response?.data || error.message);
     throw error;
   }
 };

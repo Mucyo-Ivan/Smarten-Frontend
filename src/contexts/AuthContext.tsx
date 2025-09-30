@@ -1,311 +1,109 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthState, User, AuthResponse, LoginCredentials, FormData } from '@/Types/auth';
-import { refreshToken,api,loginCompany, registerCompany, logoutUser } from '@/services/api';
+import { LoginCredentials, FormData } from '@/Types/auth';
+import { refreshToken, loginCompany, registerCompany, logoutUser, validateToken } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation,useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+interface AuthState {
+  accessToken: string | null;
+  isAuthenticated: boolean;
+}
 
 interface AuthContextType {
   authState: AuthState;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (userData: FormData) => Promise<void>;
   logout: () => Promise<void>;
+  validate: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
-    user: null,
     accessToken: null,
     isAuthenticated: false,
   });
   const [refreshTimerId, setRefreshTimerId] = useState<number | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation(); // Add useLocation to check current path
+  const location = useLocation();
 
-  // Note: Token refresh is now handled globally in api.js interceptor
+  // Validate token
+  const validate = async () => {
+    try {
+      const response = await validateToken();
+      const { message } = response.data;
+      if (typeof message !== 'string') {
+        throw new Error('Invalid response from server');
+      }
+      localStorage.setItem('isAuthenticated', 'true');
+      setAuthState({
+        accessToken: null, // Not stored in frontend; managed via cookies
+        isAuthenticated: true,
+      });
+      const publicRoutes = ['/login', '/register', '/'];
+      if (publicRoutes.includes(location.pathname)) {
+        console.log('Redirecting to /dashboard from:', location.pathname);
+        navigate('/dashboard', { replace: true });
+      }
+    } catch (error: any) {
+      console.error('Token validation failed:', error.response?.data || error.message);
+      localStorage.removeItem('isAuthenticated');
+      setAuthState({ accessToken: null, isAuthenticated: false });
+      toast({
+        title: 'Session expired',
+        description: 'Please log in again.',
+        variant: 'destructive',
+      });
+      navigate('/login', { replace: true });
+    }
+  };
 
-  // Proactively refresh access token before expiry (assumes 15 min lifetime)
+  // Initialize auth state and validate token
   useEffect(() => {
-    // Clear any existing timer
     if (refreshTimerId) {
       window.clearTimeout(refreshTimerId);
     }
+    validate();
+  }, [location.pathname]);
 
+  // Periodic token validation
+  useEffect(() => {
     if (!authState.isAuthenticated) {
       return;
     }
-
-    // Schedule refresh ~1 minute before 15-minute expiry
-    const SCHEDULE_MS = 14 * 60 * 1000; // 14 minutes
+    const SCHEDULE_MS = 5 * 60 * 1000; // Every 5 minutes
     const id = window.setTimeout(async () => {
-      try {
-        const token = localStorage.getItem('refreshToken');
-        if (!token) {
-          throw new Error('No refresh token available');
-        }
-        const response = await refreshToken(token);
-        const { accessToken, refreshToken: newRefreshToken, user } = response.data;
-
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
-        if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-        setAuthState((prev) => ({
-          user: user ?? prev.user,
-          accessToken,
-          isAuthenticated: true,
-        }));
-        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-      } catch (e) {
-        // On failure, clear session and redirect
-        try {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          localStorage.removeItem('isAuthenticated');
-        } catch {}
-        setAuthState({ user: null, accessToken: null, isAuthenticated: false });
-        toast({
-          title: 'Session expired',
-          description: 'Please log in again.',
-          variant: 'destructive',
-        });
-        navigate('/login', { replace: true });
-      }
+      await validate();
     }, SCHEDULE_MS);
-
     setRefreshTimerId(id);
     return () => {
       window.clearTimeout(id);
     };
-  }, [authState.isAuthenticated, toast, navigate]);
-
-  // Initialize auth state from localStorage
-  useEffect(() => {
-    let accessToken: string | null = null;
-    let user: string | null = null;
-    let isAuthenticated: boolean = false;
-
-    try {
-      accessToken = localStorage.getItem('accessToken');
-      user = localStorage.getItem('user');
-      isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    } catch (error) {
-      console.error('Error accessing localStorage:', error);
-      try {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        localStorage.removeItem('isAuthenticated');
-      } catch (e) {
-        console.error('Error clearing localStorage:', e);
-      }
-      toast({
-        title: 'Storage error',
-        description: 'Unable to access local storage. Please try again.',
-        variant: 'destructive',
-      });
-      navigate('/login', { replace: true });
-      return;
-    }
-
-    if (accessToken && isAuthenticated) {
-      try {
-        const parsedUser = user ? JSON.parse(user) : null;
-        if (
-          !parsedUser ||
-          typeof parsedUser.email !== 'string' ||
-          typeof parsedUser.name !== 'string' ||
-          typeof parsedUser.registration_number !== 'string' ||
-          typeof parsedUser.phone !== 'string'
-        ) {
-          try {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            localStorage.removeItem('isAuthenticated');
-          } catch (e) {
-            console.error('Error clearing localStorage:', e);
-          }
-          toast({
-            title: 'Session error',
-            description: 'Invalid session data. Please log in again.',
-            variant: 'destructive',
-          });
-          navigate('/login', { replace: true });
-        } else {
-          setAuthState({
-            user: parsedUser,
-            accessToken,
-            isAuthenticated,
-          });
-          // Set Authorization header
-          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          const publicRoutes = ['/login', '/register', '/'];
-          if (publicRoutes.includes(location.pathname)) {
-            console.log('Redirecting to /dashboard from:', location.pathname);
-            navigate('/dashboard', { replace: true });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to parse user from localStorage:', error);
-        try {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          localStorage.removeItem('isAuthenticated');
-        } catch (e) {
-          console.error('Error clearing localStorage:', e);
-        }
-        toast({
-          title: 'Session error',
-          description: 'Failed to load session. Please log in again.',
-          variant: 'destructive',
-        });
-        navigate('/login', { replace: true });
-      }
-    }
-  }, [navigate, toast, location.pathname]);
-
-  
-  // Initialize auth state from localStorage
-  useEffect(() => {
-    let accessToken: string | null = null;
-    let user: string | null = null;
-    let isAuthenticated: boolean = false;
-
-    try {
-      accessToken = localStorage.getItem('accessToken');
-      user = localStorage.getItem('user');
-      isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    } catch (error) {
-      console.error('Error accessing localStorage:', error);
-      // Clear localStorage to prevent further issues
-      try {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        localStorage.removeItem('isAuthenticated');
-      } catch (e) {
-        console.error('Error clearing localStorage:', e);
-      }
-      toast({
-        title: 'Storage error',
-        description: 'Unable to access local storage. Please try again.',
-        variant: 'destructive',
-      });
-      navigate('/login', { replace: true });
-      return;
-    }
-
-    if (accessToken && isAuthenticated) {
-      try {
-        const parsedUser = user ? JSON.parse(user) : null;
-        if (
-          !parsedUser ||
-          typeof parsedUser.email !== 'string' ||
-          typeof parsedUser.name !== 'string' ||
-          typeof parsedUser.registration_number !== 'string' ||
-          typeof parsedUser.phone !== 'string'
-        ) {
-          // Clear invalid data
-          try {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            localStorage.removeItem('isAuthenticated');
-          } catch (e) {
-            console.error('Error clearing localStorage:', e);
-          }
-          toast({
-            title: 'Session error',
-            description: 'Invalid session data. Please log in again.',
-            variant: 'destructive',
-          });
-          navigate('/login', { replace: true });
-        } else {
-          setAuthState({
-            user: parsedUser,
-            accessToken,
-            isAuthenticated,
-          });
-          // Only redirect to /dashboard if on a public route
-          const publicRoutes = ['/login', '/register', '/'];
-          if (publicRoutes.includes(location.pathname)) {
-            console.log('Redirecting to /dashboard from:', location.pathname);
-            navigate('/dashboard', { replace: true });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to parse user from localStorage:', error);
-        // Clear invalid data
-        try {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          localStorage.removeItem('isAuthenticated');
-        } catch (e) {
-          console.error('Error clearing localStorage:', e);
-        }
-        toast({
-          title: 'Session error',
-          description: 'Failed to load session. Please log in again.',
-          variant: 'destructive',
-        });
-        navigate('/login', { replace: true });
-      }
-    }
-  }, [navigate, toast,location.pathname]); // Remove authState from dependencies
+  }, [authState.isAuthenticated]);
 
   const login = async (credentials: LoginCredentials) => {
     try {
       const res = await loginCompany(credentials);
-      const { accessToken, refreshToken, user } = res.data;
-
-      // Validate user data
-      if (
-        !user ||
-        typeof user.email !== 'string' ||
-        typeof user.name !== 'string' ||
-        typeof user.registration_number !== 'string' ||
-        typeof user.phone !== 'string'
-      ) {
-        throw new Error('Invalid user data from server');
+      const { message } = res.data;
+      if (typeof message !== 'string') {
+        throw new Error('Invalid response from server');
       }
-
-      // Store tokens and user data
-      try {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('isAuthenticated', 'true');
-      } catch (error) {
-        console.error('Error writing to localStorage:', error);
-        throw new Error('Failed to store session data');
-      }
-
-      setAuthState({
-        user,
-        accessToken,
-        isAuthenticated: true,
-      });
-
+      // Validate token after login to set isAuthenticated
+      await validate();
       toast({
         title: 'Login successful',
         description: 'Welcome back to SMARTEN',
       });
-      navigate('/dashboard', { replace: true });
-    } catch (error:any) {
+    } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || error.message || 'Please enter valid credentials';
+        error.response?.data?.error || error.message || 'Please enter valid credentials';
       toast({
         title: 'Login failed',
         description: errorMessage,
         variant: 'destructive',
-      });       
+      });
       throw error;
     }
   };
@@ -313,20 +111,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (userData: FormData) => {
     try {
       const res = await registerCompany(userData);
-      const { accessToken, refreshToken, user } = res.data;
-
-      // Validate user data
-      if (
-        !user ||
-        typeof user.email !== 'string' ||
-        typeof user.name !== 'string' ||
-        typeof user.registration_number !== 'string' ||
-        typeof user.phone !== 'string'
-      ) {
-        throw new Error('Invalid user data from server');
+      const { message } = res.data;
+      if (typeof message !== 'string') {
+        throw new Error('Invalid response from server');
       }
-
-      // Do not store tokens or set isAuthenticated; redirect to login
       toast({
         title: 'Registration successful',
         description: 'Please log in to continue.',
@@ -334,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       navigate('/login', { replace: true });
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || error.message || 'An unexpected error occurred during registration';
+        error.response?.data?.error || error.message || 'An unexpected error occurred during registration';
       toast({
         title: 'Registration failed',
         description: errorMessage,
@@ -347,27 +135,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        await logoutUser(refreshToken);
-      }
+      await logoutUser();
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
       if (refreshTimerId) {
         window.clearTimeout(refreshTimerId);
       }
-      // Clear localStorage
-      try {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        localStorage.removeItem('isAuthenticated');
-      } catch (e) {
-        console.error('Error clearing localStorage:', e);
-      }
+      localStorage.removeItem('isAuthenticated');
       setAuthState({
-        user: null,
         accessToken: null,
         isAuthenticated: false,
       });
@@ -377,10 +153,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       navigate('/login', { replace: true });
     }
-  };    
+  };
 
   return (
-    <AuthContext.Provider value={{ authState, login, register, logout }}>
+    <AuthContext.Provider value={{ authState, login, register, logout, validate }}>
       {children}
     </AuthContext.Provider>
   );
