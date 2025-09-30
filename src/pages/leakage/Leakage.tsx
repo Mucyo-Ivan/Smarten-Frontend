@@ -162,6 +162,13 @@ const Leakage = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [error, setError] = useState('');
   const [totalLeaks, setTotalLeaks] = useState(0);
+  // History pagination (6 per page)
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_PAGE_SIZE = 6;
+  const totalHistoryPages = Math.max(1, Math.ceil(leakageData.length / HISTORY_PAGE_SIZE));
+  const historyStartIndex = (historyPage - 1) * HISTORY_PAGE_SIZE;
+  const historyEndIndex = historyStartIndex + HISTORY_PAGE_SIZE;
+  const paginatedHistory = leakageData.slice(historyStartIndex, historyEndIndex);
 
   // State for investigating leaks data
   const [investigatingLeaks, setInvestigatingLeaks] = useState([]);
@@ -888,7 +895,15 @@ const Leakage = () => {
                     <RefreshCw className={`w-4 h-4 mr-1 ${dataLoading ? 'animate-spin' : ''}`} />
                     Refresh
                   </Button>
-                  <Button variant="ghost" className="text-sm text-blue-500 px-2 py-1 h-auto">See more</Button>
+                  {/* Reset to page 1 on manual refresh */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => { setHistoryPage(1); refetch(); }}
+                    className="text-sm text-blue-500 px-2 py-1 h-auto"
+                  >
+                    See more
+                  </Button>
                 </div>
               </div>
               {dataLoading ? (
@@ -925,7 +940,7 @@ const Leakage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                  {leakageData.map((row, i) => (
+                  {paginatedHistory.map((row, i) => (
                     <tr key={row.id} className="border-t border-gray-100">
                       <td className="py-2 text-xs text-gray-700">
                         <div>{row.time.split(' ')[0]}</div>
@@ -940,6 +955,57 @@ const Leakage = () => {
                     ))}
                   </tbody>
                 </table>
+              )}
+              {/* Pagination controls */}
+              {leakageData.length > HISTORY_PAGE_SIZE && (
+                <div className="flex items-center justify-center gap-3 mt-4 select-none">
+                  <button
+                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => historyPage > 1 && setHistoryPage(1)}
+                    disabled={historyPage === 1}
+                    aria-label="First page"
+                  >
+                    «
+                  </button>
+                  <button
+                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => historyPage > 1 && setHistoryPage(historyPage - 1)}
+                    disabled={historyPage === 1}
+                    aria-label="Previous page"
+                  >
+                    ‹
+                  </button>
+                  {Array.from({ length: totalHistoryPages }).slice(0, 5).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    const isActive = pageNum === historyPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                        onClick={() => setHistoryPage(pageNum)}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => historyPage < totalHistoryPages && setHistoryPage(historyPage + 1)}
+                    disabled={historyPage === totalHistoryPages}
+                    aria-label="Next page"
+                  >
+                    ›
+                  </button>
+                  <button
+                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => historyPage < totalHistoryPages && setHistoryPage(totalHistoryPages)}
+                    disabled={historyPage === totalHistoryPages}
+                    aria-label="Last page"
+                  >
+                    »
+                  </button>
+                </div>
               )}
             </div>
           </div>
