@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal, RefreshCw } from 'lucide-react';
 import { useMonitorData } from '@/contexts/MonitorDataContext';
-import { getRecentLeak } from '@/services/api.js';
+import { getRecentLeak, getTotalLeakagesPerProvince } from '@/services/api.js';
 
 const Dashboard = () => {
   const { monitorData } = useMonitorData();
@@ -22,6 +22,11 @@ const Dashboard = () => {
   });
   const [leakageLoading, setLeakageLoading] = useState(false);
   const [leakageError, setLeakageError] = useState('');
+  
+  // State for total leakages per province
+  const [leakageStats, setLeakageStats] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState('');
   
   // Province mapping for WebSocket data
   const provinceMapping = {
@@ -74,6 +79,42 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch total leakages per province
+  useEffect(() => {
+    const fetchLeakageStats = async () => {
+      try {
+        setStatsLoading(true);
+        setStatsError('');
+        const res = await getTotalLeakagesPerProvince();
+        console.log("Received Leakage Stats Data ", res.data);
+        
+        if (res.data.provinces) {
+          const stats = res.data.provinces.map(province => ({
+            region: province.province,
+            count: province.total_leakages,
+            color: getProvinceColor(province.province),
+            textColor: getProvinceTextColor(province.province),
+            iconSrc: getProvinceIcon(province.province)
+          }));
+          setLeakageStats(stats);
+        }
+      } catch (err) {
+        setStatsError(err.message || 'Failed to fetch leakage statistics');
+        console.log("Failed to fetch leakage statistics", err.message);
+        // Keep default values on error
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    
+    fetchLeakageStats();
+    
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(fetchLeakageStats, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Map backend status to frontend status
   const mapLeakageStatus = (status) => {
     switch (status.toUpperCase()) {
@@ -85,6 +126,40 @@ const Dashboard = () => {
         return 'Pending';
       default:
         return 'Resolved';
+    }
+  };
+
+  // Helper functions for province styling
+  const getProvinceColor = (province) => {
+    switch (province) {
+      case 'Northern': return 'rgba(254, 240, 138, 0.25)';
+      case 'Southern': return 'rgba(191, 219, 254, 0.25)';
+      case 'Eastern': return 'rgba(253, 186, 116, 0.25)';
+      case 'Western': return 'rgba(167, 243, 208, 0.25)';
+      case 'Kigali': return 'rgba(233, 213, 255, 0.25)';
+      default: return 'rgba(191, 219, 254, 0.25)';
+    }
+  };
+
+  const getProvinceTextColor = (province) => {
+    switch (province) {
+      case 'Northern': return 'rgba(250, 204, 21, 0.6)';
+      case 'Southern': return 'rgba(96, 165, 250, 0.6)';
+      case 'Eastern': return 'rgba(251, 146, 60, 0.6)';
+      case 'Western': return 'rgba(52, 211, 153, 0.6)';
+      case 'Kigali': return 'rgba(192, 132, 252, 0.6)';
+      default: return 'rgba(96, 165, 250, 0.6)';
+    }
+  };
+
+  const getProvinceIcon = (province) => {
+    switch (province) {
+      case 'Northern': return '/Smarten Assets/assets/North.svg';
+      case 'Southern': return '/Smarten Assets/assets/South.svg';
+      case 'Eastern': return '/Smarten Assets/assets/East.svg';
+      case 'Western': return '/Smarten Assets/assets/West.svg';
+      case 'Kigali': return '/Smarten Assets/assets/Kigali.svg';
+      default: return '/Smarten Assets/assets/South.svg';
     }
   };
 
@@ -157,23 +232,14 @@ const Dashboard = () => {
     },
   ];
 
-  const leakageData = {
-    recent: {
-      waterLost: 20,
-      unit: 'cm³',
-      timeTaken: 20,
-      unit2: 'min',
-      location: 'Kigali, Kicukiro-Kamabuye',
-      status: 'Resolved'
-    },
-    stats: [
-      { region: 'North', count: 20, color: 'bg-yellow-100', textColor: 'text-yellow-500', iconSrc: '/Smarten Assets/assets/North.svg' },
-      { region: 'South', count: 100, color: 'bg-blue-50', textColor: 'text-blue-400', iconSrc: '/Smarten Assets/assets/South.svg' },
-      { region: 'East', count: 150, color: 'bg-orange-50', textColor: 'text-orange-400', iconSrc: '/Smarten Assets/assets/East.svg' },
-      { region: 'West', count: 400, color: 'bg-green-50', textColor: 'text-green-400', iconSrc: '/Smarten Assets/assets/West.svg' },
-      { region: 'Kigali', count: 400, color: 'bg-purple-50', textColor: 'text-purple-400', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
-    ]
-  };
+  // Use real leakage stats or fallback to default
+  const displayStats = leakageStats.length > 0 ? leakageStats : [
+    { region: 'Northern', count: 0, color: 'rgba(254, 240, 138, 0.25)', textColor: 'rgba(250, 204, 21, 0.6)', iconSrc: '/Smarten Assets/assets/North.svg' },
+    { region: 'Southern', count: 0, color: 'rgba(191, 219, 254, 0.25)', textColor: 'rgba(96, 165, 250, 0.6)', iconSrc: '/Smarten Assets/assets/South.svg' },
+    { region: 'Eastern', count: 0, color: 'rgba(253, 186, 116, 0.25)', textColor: 'rgba(251, 146, 60, 0.6)', iconSrc: '/Smarten Assets/assets/East.svg' },
+    { region: 'Western', count: 0, color: 'rgba(167, 243, 208, 0.25)', textColor: 'rgba(52, 211, 153, 0.6)', iconSrc: '/Smarten Assets/assets/West.svg' },
+    { region: 'Kigali', count: 0, color: 'rgba(233, 213, 255, 0.25)', textColor: 'rgba(192, 132, 252, 0.6)', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+  ];
 
   const customerData = [
     { region: 'North', value: 20, unit: 'users', bgColor: 'bg-yellow-50', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
@@ -310,27 +376,36 @@ const Dashboard = () => {
               <div className="flex items-center">
                 <Clock className="w-4 h-4 text-gray-400 mr-1" />
                 <CardTitle className="text-sm font-medium text-gray-700">stats</CardTitle>
+                {statsLoading && (
+                  <RefreshCw className="w-4 h-4 animate-spin text-blue-500 ml-2" />
+                )}
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="space-y-2 p-2">
-                {leakageData.stats.map((stat, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 px-4 rounded-2xl shadow-sm" style={{backgroundColor: index === 0 ? 'rgba(254, 240, 138, 0.25)' : index === 1 ? 'rgba(191, 219, 254, 0.25)' : index === 2 ? 'rgba(253, 186, 116, 0.25)' : index === 3 ? 'rgba(167, 243, 208, 0.25)' : 'rgba(233, 213, 255, 0.25)'}}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 bg-white bg-opacity-90 rounded-full flex items-center justify-center border" style={{borderColor: index === 0 ? 'rgba(250, 204, 21, 0.4)' : index === 1 ? 'rgba(96, 165, 250, 0.4)' : index === 2 ? 'rgba(251, 146, 60, 0.4)' : index === 3 ? 'rgba(52, 211, 153, 0.4)' : 'rgba(192, 132, 252, 0.4)'}}>
-                        <img src={stat.iconSrc} alt={stat.region} className="w-4 h-4" />
+              {statsError ? (
+                <div className="text-center text-red-500 text-sm py-4">
+                  Failed to load stats
+                </div>
+              ) : (
+                <div className="space-y-2 p-2">
+                  {displayStats.map((stat, index) => (
+                    <div key={index} className="flex items-center justify-between py-3 px-4 rounded-2xl shadow-sm" style={{backgroundColor: stat.color}}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-white bg-opacity-90 rounded-full flex items-center justify-center border" style={{borderColor: stat.textColor}}>
+                          <img src={stat.iconSrc} alt={stat.region} className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-medium">{stat.region}</span>
                       </div>
-                      <span className="text-sm font-medium">{stat.region}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-700 mr-2">{stat.count} leakages</span>
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: index === 0 ? 'rgba(250, 204, 21, 0.6)' : index === 1 ? 'rgba(96, 165, 250, 0.6)' : index === 2 ? 'rgba(251, 146, 60, 0.6)' : index === 3 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(192, 132, 252, 0.6)'}}>
-                        <ArrowUpRight className="w-3.5 h-3.5 text-white" />
+                      <div className="flex items-center">
+                        <span className="text-sm text-gray-700 mr-2">{stat.count} leakages</span>
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: stat.textColor}}>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-white" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

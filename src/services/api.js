@@ -255,4 +255,7 @@ export const getInvestigatingLeaks = (province) => {
 // Resolve a leakage
 export const resolveLeakage = (data) => api.post("/resolved-leak/", data);
 
+// Get total leakages per province for dashboard stats
+export const getTotalLeakagesPerProvince = () => api.get("/total-leakages-province/");
+
 export default api;
