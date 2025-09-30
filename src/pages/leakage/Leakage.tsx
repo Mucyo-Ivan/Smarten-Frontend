@@ -178,6 +178,14 @@ const Leakage = () => {
   const [investigatingError, setInvestigatingError] = useState('');
   const [totalInvestigating, setTotalInvestigating] = useState(0);
 
+  // Pagination state for investigated leaks
+  const [investigatedPage, setInvestigatedPage] = useState(1);
+  const INVESTIGATED_PAGE_SIZE = 4;
+  const totalInvestigatedPages = Math.max(1, Math.ceil(investigatingLeaks.length / INVESTIGATED_PAGE_SIZE));
+  const investigatedStartIndex = (investigatedPage - 1) * INVESTIGATED_PAGE_SIZE;
+  const investigatedEndIndex = investigatedStartIndex + INVESTIGATED_PAGE_SIZE;
+  const paginatedInvestigated = investigatingLeaks.slice(investigatedStartIndex, investigatedEndIndex);
+
   // State for main leakage detection card (real-time data)
   const [mainLeakageData, setMainLeakageData] = useState({
     date: '',
@@ -1037,7 +1045,7 @@ const Leakage = () => {
                 </div>
               ) : (
                 <div className="flex flex-col gap-4 mt-2 overflow-y-auto" style={{maxHeight: 220}}>
-                  {investigatingLeaks.slice(0, 4).map((item, idx) => (
+                  {paginatedInvestigated.map((item, idx) => (
                     <div key={item.id} className="flex items-start gap-2 cursor-pointer" onClick={() => {
                       setSelectedLeakId(item.id);
                       // Populate main card from clicked investigated leak
@@ -1055,7 +1063,7 @@ const Leakage = () => {
                     }}>
                       <div className="flex flex-col items-center mr-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                        {idx !== investigatingLeaks.length - 1 && <div className="h-6 w-0.5 bg-blue-200 mx-auto mt-1"></div>}
+                        {idx !== paginatedInvestigated.length - 1 && <div className="h-6 w-0.5 bg-blue-200 mx-auto mt-1"></div>}
                       </div>
                       <div className="flex-1">
                         <p className="text-xs text-gray-500">{item.time}</p>
@@ -1066,8 +1074,67 @@ const Leakage = () => {
                   ))}
                 </div>
               )}
-              {investigatingLeaks.length > 4 && (
-                <Button variant="ghost" className="text-blue-500 text-xs mt-2 self-center" onClick={() => window.location.href = '/leakage/investigated-leaks'}>
+              {investigatingLeaks.length > INVESTIGATED_PAGE_SIZE && (
+                <div className="flex items-center justify-center gap-3 mt-4 select-none">
+                  <button
+                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => investigatedPage > 1 && setInvestigatedPage(1)}
+                    disabled={investigatedPage === 1}
+                    aria-label="First page"
+                  >
+                    «
+                  </button>
+                  <button
+                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => investigatedPage > 1 && setInvestigatedPage(investigatedPage - 1)}
+                    disabled={investigatedPage === 1}
+                    aria-label="Previous page"
+                  >
+                    ‹
+                  </button>
+                  {Array.from({ length: totalInvestigatedPages }).slice(0, 7).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    const isActive = pageNum === investigatedPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                        onClick={() => setInvestigatedPage(pageNum)}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => investigatedPage < totalInvestigatedPages && setInvestigatedPage(investigatedPage + 1)}
+                    disabled={investigatedPage === totalInvestigatedPages}
+                    aria-label="Next page"
+                  >
+                    ›
+                  </button>
+                  <button
+                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    onClick={() => investigatedPage < totalInvestigatedPages && setInvestigatedPage(totalInvestigatedPages)}
+                    disabled={investigatedPage === totalInvestigatedPages}
+                    aria-label="Last page"
+                  >
+                    »
+                  </button>
+                </div>
+              )}
+              {investigatingLeaks.length > INVESTIGATED_PAGE_SIZE && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setInvestigatedPage(1);
+                    const provinceName = getProvinceName(selectedRegion);
+                    navigate(`/leakage/investigated?province=${encodeURIComponent(provinceName)}`);
+                  }}
+                  className="text-sm text-blue-500 px-2 py-1 h-auto"
+                >
                   See more
                 </Button>
               )}
