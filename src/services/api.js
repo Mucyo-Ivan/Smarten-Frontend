@@ -8,7 +8,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15s timeout to avoid hanging requests
+  // timeout: 15000, // 15s timeout to avoid hanging requests
 });
 
 // A no-auth axios instance to call endpoints that must NOT include Authorization
@@ -17,7 +17,7 @@ export const noAuthApi = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  
 });
 
 // Single-flight refresh control
@@ -121,7 +121,18 @@ api.interceptors.response.use(
 );
 
 // Authentication
-export const registerCompany = (data) => api.post("/register/", data);
+export const registerCompany= async (data) =>{
+  console.log("registerCompany payload: ", data);
+  try{
+    const res= await api.post('/register/',data);
+    console.log('registerCompany response: ',res.data);
+    return res
+  }
+  catch(error){
+    console.log('registerCompany error',error.res?.data || error.message);
+    throw error; 
+  }
+};
 export const verifyEmail = (data) => api.post("/verify-email/", data);
 export const loginCompany = async (data) => {
   console.log('loginCompany payload:', data); // Debug payload
