@@ -873,10 +873,10 @@ const Leakage = () => {
             )}
           </div>
           
-          {/* History and Investigated Leaks side by side - with minimal spacing */}
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 max-w-5xl mx-auto w-full mt-8">
-          <div className="lg:col-span-4">
-            <div className="bg-white rounded-xl shadow p-6">
+          {/* History full-width, Investigated leaks below full-width */}
+          <div className="w-full max-w-5xl mx-auto mt-8 flex flex-col gap-6">
+          <div className="w-full">
+            <div className="bg-white rounded-xl shadow p-6 w-full">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-base">History</span>
@@ -1009,8 +1009,8 @@ const Leakage = () => {
               )}
             </div>
           </div>
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow p-6 min-h-[260px] flex flex-col">
+          <div className="w-full">
+            <div className="bg-white rounded-xl shadow p-6 min-h-[260px] flex flex-col w-full">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-base">Investigated leaks</span>
                 <span className="text-xs text-gray-500">{totalInvestigating}</span>
