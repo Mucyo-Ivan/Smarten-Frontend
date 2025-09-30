@@ -291,8 +291,8 @@ const ProvinceMonitor = () => {
                 <div className="flex items-center justify-center h-full text-gray-500">Loading real-time data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart 
-                    data={chartData} 
+              <LineChart 
+                data={chartData} 
                     margin={{ top: 20, right: 10, left: 0, bottom: 20 }}
                     onClick={(data) => {
                       if (data && data.activePayload && data.activePayload[0]) {
