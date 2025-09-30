@@ -258,4 +258,7 @@ export const resolveLeakage = (data) => api.post("/resolved-leak/", data);
 // Get total leakages per province for dashboard stats
 export const getTotalLeakagesPerProvince = () => api.get("/total-leakages-province/");
 
+// Get device count for dashboard
+export const getDeviceCount = () => api.get("/device-count/");
+
 export default api;

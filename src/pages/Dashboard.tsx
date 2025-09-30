@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal, RefreshCw } from 'lucide-react';
 import { useMonitorData } from '@/contexts/MonitorDataContext';
-import { getRecentLeak, getTotalLeakagesPerProvince } from '@/services/api.js';
+import { getRecentLeak, getTotalLeakagesPerProvince, getDeviceCount } from '@/services/api.js';
 
 const Dashboard = () => {
   const { monitorData } = useMonitorData();
@@ -27,6 +27,11 @@ const Dashboard = () => {
   const [leakageStats, setLeakageStats] = useState([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState('');
+  
+  // State for device count data
+  const [deviceData, setDeviceData] = useState([]);
+  const [deviceLoading, setDeviceLoading] = useState(false);
+  const [deviceError, setDeviceError] = useState('');
   
   // Province mapping for WebSocket data
   const provinceMapping = {
@@ -111,6 +116,45 @@ const Dashboard = () => {
     
     // Set up polling for real-time updates (every 30 seconds)
     const interval = setInterval(fetchLeakageStats, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch device count data
+  useEffect(() => {
+    const fetchDeviceData = async () => {
+      try {
+        setDeviceLoading(true);
+        setDeviceError('');
+        const res = await getDeviceCount();
+        console.log("Received Device Count Data ", res.data);
+        
+        if (res.data) {
+          const devices = [
+            { id: 1, type: 'ESP32', total: res.data.ESP32 || 0 },
+            { id: 2, type: 'Smart Valves', total: res.data['Smart Valves'] || 0 },
+            { id: 3, type: 'Sensors', total: res.data.Sensor || 0 },
+          ];
+          setDeviceData(devices);
+        }
+      } catch (err) {
+        setDeviceError(err.message || 'Failed to fetch device data');
+        console.log("Failed to fetch device data", err.message);
+        // Keep default values on error
+        setDeviceData([
+          { id: 1, type: 'ESP32', total: 0 },
+          { id: 2, type: 'Smart Valves', total: 0 },
+          { id: 3, type: 'Sensors', total: 0 },
+        ]);
+      } finally {
+        setDeviceLoading(false);
+      }
+    };
+    
+    fetchDeviceData();
+    
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(fetchDeviceData, 30000);
     
     return () => clearInterval(interval);
   }, []);
@@ -249,12 +293,11 @@ const Dashboard = () => {
     { region: 'Kigali', value: 20, unit: 'users', bgColor: 'bg-purple-50', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
 
-  const devices = [
-    { id: 1, type: 'Esp32', total: 20000 },
-    { id: 2, type: 'Lora', total: 40200 },
-    { id: 3, type: 'Smart Valves', total: 40200 },
-    { id: 4, type: 'Sensors', total: 40200 },
-    { id: 5, type: 'Repeater', total: 40200 },
+  // Use real device data or fallback to default
+  const displayDevices = deviceData.length > 0 ? deviceData : [
+    { id: 1, type: 'ESP32', total: 0 },
+    { id: 2, type: 'Smart Valves', total: 0 },
+    { id: 3, type: 'Sensors', total: 0 },
   ];
 
   const activities = [
@@ -447,29 +490,40 @@ const Dashboard = () => {
         <div className="mb-6">
           <Card className="border shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold">Devices</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold">Devices</CardTitle>
+                {deviceLoading && (
+                  <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left text-xs font-medium text-gray-500 pb-2">N°</th>
-                      <th className="text-left text-xs font-medium text-gray-500 pb-2">Device Type</th>
-                      <th className="text-left text-xs font-medium text-gray-500 pb-2">Total number</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {devices.map((device) => (
-                      <tr key={device.id} className="border-b border-gray-100">
-                        <td className="py-2 text-sm text-gray-900">{device.id}</td>
-                        <td className="py-2 text-sm text-gray-900">{device.type}</td>
-                        <td className="py-2 text-sm text-gray-900">{device.total.toLocaleString()}</td>
+              {deviceError ? (
+                <div className="text-center text-red-500 text-sm py-4">
+                  Failed to load device data
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left text-xs font-medium text-gray-500 pb-2">N°</th>
+                        <th className="text-left text-xs font-medium text-gray-500 pb-2">Device Type</th>
+                        <th className="text-left text-xs font-medium text-gray-500 pb-2">Total number</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {displayDevices.map((device) => (
+                        <tr key={device.id} className="border-b border-gray-100">
+                          <td className="py-2 text-sm text-gray-900">{device.id}</td>
+                          <td className="py-2 text-sm text-gray-900">{device.type}</td>
+                          <td className="py-2 text-sm text-gray-900">{device.total.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
