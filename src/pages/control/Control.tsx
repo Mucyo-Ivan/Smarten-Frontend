@@ -726,7 +726,7 @@ const Control = () => {
                     <div className="flex-1">
                           <p className="text-xs text-gray-500 dark:text-gray-400">{control.scheduled_time}</p>
                           <p className="text-sm text-gray-900 dark:text-white">
-                            Turn {control.command} in {}
+                            Turn {control.command} in <span className="font-semibold">{getLocationName(control.location)}</span>
                       </p>
                     </div>
                   </div>
