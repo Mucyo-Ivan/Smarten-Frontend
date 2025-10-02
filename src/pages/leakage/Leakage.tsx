@@ -316,7 +316,7 @@ const Leakage = () => {
             location: '',
             severity: '',
             action: false,
-            status: 'Investigating'
+            status: ''
           });
           setSelectedLeakId(null);
           setStatus('Investigating');
@@ -332,7 +332,7 @@ const Leakage = () => {
           location: '',
           severity: '',
           action: false,
-          status: 'Investigating'
+          status: ''
         });
         setSelectedLeakId(null);
         setStatus('Investigating');
@@ -510,7 +510,7 @@ const Leakage = () => {
           location: '',
           severity: '',
           action: false,
-          status: 'Investigating'
+          status: ''
         });
         setSelectedLeakId(null);
         setStatus('Investigating');
@@ -797,21 +797,20 @@ const Leakage = () => {
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
                     <Activity size={16} className="text-black" />
                     <span className="font-medium">Status</span>
-                  </div>
-                  {/* Status display - show status as pill-shaped badges */}
-                  {isLeakResolved || status === 'Resolved' ? (
-                    <div className="mt-1">
+                    {/* Status display - show status as pill-shaped badges side by side with Status */}
+                    {mainLeakageData.status === 'Resolved' ? (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
                         Resolved
                       </span>
-                    </div>
-                  ) : (
-                    <div className="mt-1">
+                    ) : mainLeakageData.status === 'Investigating' ? (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
                         Investigating
                       </span>
-                    </div>
-                  )}
+                    ) : (
+                      // No leakage or no status - show empty state
+                      <span className="text-sm text-gray-400">No active leakage</span>
+                    )}
+                  </div>
                 </div>
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
                 <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
