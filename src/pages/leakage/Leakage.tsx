@@ -153,6 +153,8 @@ const Leakage = () => {
   const [resolvedFeedback, setResolvedFeedback] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLeakResolved, setIsLeakResolved] = useState(false);
+  const [showResolvePopup, setShowResolvePopup] = useState(false);
+  const [selectedLeakForResolve, setSelectedLeakForResolve] = useState(null);
 
   // Get the province name for the API call
   const getProvinceName = (regionId: string) => {
@@ -236,6 +238,13 @@ const Leakage = () => {
       status: 'Investigating'
     });
     setSelectedLeakId(leak.id);
+  };
+
+  // Handle resolve button click
+  const handleResolveClick = (leak: any, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent the row click event
+    setSelectedLeakForResolve(leak);
+    setShowResolvePopup(true);
   };
   // Fetch leakage data (following control page pattern)
   useEffect(() => {
@@ -592,8 +601,8 @@ const Leakage = () => {
 
     try {
       setLoading(true);
-      // Determine current investigating leak id to resolve: use most recent from investigatingLeaks or selected item if present
-      const leakId = selectedLeakId || investigatingLeaks[0]?.id || leakageData[0]?.id;
+      // Determine current investigating leak id to resolve: use popup selected leak, then selected leak, then most recent
+      const leakId = selectedLeakForResolve?.id || selectedLeakId || investigatingLeaks[0]?.id || leakageData[0]?.id;
       if (!leakId) throw new Error('No leakage selected to resolve');
 
       const payload = {
@@ -617,6 +626,10 @@ const Leakage = () => {
       setStatus('Resolved');
       setIsLeakResolved(true);
       setResolvedForm({ date: '', plumber: '', note: '' });
+      
+      // Close the popup if it's open
+      setShowResolvePopup(false);
+      setSelectedLeakForResolve(null);
       
       // Update main leakage data to show resolved status
       setMainLeakageData(prev => ({
@@ -1139,7 +1152,15 @@ const Leakage = () => {
                         <p className="text-xs text-gray-500">{item.time}</p>
                         <p className="text-sm text-gray-900">{item.description}</p>
                       </div>
-                      <Button variant="link" className="text-blue-500 text-xs px-0 py-0 h-auto ml-2">Resolve</Button>
+                      {item.status === 'Investigating' && (
+                        <Button 
+                          variant="link" 
+                          className="text-blue-500 text-xs px-0 py-0 h-auto ml-2"
+                          onClick={(e) => handleResolveClick(item, e)}
+                        >
+                          Resolve
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1213,6 +1234,112 @@ const Leakage = () => {
         </div>
         </div>
       </div>
+
+      {/* Resolve Popup Modal */}
+      {showResolvePopup && selectedLeakForResolve && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Resolve Leakage</h3>
+              <button
+                onClick={() => setShowResolvePopup(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Leakage Details */}
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="font-medium text-gray-600">Time:</span>
+                  <p className="text-gray-900">{selectedLeakForResolve.time}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Location:</span>
+                  <p className="text-gray-900">{selectedLeakForResolve.location}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Water Lost:</span>
+                  <p className="text-gray-900">{selectedLeakForResolve.waterLost}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Severity:</span>
+                  <p className="text-gray-900">{selectedLeakForResolve.severity}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Resolve Form */}
+            <form onSubmit={handleResolvedFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Resolved Date
+                </label>
+                <input
+                  type="date"
+                  value={resolvedForm.date}
+                  onChange={(e) => setResolvedForm({...resolvedForm, date: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                {resolvedErrors.date && <p className="text-red-500 text-xs mt-1">{resolvedErrors.date}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Plumber Name
+                </label>
+                <input
+                  type="text"
+                  value={resolvedForm.plumber}
+                  onChange={(e) => setResolvedForm({...resolvedForm, plumber: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter plumber name"
+                  required
+                />
+                {resolvedErrors.plumber && <p className="text-red-500 text-xs mt-1">{resolvedErrors.plumber}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Resolved Note
+                </label>
+                <textarea
+                  value={resolvedForm.note}
+                  onChange={(e) => setResolvedForm({...resolvedForm, note: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="Enter resolution details"
+                  required
+                />
+                {resolvedErrors.note && <p className="text-red-500 text-xs mt-1">{resolvedErrors.note}</p>}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowResolvePopup(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {loading ? 'Resolving...' : 'Resolve Leakage'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 };
