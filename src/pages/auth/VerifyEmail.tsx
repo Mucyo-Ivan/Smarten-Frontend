@@ -1,4 +1,5 @@
 import React from 'react';
+import SmartenLogo from '@/components/ui/SmartenLogo';
 
 const VerifyEmail = () => {
   return (
@@ -11,65 +12,52 @@ const VerifyEmail = () => {
     }}>
       {/* White Container */}
       <div style={{
-        width: 1436, 
-        height: 1021, 
+        width: 1200, 
+        height: 800, 
         left: '50%',
         top: '50%',
         transform: 'translate(-50%, -50%)',
         position: 'absolute', 
         background: 'white', 
-        overflow: 'hidden'
+        overflow: 'hidden',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
       }}>
         {/* SMARTEN Logo */}
         <div style={{
-          left: 31, 
-          top: 32, 
+          left: 24, 
+          top: 24, 
           position: 'absolute', 
-          justifyContent: 'center', 
-          alignItems: 'flex-end', 
-          gap: 3, 
-          display: 'inline-flex'
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
         }}>
-          <div style={{
-            width: 31.38, 
-            height: 45, 
-            background: '#0E9CFF',
-            borderRadius: '4px'
-          }} />
-          <img 
-            style={{width: 22.60, height: 23.14}} 
-            src="/Smarten Assets/assets/water.svg" 
-            alt="WiFi icon"
-          />
-          <div style={{
-            width: 131, 
-            height: 28, 
-            textAlign: 'center', 
+          <SmartenLogo className="w-8 h-8" />
+          <span style={{
             color: '#1862CA', 
-            fontSize: 25, 
-            fontFamily: 'Futura-Bold', 
-            fontWeight: '500', 
-            wordWrap: 'break-word'
+            fontSize: 20, 
+            fontWeight: '600'
           }}>
             SMARTEN
-          </div>
+          </span>
         </div>
 
         {/* Main Content */}
         <div style={{
-          width: 500, 
-          left: 470, 
-          top: 143, 
+          width: 400, 
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
           position: 'absolute', 
           flexDirection: 'column', 
-          justifyContent: 'flex-start', 
+          justifyContent: 'center', 
           alignItems: 'center', 
-          gap: 20, 
-          display: 'inline-flex'
+          gap: 16, 
+          display: 'flex'
         }}>
           {/* Illustration */}
           <img 
-            style={{width: 500, height: 456}} 
+            style={{width: 300, height: 250}} 
             src="/Smarten Assets/assets/verify-email.jpg" 
             alt="Email verification illustration"
           />
@@ -79,13 +67,12 @@ const VerifyEmail = () => {
             flexDirection: 'column', 
             justifyContent: 'center', 
             alignItems: 'center', 
-            gap: 5, 
+            gap: 8, 
             display: 'flex'
           }}>
             <div style={{
               color: '#303030', 
-              fontSize: 32, 
-              fontFamily: 'Poppins', 
+              fontSize: 24, 
               fontWeight: '600', 
               wordWrap: 'break-word'
             }}>
@@ -94,10 +81,10 @@ const VerifyEmail = () => {
             <div style={{
               textAlign: 'center', 
               color: '#8E8E8E', 
-              fontSize: 20, 
-              fontFamily: 'Poppins', 
+              fontSize: 16, 
               fontWeight: '400', 
-              wordWrap: 'break-word'
+              wordWrap: 'break-word',
+              lineHeight: '1.5'
             }}>
               We've sent a verification link to your email.<br/>
               Open your inbox and confirm to continue.
