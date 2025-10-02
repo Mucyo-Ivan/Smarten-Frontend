@@ -1,25 +1,84 @@
 import axios from "axios";
 
-// const API_BASE = "http://127.0.0.1:8000/api/company"; // Update as needed
-const API_BASE = "/api/company"; // relative path via proxy
+const API_BASE = "/api/company"; // Relative path via proxy
 
-// Create Axios instance with credentials
+// Create Axios instance with credentials for authenticated requests
 export const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable cookies
+  withCredentials: true, // Include cookies (accessToken, csrftoken)
 });
 
-// No-auth instance for public endpoints
+// Create Axios instance for public endpoints
 export const noAuthApi = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable cookies
+  withCredentials: true, // Include cookies
 });
+
+// Store CSRF token and its expiration
+let csrfToken = null;
+let csrfTokenExpires = null;
+const CSRF_TOKEN_LIFETIME = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Fetch CSRF token from the backend
+async function fetchCsrfToken() {
+  try {
+    const response = await noAuthApi.get('/get-csrf-token/');
+    csrfToken = response.data.csrfToken;
+    csrfTokenExpires = Date.now() + CSRF_TOKEN_LIFETIME; // Assume token is valid for 24 hours
+    console.log('Fetched CSRF token:', csrfToken);
+    return csrfToken;
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+// Ensure CSRF token is fetched and valid
+async function ensureCsrfToken() {
+  // Check if token exists and is not expired
+  if (!csrfToken || !csrfTokenExpires || Date.now() >= csrfTokenExpires) {
+    await fetchCsrfToken();
+  }
+  return csrfToken;
+}
+
+// Request interceptor to add CSRF token for non-safe methods
+api.interceptors.request.use(
+  async (config) => {
+    const nonSafeMethods = ['post', 'put', 'delete', 'patch'];
+    const url = config?.url || '';
+    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token)\/?(\?.*)?$/.test(url);
+
+    // Remove Authorization header for public endpoints
+    if (isPublicEndpoint && config.headers.Authorization) {
+      delete config.headers.Authorization;
+    }
+
+    // Add CSRF token for non-safe methods
+    if (nonSafeMethods.includes(config.method.toLowerCase())) {
+      try {
+        const token = await ensureCsrfToken();
+        config.headers['X-CSRFToken'] = token;
+        console.log(`Added CSRF token to ${config.method.toUpperCase()} ${url}:`, token);
+      } catch (error) {
+        console.error('Failed to add CSRF token:', error);
+        throw error;
+      }
+    }
+
+    return config;
+  },
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
 
 // Single-flight refresh control
 let isRefreshing = false;
@@ -35,19 +94,21 @@ function onRefreshed() {
   pendingRequests = [];
 }
 
-function refreshAccessToken() {
+async function refreshAccessToken() {
   if (!isRefreshing) {
     isRefreshing = true;
-    refreshPromise = noAuthApi.post('/refresh/', {})
+    refreshPromise = noAuthApi
+      .post('/refresh/', {})
       .then(() => {
         // No tokens/user returned; cookies are set by backend
         localStorage.setItem('isAuthenticated', 'true');
+        console.log('Token refresh successful');
         onRefreshed();
       })
       .catch((error) => {
+        console.error('Error during token refresh:', error.response?.data || error.message);
         localStorage.removeItem('user');
         localStorage.removeItem('isAuthenticated');
-        console.log("Error during token refresh:", error);
         throw error;
       })
       .finally(() => {
@@ -58,16 +119,6 @@ function refreshAccessToken() {
   return refreshPromise;
 }
 
-// Remove Authorization header; use cookies
-api.interceptors.request.use((config) => {
-  const url = config?.url || '';
-  const isPublicEndpoint = /\/(refresh|login|register|logout|validate-token)\/?(\?.*)?$/.test(url);
-  if (isPublicEndpoint && config.headers.Authorization) {
-    delete config.headers.Authorization;
-  }
-  return config;
-}, (error) => Promise.reject(error));
-
 // Response interceptor for token expiration
 api.interceptors.response.use(
   (response) => response,
@@ -77,6 +128,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         await refreshAccessToken();
+        console.log('Retrying original request after token refresh:', originalRequest.url);
         return api(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
@@ -86,19 +138,20 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+    console.error(`API error for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}:`, error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
 // Authentication
 export const registerCompany = async (data) => {
-  console.log("registerCompany payload: ", data);
+  console.log("registerCompany payload:", data);
   try {
     const res = await noAuthApi.post('/register/', data);
-    console.log('registerCompany response: ', res.data);
+    console.log('registerCompany response:', res.data);
     return res;
   } catch (error) {
-    console.error('registerCompany error', error.response?.data || error.message);
+    console.error('registerCompany error:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -155,42 +208,39 @@ export const validateToken = async () => {
 
 // Devices
 export const registerEsp = (data) => api.post("/register-esp/", data);
-export const TotalEspPerProvince = () => api.get("/total-esp-per-province/")
-export const TotalSensorPerProvince = () => api.get("/total-sensors-per-province/")
-export const TotalSmartValvePerProvince = () => api.get("/total-smartvalve-per-province/")
+export const TotalEspPerProvince = () => api.get("/total-esp-per-province/");
+export const TotalSensorPerProvince = () => api.get("/total-sensors-per-province/");
+export const TotalSmartValvePerProvince = () => api.get("/total-smartvalve-per-province/");
 
 export const TotalEspPerDistrict = (province) => {
   return api.get("/total-esp-per-district/", {
-    params: { province }
+    params: { province },
   });
 };
 
 export const TotalSensorPerDistrict = (province) => {
   return api.get("/total-sensors-per-district/", {
-    params: { province }
+    params: { province },
   });
 };
 
-export const TotalSmartValvePerDistrict  = (province) => {
+export const TotalSmartValvePerDistrict = (province) => {
   return api.get("/total-smartvalve-per-district/", {
-    params: { province }
+    params: { province },
   });
 };
-
-
-
 
 // Provinces
 export const getSmartValveLocation = () => api.get("/SmartValveLocation/");
 export const getSensorLocation = () => api.get("/SensorLocation/");
 
 // Control
-export const ScheduledControl = (data) => api.post("/scheduled-control/",data);
+export const ScheduledControl = (data) => api.post("/scheduled-control/", data);
 export const getTodayScheduledControls = () => api.get("/today-scheduled-controls/");
 export const getFutureScheduledControls = () => api.get("/future-scheduled-controls/");
-export const manageScheduledControlStatus = (controlId, action) => 
-  api.post(`/company/manage-scheduled-control-status/${controlId}/`, { action });
-export const checkScheduledControlStatus = () => api.get("/company/manage-scheduled-control-status/");
+export const manageScheduledControlStatus = (controlId, action) =>
+  api.post(`/manage-scheduled-control-status/${controlId}/`, { action });
+export const checkScheduledControlStatus = () => api.get("/manage-scheduled-control-status/");
 
 // Water Readings (Past time)
 export const getHourlyAverages = () => api.get("/hourly-averages/");
@@ -205,7 +255,7 @@ export const getProvinceCommandCount = () => api.get("/province-command-count/")
 // Leakages
 export const getAllLeaks = (province) => {
   return api.get("/all-leaks/", {
-    params: { province }
+    params: { province },
   });
 };
 
@@ -213,13 +263,13 @@ export const getRecentLeak = () => api.get("/recent-leak/");
 
 export const getRecentLeakageProvince = (province) => {
   return api.get("/recent-leakage-province/", {
-    params: { province }
+    params: { province },
   });
 };
 
 export const getInvestigatingLeaks = (province) => {
   return api.get("/investigating-leaks/", {
-    params: { province }
+    params: { province },
   });
 };
 

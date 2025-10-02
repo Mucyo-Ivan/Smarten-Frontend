@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     accessToken: null,
-    isAuthenticated: false,
+    isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
   });
   const [refreshTimerId, setRefreshTimerId] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         accessToken: null, // Not stored in frontend; managed via cookies
         isAuthenticated: true,
       });
-      const publicRoutes = ['/login', '/register', '/'];
+      const publicRoutes = ['/login', '/register', '/', '/forgot-password'];
       if (publicRoutes.includes(location.pathname)) {
         console.log('Redirecting to /dashboard from:', location.pathname);
         navigate('/dashboard', { replace: true });
@@ -51,18 +51,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Token validation failed:', error.response?.data || error.message);
       localStorage.removeItem('isAuthenticated');
       setAuthState({ accessToken: null, isAuthenticated: false });
-      toast({
-        title: 'Session expired',
-        description: 'Please log in again.',
-        variant: 'destructive',
-      });
-      navigate('/login', { replace: true });
+      const publicRoutes = ['/login', '/register', '/', '/forgot-password'];
+      // Only redirect to login if not on a public route
+      if (!publicRoutes.includes(location.pathname)) {
+        toast({
+          title: 'Session expired',
+          description: 'Please log in again.',
+          variant: 'destructive',
+        });
+        navigate('/login', { replace: true });
+      }
     }
   };
 
-  // Initial token validation on mount or route change
+  // Initial token validation only for non-public routes
   useEffect(() => {
-    validate();
+    const publicRoutes = ['/login', '/register', '/', '/forgot-password'];
+    // Skip validation for public routes
+    if (publicRoutes.includes(location.pathname)) {
+      return;
+    }
+    // Check if there's a potential session to validate
+    if (localStorage.getItem('isAuthenticated') === 'true') {
+      validate();
+    }
   }, [location.pathname]);
 
   // Periodic token validation only when authenticated
