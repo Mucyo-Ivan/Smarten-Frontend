@@ -19,16 +19,11 @@ const EmailVerified = () => {
     }}>
       {/* White Container */}
       <div style={{
-        width: 1200, 
-        height: 800, 
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
+        width: '100%', 
+        height: '100%',
         position: 'absolute', 
         background: 'white', 
-        overflow: 'hidden',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        overflow: 'hidden'
       }}>
         {/* SMARTEN Logo */}
         <div style={{
@@ -43,7 +38,7 @@ const EmailVerified = () => {
           <span style={{
             color: '#1862CA', 
             fontSize: 20, 
-            fontWeight: '600'
+            fontWeight: '800'
           }}>
             SMARTEN
           </span>
@@ -80,7 +75,7 @@ const EmailVerified = () => {
             <div style={{
               color: '#303030', 
               fontSize: 24, 
-              fontWeight: '600', 
+              fontWeight: '800', 
               wordWrap: 'break-word'
             }}>
               Email Verified
@@ -113,7 +108,7 @@ const EmailVerified = () => {
               marginTop: 16
             }}
           >
-            Go to Dashboard
+            Go to Login
           </button>
         </div>
       </div>
