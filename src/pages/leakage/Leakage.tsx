@@ -961,6 +961,21 @@ const Leakage = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* No Leakage State */}
+                  <div className={`w-full h-full transition-all duration-300 ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+                    style={{ position: (!mainLeakageData.action || mainLeakageData.status === '') ? 'relative' : 'absolute' }}>
+                    {(!mainLeakageData.action || mainLeakageData.status === '') && (
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
+                        <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">No Active Leakage<br/>Detected</span>
+                        <img 
+                          src="/assets/Calendar.gif" 
+                          alt="No leakage detected" 
+                          className="w-48 h-36 object-contain mb-8" 
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
