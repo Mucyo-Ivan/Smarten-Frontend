@@ -39,6 +39,8 @@ import { MonitorDataProvider } from './contexts/MonitorDataContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import VerifyEmail from "./pages/auth/VerifyEmail";
+import EmailVerified from "./pages/auth/EmailVerified";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -65,6 +67,8 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/email-verified" element={<EmailVerified />} />
 
               <Route element={<ProtectedRoute/>}>
               <Route path="/dashboard" element={<Dashboard />} />
