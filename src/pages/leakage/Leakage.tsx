@@ -152,6 +152,7 @@ const Leakage = () => {
   const [resolvedErrors, setResolvedErrors] = useState({ date: '', plumber: '', note: '' });
   const [resolvedFeedback, setResolvedFeedback] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLeakResolved, setIsLeakResolved] = useState(false);
 
   // Get the province name for the API call
   const getProvinceName = (regionId: string) => {
@@ -305,6 +306,7 @@ const Leakage = () => {
           
           setSelectedLeakId(leak.leak_id);
           setStatus(mapStatus(leak.status));
+          setIsLeakResolved(mapStatus(leak.status) === 'Resolved');
         } else {
           // No leakage found for this province - reset to default state
           setMainLeakageData({
@@ -318,6 +320,7 @@ const Leakage = () => {
           });
           setSelectedLeakId(null);
           setStatus('Investigating');
+          setIsLeakResolved(false);
         }
       } catch (err) {
         console.log("Failed to fetch recent leakage province data", err.message);
@@ -333,6 +336,7 @@ const Leakage = () => {
         });
         setSelectedLeakId(null);
         setStatus('Investigating');
+        setIsLeakResolved(false);
         // Keep current data or use fallback
       }
     };
@@ -496,6 +500,7 @@ const Leakage = () => {
         
         setSelectedLeakId(leak.leak_id);
         setStatus(mapStatus(leak.status));
+        setIsLeakResolved(mapStatus(leak.status) === 'Resolved');
       } else {
         // No leakage found for this province - reset to default state
         setMainLeakageData({
@@ -509,6 +514,7 @@ const Leakage = () => {
         });
         setSelectedLeakId(null);
         setStatus('Investigating');
+        setIsLeakResolved(false);
       }
     } catch (err) {
       console.log("Failed to refetch recent leakage province data", err.message);
@@ -609,7 +615,14 @@ const Leakage = () => {
       setShowResolvedForm(false);
       setEditResolved(false);
       setStatus('Resolved');
+      setIsLeakResolved(true);
       setResolvedForm({ date: '', plumber: '', note: '' });
+      
+      // Update main leakage data to show resolved status
+      setMainLeakageData(prev => ({
+        ...prev,
+        status: 'Resolved'
+      }));
 
       // Refetch recent leakage province data and investigating leaks
       await Promise.all([
@@ -785,17 +798,20 @@ const Leakage = () => {
                     <Activity size={16} className="text-black" />
                     <span className="font-medium">Status</span>
                   </div>
-                  {/* Status radio buttons */}
-                  <div className="flex items-center gap-4 mt-1">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="radio" name="status" value="Resolved" checked={status === 'Resolved'} onChange={() => handleStatusChange('Resolved')} className="accent-blue-600 h-4 w-4" />
-                      <span className="text-sm">Resolved</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="radio" name="status" value="Investigating" checked={status === 'Investigating'} onChange={() => handleStatusChange('Investigating')} className="accent-blue-600 h-4 w-4" />
-                      <span className="text-sm">Investigating</span>
-                    </label>
-                  </div>
+                  {/* Status display - show status as pill-shaped badges */}
+                  {isLeakResolved || status === 'Resolved' ? (
+                    <div className="mt-1">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                        Resolved
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mt-1">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+                        Investigating
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
                 <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
