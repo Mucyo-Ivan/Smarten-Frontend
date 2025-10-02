@@ -209,7 +209,21 @@ const Leakage = () => {
 
   // Helper: apply a leak to the main left card UI
   const applyLeakToMainCard = (leak: any) => {
-    if (!leak) return;
+    if (!leak) {
+      // Reset to default state if no leak provided
+      setMainLeakageData({
+        date: '',
+        time: '',
+        waterLoss: 0,
+        location: '',
+        severity: '',
+        action: false,
+        status: 'Investigating'
+      });
+      setSelectedLeakId(null);
+      return;
+    }
+    
     const [d, t, period] = leak.time.split(' ');
     setMainLeakageData({
       date: d,
@@ -220,6 +234,7 @@ const Leakage = () => {
       action: true, // Set to true when a leak is detected
       status: 'Investigating'
     });
+    setSelectedLeakId(leak.id);
   };
   // Fetch leakage data (following control page pattern)
   useEffect(() => {
@@ -246,11 +261,7 @@ const Leakage = () => {
         setLeakageData(processedData);
         setTotalLeaks(res.data.total_leaks);
         
-        // Update main card with the most recent leak
-        if (processedData.length > 0) {
-          applyLeakToMainCard(processedData[0]);
-          setSelectedLeakId(processedData[0].id);
-        }
+        // Don't update main card here - let the recent leakage fetch handle it
       } catch (err) {
         setError(err.message || 'Failed to fetch leakage data');
         console.log("Failed to fetch leakage data", err.message);
@@ -269,19 +280,6 @@ const Leakage = () => {
   useEffect(() => {
     const fetchRecentLeakageProvince = async () => {
       try {
-        // Reset main leakage data first when switching provinces
-        setMainLeakageData({
-          date: '',
-          time: '',
-          waterLoss: 0,
-          location: '',
-          severity: '',
-          action: false,
-          status: 'Investigating'
-        });
-        setSelectedLeakId(null);
-        setStatus('Investigating');
-        
         const res = await getRecentLeakageProvince(getProvinceName(selectedRegion));
         console.log("Received Recent Leakage Province Data ", res.data);
         
@@ -308,12 +306,22 @@ const Leakage = () => {
           setSelectedLeakId(leak.leak_id);
           setStatus(mapStatus(leak.status));
         } else {
-          // No leakage for this province - keep default state
-          console.log(`No recent leakage found for ${getProvinceName(selectedRegion)}`);
+          // No leakage found for this province - reset to default state
+          setMainLeakageData({
+            date: '',
+            time: '',
+            waterLoss: 0,
+            location: '',
+            severity: '',
+            action: false,
+            status: 'Investigating'
+          });
+          setSelectedLeakId(null);
+          setStatus('Investigating');
         }
       } catch (err) {
         console.log("Failed to fetch recent leakage province data", err.message);
-        // Keep default state when there's an error
+        // Reset to default state on error
         setMainLeakageData({
           date: '',
           time: '',
@@ -325,6 +333,7 @@ const Leakage = () => {
         });
         setSelectedLeakId(null);
         setStatus('Investigating');
+        // Keep current data or use fallback
       }
     };
     
@@ -487,6 +496,19 @@ const Leakage = () => {
         
         setSelectedLeakId(leak.leak_id);
         setStatus(mapStatus(leak.status));
+      } else {
+        // No leakage found for this province - reset to default state
+        setMainLeakageData({
+          date: '',
+          time: '',
+          waterLoss: 0,
+          location: '',
+          severity: '',
+          action: false,
+          status: 'Investigating'
+        });
+        setSelectedLeakId(null);
+        setStatus('Investigating');
       }
     } catch (err) {
       console.log("Failed to refetch recent leakage province data", err.message);
@@ -720,143 +742,72 @@ const Leakage = () => {
                 {/* Leakage Detection */}
                 <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
                   <span className="text-lg font-semibold mb-2">Leakage Detection</span>
-                  
-                  {/* Check if there's leakage data for this province */}
-                  {mainLeakageData.waterLoss > 0 && mainLeakageData.location ? (
-                    <>
-                      {/* Date and time centered */}
-                      <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                        <div className="text-xs font-semibold text-black">{mainLeakageData.date}</div>
-                        <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time}</div>
-                      </div>
-                      {/* Water loss centered */}
-                      <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                        <div className="flex items-end gap-1">
-                          <div className="text-3xl font-bold">{mainLeakageData.waterLoss}</div>
-                          <span className="text-base font-normal align-top mb-1">cm³</span>
-                        </div>
-                        <div className="text-xs text-gray-400">water lost</div>
-                      </div>
-                      {/* Divider */}
-                      <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
-                      {/* Location */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span>{mainLeakageData.location}</span>
-                      </div>
-                      {/* Severity */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
-                        <span className="font-medium">Severity:</span>
-                        <span className="text-black font-semibold">{mainLeakageData.severity}</span>
-                      </div>
-                      {/* Action */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <CheckCircle size={16} className="text-black" />
-                        <span className="font-medium">Action:</span>
-                        <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
-                      </div>
-                      {/* Status */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <Activity size={16} className="text-black" />
-                        <span className="font-medium">Status</span>
-                      </div>
-                      {/* Status radio buttons */}
-                      <div className="flex items-center gap-4 mt-1">
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="radio" name="status" value="Resolved" checked={status === 'Resolved'} onChange={() => handleStatusChange('Resolved')} className="accent-blue-600 h-4 w-4" />
-                          <span className="text-sm">Resolved</span>
-                        </label>
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="radio" name="status" value="Investigating" checked={status === 'Investigating'} onChange={() => handleStatusChange('Investigating')} className="accent-blue-600 h-4 w-4" />
-                          <span className="text-sm">Investigating</span>
-                        </label>
-                      </div>
-                    </>
-                  ) : (
-                    /* No leakage state */
-                    <>
-                      {/* Date and time centered - show current date/time */}
-                      <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                        <div className="text-xs font-semibold text-black">{new Date().toLocaleDateString('en-GB')}</div>
-                        <div className="text-xs text-gray-400 -mt-1 mb-2">{new Date().toLocaleTimeString('en-US', { 
-                          hour: '2-digit', 
-                          minute: '2-digit',
-                          hour12: true 
-                        })}</div>
-                      </div>
-                      {/* Water loss centered - show 0 */}
-                      <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                        <div className="flex items-end gap-1">
-                          <div className="text-3xl font-bold">0</div>
-                          <span className="text-base font-normal align-top mb-1">cm³</span>
-                        </div>
-                        <div className="text-xs text-gray-400">water lost</div>
-                      </div>
-                      {/* Divider */}
-                      <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
-                      {/* Location - show "No leakage detected" */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span className="text-gray-500 italic">No leakage detected</span>
-                      </div>
-                      {/* Severity - show "N/A" */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
-                        <span className="font-medium">Severity:</span>
-                        <span className="text-gray-500 italic">N/A</span>
-                      </div>
-                      {/* Action - show "No" */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <CheckCircle size={16} className="text-gray-400" />
-                        <span className="font-medium">Action:</span>
-                        <span className="text-gray-500">No</span>
-                      </div>
-                      {/* Status */}
-                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                        <Activity size={16} className="text-gray-400" />
-                        <span className="font-medium">Status</span>
-                      </div>
-                      {/* Status radio buttons - disabled when no leakage */}
-                      <div className="flex items-center gap-4 mt-1">
-                        <label className="flex items-center gap-1 cursor-not-allowed opacity-50">
-                          <input type="radio" name="status" value="Resolved" disabled className="h-4 w-4" />
-                          <span className="text-sm text-gray-500">Resolved</span>
-                        </label>
-                        <label className="flex items-center gap-1 cursor-not-allowed opacity-50">
-                          <input type="radio" name="status" value="Investigating" disabled className="h-4 w-4" />
-                          <span className="text-sm text-gray-500">Investigating</span>
-                        </label>
-                      </div>
-                    </>
+                  {/* Date and time centered - only show if there's leakage data */}
+                  {mainLeakageData.date && (
+                    <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+                      <div className="text-xs font-semibold text-black">{mainLeakageData.date}</div>
+                      <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time}</div>
+                    </div>
                   )}
+                  {/* Water loss centered */}
+                  <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+                    <div className="flex items-end gap-1">
+                      <div className="text-3xl font-bold">{mainLeakageData.waterLoss || 0}</div>
+                      <span className="text-base font-normal align-top mb-1">cm³</span>
+                    </div>
+                    <div className="text-xs text-gray-400">water lost</div>
+                  </div>
+                  {/* Divider */}
+                  <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
+                  {/* Location - only show if there's leakage data */}
+                  {mainLeakageData.location && (
+                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{mainLeakageData.location}</span>
+                    </div>
+                  )}
+                  {/* Severity - only show if there's leakage data */}
+                  {mainLeakageData.severity && (
+                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                      <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
+                      <span className="font-medium">Severity:</span>
+                      <span className="text-black font-semibold">{mainLeakageData.severity}</span>
+                    </div>
+                  )}
+                  {/* Action */}
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                    <CheckCircle size={16} className="text-black" />
+                    <span className="font-medium">Action:</span>
+                    <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
+                  </div>
+                  {/* Status */}
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                    <Activity size={16} className="text-black" />
+                    <span className="font-medium">Status</span>
+                  </div>
+                  {/* Status radio buttons */}
+                  <div className="flex items-center gap-4 mt-1">
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input type="radio" name="status" value="Resolved" checked={status === 'Resolved'} onChange={() => handleStatusChange('Resolved')} className="accent-blue-600 h-4 w-4" />
+                      <span className="text-sm">Resolved</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input type="radio" name="status" value="Investigating" checked={status === 'Investigating'} onChange={() => handleStatusChange('Investigating')} className="accent-blue-600 h-4 w-4" />
+                      <span className="text-sm">Investigating</span>
+                    </label>
+                  </div>
                 </div>
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
                 <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
-                  {/* Show no leakage state when there's no data */}
-                  {mainLeakageData.waterLoss === 0 || !mainLeakageData.location ? (
-                    <div className="bg-gray-100 rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
-                      <span className="text-gray-600 text-lg font-semibold mb-2 mt-8 text-center">No Leakage Detected<br/>in {regions.find(r => r.id === selectedRegion)?.name}</span>
-                      <div className="w-56 h-44 flex items-center justify-center mb-8">
-                        <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                            <path d="M9 12l2 2 4-4"/>
-                            <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
-                          </svg>
-                        </div>
+                  <div className={`w-full h-full transition-all duration-300 ${status === 'Investigating' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+                    style={{ position: status === 'Investigating' ? 'relative' : 'absolute' }}>
+                    {status === 'Investigating' && (
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
+                        <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">Ongoing Analysis of<br/>Detected Leakage</span>
+                        <img src={HouseSearchingCuate} alt="Ongoing Analysis" className="w-56 h-44 object-contain mb-8" />
                       </div>
-                    </div>
-                  ) : (
-                    <div className={`w-full h-full transition-all duration-300 ${status === 'Investigating' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
-                      style={{ position: status === 'Investigating' ? 'relative' : 'absolute' }}>
-                      {status === 'Investigating' && (
-                        <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
-                          <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">Ongoing Analysis of<br/>Detected Leakage</span>
-                          <img src={HouseSearchingCuate} alt="Ongoing Analysis" className="w-56 h-44 object-contain mb-8" />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    )}
+                  </div>
                   <div className={`w-full h-full transition-all duration-300 ${status === 'Resolved' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Resolved' ? 'relative' : 'absolute' }}>
                     {status === 'Resolved' && showResolvedForm && (
