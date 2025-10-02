@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     accessToken: null,
-    isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
+    isAuthenticated: false,
   });
   const [refreshTimerId, setRefreshTimerId] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -51,30 +51,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Token validation failed:', error.response?.data || error.message);
       localStorage.removeItem('isAuthenticated');
       setAuthState({ accessToken: null, isAuthenticated: false });
-      // Only redirect to login if not on public routes
-      const publicRoutes = ['/login', '/register', '/'];
-      if (!publicRoutes.includes(location.pathname)) {
-        toast({
-          title: 'Session expired',
-          description: 'Please log in again.',
-          variant: 'destructive',
-        });
-        navigate('/login', { replace: true });
-      }
+      toast({
+        title: 'Session expired',
+        description: 'Please log in again.',
+        variant: 'destructive',
+      });
+      navigate('/login', { replace: true });
     }
   };
 
-  // Initial token validation only for non-public routes
+  // Initial token validation on mount or route change
   useEffect(() => {
-    const publicRoutes = ['/login', '/register', '/'];
-    // Skip validation for public routes
-    if (publicRoutes.includes(location.pathname)) {
-      return;
-    }
-    // Check if there's a potential session to validate
-    if (localStorage.getItem('isAuthenticated') === 'true') {
-      validate();
-    }
+    validate();
   }, [location.pathname]);
 
   // Periodic token validation only when authenticated
