@@ -22,9 +22,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     accessToken: null,
-    isAuthenticated: false,
+    isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
   });
-  const [refreshTimerId, setRefreshTimerId] = useState<number | null>(null);
+  const [refreshTimerId, setRefreshTimerId] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,35 +51,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Token validation failed:', error.response?.data || error.message);
       localStorage.removeItem('isAuthenticated');
       setAuthState({ accessToken: null, isAuthenticated: false });
-      toast({
-        title: 'Session expired',
-        description: 'Please log in again.',
-        variant: 'destructive',
-      });
-      navigate('/login', { replace: true });
+      // Only redirect to login if not on public routes
+      const publicRoutes = ['/login', '/register', '/'];
+      if (!publicRoutes.includes(location.pathname)) {
+        toast({
+          title: 'Session expired',
+          description: 'Please log in again.',
+          variant: 'destructive',
+        });
+        navigate('/login', { replace: true });
+      }
     }
   };
 
-  // Initialize auth state and validate token
+  // Initial token validation only for non-public routes
   useEffect(() => {
-    if (refreshTimerId) {
-      window.clearTimeout(refreshTimerId);
-    }
-    validate();
-  }, [location.pathname]);
-
-  // Periodic token validation
-  useEffect(() => {
-    if (!authState.isAuthenticated) {
+    const publicRoutes = ['/login', '/register', '/'];
+    // Skip validation for public routes
+    if (publicRoutes.includes(location.pathname)) {
       return;
     }
+    // Check if there's a potential session to validate
+    if (localStorage.getItem('isAuthenticated') === 'true') {
+      validate();
+    }
+  }, [location.pathname]);
+
+  // Periodic token validation only when authenticated
+  useEffect(() => {
+    if (!authState.isAuthenticated) {
+      // Clear any existing timer if not authenticated
+      if (refreshTimerId) {
+        clearTimeout(refreshTimerId);
+        setRefreshTimerId(null);
+      }
+      return;
+    }
+
     const SCHEDULE_MS = 5 * 60 * 1000; // Every 5 minutes
-    const id = window.setTimeout(async () => {
+    const validateAndSchedule = async () => {
       await validate();
-    }, SCHEDULE_MS);
-    setRefreshTimerId(id);
+      // Only schedule the next validation if still authenticated
+      if (authState.isAuthenticated) {
+        const id = setTimeout(validateAndSchedule, SCHEDULE_MS);
+        setRefreshTimerId(id);
+      }
+    };
+
+    // Start the first validation
+    validateAndSchedule();
+
+    // Cleanup on unmount or when isAuthenticated changes
     return () => {
-      window.clearTimeout(id);
+      if (refreshTimerId) {
+        clearTimeout(refreshTimerId);
+        setRefreshTimerId(null);
+      }
     };
   }, [authState.isAuthenticated]);
 
@@ -140,7 +167,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout failed:', error);
     } finally {
       if (refreshTimerId) {
-        window.clearTimeout(refreshTimerId);
+        clearTimeout(refreshTimerId);
+        setRefreshTimerId(null);
       }
       localStorage.removeItem('isAuthenticated');
       setAuthState({
