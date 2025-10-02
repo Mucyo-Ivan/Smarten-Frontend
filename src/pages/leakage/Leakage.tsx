@@ -798,22 +798,18 @@ const Leakage = () => {
                     <Activity size={16} className="text-black" />
                     <span className="font-medium">Status</span>
                   </div>
-                  {/* Status display - show resolved status with green tick or radio buttons */}
+                  {/* Status display - show status as pill-shaped badges */}
                   {isLeakResolved || status === 'Resolved' ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <CheckCircle size={16} className="text-green-500" />
-                      <span className="text-sm text-green-600 font-semibold">Resolved</span>
+                    <div className="mt-1">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                        Resolved
+                      </span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-4 mt-1">
-                      <label className="flex items-center gap-1 cursor-pointer">
-                        <input type="radio" name="status" value="Resolved" checked={status === 'Resolved'} onChange={() => handleStatusChange('Resolved')} className="accent-blue-600 h-4 w-4" />
-                        <span className="text-sm">Resolved</span>
-                      </label>
-                      <label className="flex items-center gap-1 cursor-pointer">
-                        <input type="radio" name="status" value="Investigating" checked={status === 'Investigating'} onChange={() => handleStatusChange('Investigating')} className="accent-blue-600 h-4 w-4" />
-                        <span className="text-sm">Investigating</span>
-                      </label>
+                    <div className="mt-1">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+                        Investigating
+                      </span>
                     </div>
                   )}
                 </div>
