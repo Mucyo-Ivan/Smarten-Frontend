@@ -54,7 +54,7 @@ const Register = () => {
     });
    
     setTimeout(() => {
-      navigate("/login");
+      navigate("/verify-email");
     }, 2000);
 
     }

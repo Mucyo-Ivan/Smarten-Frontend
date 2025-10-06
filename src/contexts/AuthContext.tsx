@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     accessToken: null,
     isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
+
   });
   const [refreshTimerId, setRefreshTimerId] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         accessToken: null, // Not stored in frontend; managed via cookies
         isAuthenticated: true,
       });
-      const publicRoutes = ['/login', '/register', '/', '/forgot-password'];
+      const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/verify-email', '/email-verified'];
       if (publicRoutes.includes(location.pathname)) {
         console.log('Redirecting to /dashboard from:', location.pathname);
         navigate('/dashboard', { replace: true });
@@ -50,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error('Token validation failed:', error.response?.data || error.message);
       localStorage.removeItem('isAuthenticated');
-      setAuthState({ accessToken: null, isAuthenticated: false });
+      setAuthState({ accessToken: null, isAuthenticated: false});
       const publicRoutes = ['/login', '/register', '/', '/forgot-password'];
       // Only redirect to login if not on a public route
       if (!publicRoutes.includes(location.pathname)) {
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Initial token validation only for non-public routes
   useEffect(() => {
-    const publicRoutes = ['/login', '/register', '/', '/forgot-password'];
+    const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/verify-email', '/email-verified'];
     // Skip validation for public routes
     if (publicRoutes.includes(location.pathname)) {
       return;
@@ -146,7 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: 'Registration successful',
         description: 'Please log in to continue.',
       });
-      navigate('/login', { replace: true });
+      navigate('/verify-email', { replace: true });
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error || error.message || 'An unexpected error occurred during registration';
@@ -159,6 +160,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
   };
+
+
 
   const logout = async () => {
     try {
@@ -173,7 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem('isAuthenticated');
       setAuthState({
         accessToken: null,
-        isAuthenticated: false,
+        isAuthenticated: false
       });
       toast({
         title: 'Logged out',

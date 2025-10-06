@@ -53,7 +53,7 @@ api.interceptors.request.use(
   async (config) => {
     const nonSafeMethods = ['post', 'put', 'delete', 'patch'];
     const url = config?.url || '';
-    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token)\/?(\?.*)?$/.test(url);
+    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token|verify-email',)\/?(\?.*)?$/.test(url);
 
     // Remove Authorization header for public endpoints
     if (isPublicEndpoint && config.headers.Authorization) {
@@ -157,6 +157,18 @@ export const registerCompany = async (data) => {
 };
 
 export const verifyEmail = (data) => noAuthApi.post("/verify-email/", data);
+
+export const resendVerificationEmail = async (data) => {
+  console.log('resendVerificationEmail payload:', data);
+  try {
+    const response = await noAuthApi.post('/resend-verification-email/', data);
+    console.log('resendVerificationEmail response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('resendVerificationEmail error:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 export const loginCompany = async (data) => {
   console.log('loginCompany payload:', data);
