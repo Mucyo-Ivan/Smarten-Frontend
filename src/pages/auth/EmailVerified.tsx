@@ -5,8 +5,8 @@ import SmartenLogo from '@/components/ui/SmartenLogo';
 const EmailVerified = () => {
   const navigate = useNavigate();
 
-  const handleToGoToLogin = () => {
-    navigate('/login');
+  const handleGoToDashboard = () => {
+    navigate('/dashboard');
   };
 
   return (
@@ -94,7 +94,7 @@ const EmailVerified = () => {
 
           {/* Go to Dashboard Button */}
           <button
-            onClick={handleToGoToLogin}
+            onClick={handleGoToDashboard}
             style={{
               width: 180,
               height: 44,
