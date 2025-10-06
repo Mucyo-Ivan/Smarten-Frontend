@@ -53,7 +53,7 @@ api.interceptors.request.use(
   async (config) => {
     const nonSafeMethods = ['post', 'put', 'delete', 'patch'];
     const url = config?.url || '';
-    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token|verify-email',)\/?(\?.*)?$/.test(url);
+    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token|verify-email|reset-password',)\/?(\?.*)?$/.test(url);
 
     // Remove Authorization header for public endpoints
     if (isPublicEndpoint && config.headers.Authorization) {
@@ -214,6 +214,30 @@ export const validateToken = async () => {
     return response;
   } catch (error) {
     console.error('validateToken error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const forgotPassword = async (data) => {
+  console.log('forgotPassword payload:', data);
+  try {
+    const response = await noAuthApi.post('/company/forgot-password/', data);
+    console.log('forgotPassword response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('forgotPassword error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const resetPassword = async (data) => {
+  console.log('resetPassword payload:', data);
+  try {
+    const response = await noAuthApi.post('/company/reset-password/', data);
+    console.log('resetPassword response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('resetPassword error:', error.response?.data || error.message);
     throw error;
   }
 };

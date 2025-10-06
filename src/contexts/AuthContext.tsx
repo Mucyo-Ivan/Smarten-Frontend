@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         accessToken: null, // Not stored in frontend; managed via cookies
         isAuthenticated: true,
       });
-      const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/verify-email', '/email-verified'];
+      const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/verify-email', '/email-verified','/reset-password'];
       if (publicRoutes.includes(location.pathname)) {
         console.log('Redirecting to /dashboard from:', location.pathname);
         navigate('/dashboard', { replace: true });
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Initial token validation only for non-public routes
   useEffect(() => {
-    const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/verify-email', '/email-verified'];
+    const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/verify-email', '/email-verified','/reset-password'];
     // Skip validation for public routes
     if (publicRoutes.includes(location.pathname)) {
       return;

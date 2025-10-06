@@ -3,26 +3,35 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthLayout from '@/components/layout/AuthLayout';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { forgotPassword } from '@/services/api';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
+    try {
+      await forgotPassword({ email });
       toast({
-        title: "Reset link sent",
-        description: "Please check your email for password reset instructions",
+        title: 'Password Reset Email Sent',
+        description: 'Please check your email for a link to reset your password.',
       });
-    }, 1000);
+      navigate('/login', { replace: true });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to send password reset email.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
