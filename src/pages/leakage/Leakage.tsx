@@ -757,7 +757,7 @@ const Leakage = () => {
 
         {/* Main card: Leakage Detection (left) + Ongoing Analysis (right) in a single card */}
         <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 mt-6">
-          <div className="bg-white rounded-xl shadow flex flex-row p-0 overflow-hidden" style={{ minHeight: 300 }}>
+          <div className={`bg-white rounded-xl shadow flex flex-row p-0 overflow-hidden ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'justify-center' : ''}`} style={{ minHeight: 300 }}>
             {/* Loading spinner for main card */}
             {loading ? (
               <div className="flex-1 flex items-center justify-center min-h-[300px]">
@@ -765,8 +765,9 @@ const Leakage = () => {
               </div>
             ) : (
               <>
-                {/* Leakage Detection */}
-                <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
+                {/* Leakage Detection - only show if there's leakage data */}
+                {mainLeakageData.action && mainLeakageData.status !== '' && (
+                  <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
                   <span className="text-lg font-semibold mb-2">Leakage Detection</span>
                   {/* Date and time centered - only show if there's leakage data */}
                   {mainLeakageData.date && (
@@ -825,8 +826,9 @@ const Leakage = () => {
                     )}
                   </div>
                 </div>
+                )}
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
-                <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
+                <div className={`flex flex-col items-center justify-center p-0 relative ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'flex-1' : 'flex-1'}`} style={{ minWidth: 0, minHeight: 300 }}>
                   <div className={`w-full h-full transition-all duration-300 ${status === 'Investigating' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Investigating' ? 'relative' : 'absolute' }}>
                     {status === 'Investigating' && (
@@ -966,12 +968,12 @@ const Leakage = () => {
                   <div className={`w-full h-full transition-all duration-300 ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: (!mainLeakageData.action || mainLeakageData.status === '') ? 'relative' : 'absolute' }}>
                     {(!mainLeakageData.action || mainLeakageData.status === '') && (
-                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
-                        <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">No Active Leakage<br/>Detected</span>
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 500, minHeight: 300, width: '100%', display: 'flex'}}>
+                        <span className="text-white text-xl font-semibold mb-4 mt-8 text-center">No Active Leakage<br/>Detected</span>
                         <img 
-                          src="/assets/Calendar.gif" 
+                          src="/Smarten Assets/assets/No data-cuate.svg" 
                           alt="No leakage detected" 
-                          className="w-48 h-36 object-contain mb-8" 
+                          className="w-64 h-48 object-contain mb-8" 
                         />
                       </div>
                     )}
