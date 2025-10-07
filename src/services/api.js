@@ -53,7 +53,7 @@ api.interceptors.request.use(
   async (config) => {
     const nonSafeMethods = ['post', 'put', 'delete', 'patch'];
     const url = config?.url || '';
-    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token|verify-email|reset-password',)\/?(\?.*)?$/.test(url);
+    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token)\/?(\?.*)?$/.test(url);
 
     // Remove Authorization header for public endpoints
     if (isPublicEndpoint && config.headers.Authorization) {
@@ -158,18 +158,6 @@ export const registerCompany = async (data) => {
 
 export const verifyEmail = (data) => noAuthApi.post("/verify-email/", data);
 
-export const resendVerificationEmail = async (data) => {
-  console.log('resendVerificationEmail payload:', data);
-  try {
-    const response = await noAuthApi.post('/resend-verification-email/', data);
-    console.log('resendVerificationEmail response:', response.data);
-    return response;
-  } catch (error) {
-    console.error('resendVerificationEmail error:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
 export const loginCompany = async (data) => {
   console.log('loginCompany payload:', data);
   try {
@@ -214,30 +202,6 @@ export const validateToken = async () => {
     return response;
   } catch (error) {
     console.error('validateToken error:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
-export const forgotPassword = async (data) => {
-  console.log('forgotPassword payload:', data);
-  try {
-    const response = await noAuthApi.post('/company/forgot-password/', data);
-    console.log('forgotPassword response:', response.data);
-    return response;
-  } catch (error) {
-    console.error('forgotPassword error:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
-export const resetPassword = async (data) => {
-  console.log('resetPassword payload:', data);
-  try {
-    const response = await noAuthApi.post('/company/reset-password/', data);
-    console.log('resetPassword response:', response.data);
-    return response;
-  } catch (error) {
-    console.error('resetPassword error:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -317,5 +281,15 @@ export const getTotalLeakagesPerProvince = () => api.get("/total-leakages-provin
 
 // Get device count for dashboard
 export const getDeviceCount = () => api.get("/device-count/");
+
+// Forgot password function
+export const forgotPassword = async (email) => {
+  try {
+    const response = await noAuthApi.post("/forgot-password/", { email });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export default api;

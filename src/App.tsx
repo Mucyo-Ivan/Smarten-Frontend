@@ -41,7 +41,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import EmailVerified from "./pages/auth/EmailVerified";
-import ResetPassword from "./pages/auth/ResetPassword";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -70,7 +69,6 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/email-verified" element={<EmailVerified />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route element={<ProtectedRoute/>}>
               <Route path="/dashboard" element={<Dashboard />} />

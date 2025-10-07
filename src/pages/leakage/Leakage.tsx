@@ -757,7 +757,7 @@ const Leakage = () => {
 
         {/* Main card: Leakage Detection (left) + Ongoing Analysis (right) in a single card */}
         <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 mt-6">
-          <div className={`bg-white rounded-xl shadow flex flex-row p-0 overflow-hidden ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'justify-center' : ''}`} style={{ minHeight: 300 }}>
+          <div className="bg-white rounded-xl shadow flex flex-row p-0 overflow-hidden" style={{ minHeight: 300 }}>
             {/* Loading spinner for main card */}
             {loading ? (
               <div className="flex-1 flex items-center justify-center min-h-[300px]">
@@ -765,17 +765,14 @@ const Leakage = () => {
               </div>
             ) : (
               <>
-                {/* Leakage Detection - only show if there's leakage data */}
-                {mainLeakageData.action && mainLeakageData.status !== '' && (
-                  <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
+                {/* Leakage Detection */}
+                <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
                   <span className="text-lg font-semibold mb-2">Leakage Detection</span>
-                  {/* Date and time centered - only show if there's leakage data */}
-                  {mainLeakageData.date && (
-                    <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                      <div className="text-xs font-semibold text-black">{mainLeakageData.date}</div>
-                      <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time}</div>
-                    </div>
-                  )}
+                  {/* Date and time centered - show structure always */}
+                  <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+                    <div className="text-xs font-semibold text-black">{mainLeakageData.date || '--'}</div>
+                    <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time || '--'}</div>
+                  </div>
                   {/* Water loss centered */}
                   <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
                     <div className="flex items-end gap-1">
@@ -786,21 +783,17 @@ const Leakage = () => {
                   </div>
                   {/* Divider */}
                   <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
-                  {/* Location - only show if there's leakage data */}
-                  {mainLeakageData.location && (
-                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                      <span>{mainLeakageData.location}</span>
-                    </div>
-                  )}
-                  {/* Severity - only show if there's leakage data */}
-                  {mainLeakageData.severity && (
-                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                      <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
-                      <span className="font-medium">Severity:</span>
-                      <span className="text-black font-semibold">{mainLeakageData.severity}</span>
-                    </div>
-                  )}
+                  {/* Location - show structure always */}
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>{mainLeakageData.location || '--'}</span>
+                  </div>
+                  {/* Severity - show structure always */}
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                    <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
+                    <span className="font-medium">Severity:</span>
+                    <span className="text-black font-semibold">{mainLeakageData.severity || '--'}</span>
+                  </div>
                   {/* Action */}
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
                     <CheckCircle size={16} className="text-black" />
@@ -826,9 +819,8 @@ const Leakage = () => {
                     )}
                   </div>
                 </div>
-                )}
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
-                <div className={`flex flex-col items-center justify-center p-0 relative ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'flex-1' : 'flex-1'}`} style={{ minWidth: 0, minHeight: 300 }}>
+                <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
                   <div className={`w-full h-full transition-all duration-300 ${status === 'Investigating' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: status === 'Investigating' ? 'relative' : 'absolute' }}>
                     {status === 'Investigating' && (
@@ -968,12 +960,12 @@ const Leakage = () => {
                   <div className={`w-full h-full transition-all duration-300 ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
                     style={{ position: (!mainLeakageData.action || mainLeakageData.status === '') ? 'relative' : 'absolute' }}>
                     {(!mainLeakageData.action || mainLeakageData.status === '') && (
-                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 500, minHeight: 300, width: '100%', display: 'flex'}}>
-                        <span className="text-white text-xl font-semibold mb-4 mt-8 text-center">No Active Leakage<br/>Detected</span>
+                      <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
+                        <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">No Leakage Detected<br/>in {getProvinceName(selectedRegion)}</span>
                         <img 
                           src="/Smarten Assets/assets/No data-cuate.svg" 
                           alt="No leakage detected" 
-                          className="w-64 h-48 object-contain mb-8" 
+                          className="w-48 h-36 object-contain mb-8" 
                         />
                       </div>
                     )}
