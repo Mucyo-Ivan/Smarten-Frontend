@@ -781,6 +781,7 @@ const Leakage = () => {
                     </div>
                     <div className="text-xs text-gray-400">water lost</div>
                   </div>
+                  
                   {/* Divider */}
                   <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
                   {/* Location - show structure always */}
@@ -794,30 +795,45 @@ const Leakage = () => {
                     <span className="font-medium">Severity:</span>
                     <span className="text-black font-semibold">{mainLeakageData.severity || '--'}</span>
                   </div>
+                  
                   {/* Action */}
                   <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
                     <CheckCircle size={16} className="text-black" />
                     <span className="font-medium">Action:</span>
                     <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
                   </div>
-                  {/* Status */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                    <Activity size={16} className="text-black" />
-                    <span className="font-medium">Status</span>
-                    {/* Status display - show status as pill-shaped badges side by side with Status */}
-                    {mainLeakageData.status === 'Resolved' ? (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
-                        Resolved
-                      </span>
-                    ) : mainLeakageData.status === 'Investigating' ? (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
-                        Investigating
-                      </span>
-                    ) : (
-                      // No leakage or no status - show empty state
-                      <span className="text-sm text-gray-400">No active leakage</span>
-                    )}
-                  </div>
+                  
+                  {/* Status with radio buttons - only show if there's leakage data */}
+                  {mainLeakageData.status && (
+                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                      <Activity size={16} className="text-black" />
+                      <span className="font-medium">Status</span>
+                      <div className="flex items-center gap-4 ml-2">
+                        <label className="flex items-center gap-1">
+                          <input 
+                            type="radio" 
+                            name="status" 
+                            value="Resolved" 
+                            checked={mainLeakageData.status === 'Resolved'}
+                            readOnly
+                            className="w-3 h-3"
+                          />
+                          <span className="text-xs">Resolved</span>
+                        </label>
+                        <label className="flex items-center gap-1">
+                          <input 
+                            type="radio" 
+                            name="status" 
+                            value="Investigating" 
+                            checked={mainLeakageData.status === 'Investigating'}
+                            readOnly
+                            className="w-3 h-3"
+                          />
+                          <span className="text-xs">Investigating</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
                 <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
