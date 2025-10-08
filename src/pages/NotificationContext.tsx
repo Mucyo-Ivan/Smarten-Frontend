@@ -98,7 +98,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             description: (
               <div>
                 <p>{newNotification.message}</p>
-                <p className="text-xs text-gray-500 mt-1">{newNotification.location} • {newNotification.time}</p>
+                <p className="text-xs font-bold text-white-500 mt-1">{newNotification.location} • {newNotification.time}</p>
               </div>
             ),
             variant: alert.severity === 'HIGH' ? 'destructive' : 'default',
