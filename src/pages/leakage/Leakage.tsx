@@ -803,52 +803,37 @@ const Leakage = () => {
                     <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
                   </div>
                   
-                  {/* Status with radio buttons - only show if there's leakage data */}
-                  {mainLeakageData.status && (
-                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                      <Activity size={16} className="text-black" />
-                      <span className="font-medium">Status</span>
-                      <div className="flex items-center gap-4 ml-2">
-                        <label className="flex items-center gap-1">
-                          <input 
-                            type="radio" 
-                            name="status" 
-                            value="Resolved" 
-                            checked={mainLeakageData.status === 'Resolved'}
-                            readOnly
-                            className="w-3 h-3"
-                          />
-                          <span className="text-xs">Resolved</span>
-                        </label>
-                        <label className="flex items-center gap-1">
-                          <input 
-                            type="radio" 
-                            name="status" 
-                            value="Investigating" 
-                            checked={mainLeakageData.status === 'Investigating'}
-                            readOnly
-                            className="w-3 h-3"
-                          />
-                          <span className="text-xs">Investigating</span>
-                        </label>
-                      </div>
-                    </div>
-                  )}
+                  {/* Status - show structure always */}
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                    <Activity size={16} className="text-black" />
+                    <span className="font-medium">Status</span>
+                    {mainLeakageData.status ? (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        mainLeakageData.status === 'Resolved' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {mainLeakageData.status}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">--</span>
+                    )}
+                  </div>
                 </div>
                 {/* Right side: Ongoing Analysis or Resolved Leakage */}
                 <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
-                  <div className={`w-full h-full transition-all duration-300 ${status === 'Investigating' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
-                    style={{ position: status === 'Investigating' ? 'relative' : 'absolute' }}>
-                    {status === 'Investigating' && (
+                  <div className={`w-full h-full transition-all duration-300 ${(status === 'Investigating' && mainLeakageData.date) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+                    style={{ position: (status === 'Investigating' && mainLeakageData.date) ? 'relative' : 'absolute' }}>
+                    {(status === 'Investigating' && mainLeakageData.date) && (
                       <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
                         <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">Ongoing Analysis of<br/>Detected Leakage</span>
                         <img src={HouseSearchingCuate} alt="Ongoing Analysis" className="w-56 h-44 object-contain mb-8" />
                       </div>
                     )}
                   </div>
-                  <div className={`w-full h-full transition-all duration-300 ${status === 'Resolved' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
-                    style={{ position: status === 'Resolved' ? 'relative' : 'absolute' }}>
-                    {status === 'Resolved' && showResolvedForm && (
+                  <div className={`w-full h-full transition-all duration-300 ${(status === 'Resolved' && mainLeakageData.date) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+                    style={{ position: (status === 'Resolved' && mainLeakageData.date) ? 'relative' : 'absolute' }}>
+                    {(status === 'Resolved' && mainLeakageData.date && showResolvedForm) && (
                       <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
                         <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
                         <form onSubmit={handleResolvedFormSubmit} className="flex flex-col w-full gap-4 items-center">
@@ -893,7 +878,7 @@ const Leakage = () => {
                         </form>
                       </div>
                     )}
-                    {status === 'Resolved' && !showResolvedForm && !editResolved && (
+                    {(status === 'Resolved' && mainLeakageData.date && !showResolvedForm && !editResolved) && (
                       <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white text-base font-semibold">Resolved leakage</span>
@@ -925,7 +910,7 @@ const Leakage = () => {
                         </div>
                       </div>
                     )}
-                    {status === 'Resolved' && editResolved && (
+                    {(status === 'Resolved' && mainLeakageData.date && editResolved) && (
                       <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
                         <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
                         <form onSubmit={handleResolvedFormSubmit} className="flex flex-col w-full gap-4 items-center">
@@ -972,10 +957,10 @@ const Leakage = () => {
                     )}
                   </div>
                   
-                  {/* No Leakage State */}
-                  <div className={`w-full h-full transition-all duration-300 ${(!mainLeakageData.action || mainLeakageData.status === '') ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
-                    style={{ position: (!mainLeakageData.action || mainLeakageData.status === '') ? 'relative' : 'absolute' }}>
-                    {(!mainLeakageData.action || mainLeakageData.status === '') && (
+                  {/* No Leakage State - Only show when there's no active leakage */}
+                  <div className={`w-full h-full transition-all duration-300 ${(!mainLeakageData.action || mainLeakageData.status === '' || !mainLeakageData.date) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+                    style={{ position: (!mainLeakageData.action || mainLeakageData.status === '' || !mainLeakageData.date) ? 'relative' : 'absolute' }}>
+                    {(!mainLeakageData.action || mainLeakageData.status === '' || !mainLeakageData.date) && (
                       <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
                         <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">No Leakage Detected<br/>in {getProvinceName(selectedRegion)}</span>
                         <img 
