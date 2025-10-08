@@ -138,12 +138,13 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
         };
         
         setMonitorData(prev => {
+          // Accumulate all data points for each province instead of replacing
           const updatedData = {
             ...prev,
             waterData: [
-              ...prev.waterData.filter(item => item.province !== province),
+              ...prev.waterData,
               waterDataPoint
-            ].slice(-MAX_WATER_DATA_POINTS),
+            ].slice(-MAX_WATER_DATA_POINTS), // Keep only the last 100 points total
             lastUpdated: new Date().toISOString(),
             currentDay: getCurrentDay(),
           };
@@ -164,9 +165,9 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
           setMonitorData(prev => ({
             ...prev,
             districtData: [
-              ...prev.districtData.filter(item => item.province !== province),
+              ...prev.districtData,
               ...newDistricts
-            ].slice(-MAX_DISTRICT_DATA_POINTS),
+            ].slice(-MAX_DISTRICT_DATA_POINTS), // Keep only the last 10 points total
             lastUpdated: new Date().toISOString(),
           }));
         }

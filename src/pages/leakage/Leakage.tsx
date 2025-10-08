@@ -177,6 +177,9 @@ const Leakage = () => {
           id: notificationData.leakage_id,
           timestamp: new Date().toISOString(),
           message: notificationData.message || 'New leakage detected',
+          location: notificationData.location || 'Unknown location',
+          water_lost: notificationData.water_lost_litres || 0,
+          severity: notificationData.severity || 'UNKNOWN',
           ...notificationData
         });
         return newCache;
@@ -184,10 +187,14 @@ const Leakage = () => {
     }
   };
 
+
   const handleNotificationClick = async (leakageId) => {
     try {
       setLoadingLeakageDetail(true);
+      console.log('Fetching leakage details for ID:', leakageId);
       const response = await getLeakageById(leakageId);
+      console.log('API Response:', response);
+      console.log('Leakage Data:', response.leakage);
       setLeakageDetailData(response.leakage);
       setShowLeakageDetailPopup(true);
     } catch (error) {
@@ -1002,7 +1009,7 @@ const Leakage = () => {
                             <div className="text-base text-white/80">{resolvedData.plumber}</div>
                           </div>
                         </div>
-                        <div className="mb-6">
+      <div className="mb-6">
                           <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
                           <div className="text-sm leading-snug text-white/80">{resolvedData.note}</div>
                         </div>
@@ -1089,21 +1096,21 @@ const Leakage = () => {
                     <span className="text-xs text-gray-500">({totalLeaks} leaks)</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button 
+          <div className="flex items-center gap-2">
+            <Button
                     variant="ghost" 
-                    size="sm"
+              size="sm"
                     onClick={refetch}
                     disabled={dataLoading}
                     className="text-sm text-blue-500 px-2 py-1 h-auto"
-                  >
+            >
                     <RefreshCw className={`w-4 h-4 mr-1 ${dataLoading ? 'animate-spin' : ''}`} />
                     Refresh
-                  </Button>
+            </Button>
                   {/* Reset to page 1 on manual refresh */}
-                  <Button 
+            <Button
                     variant="ghost" 
-                    size="sm"
+              size="sm"
                     onClick={() => {
                       setHistoryPage(1);
                       const provinceName = getProvinceName(selectedRegion);
@@ -1112,7 +1119,7 @@ const Leakage = () => {
                     className="text-sm text-blue-500 px-2 py-1 h-auto"
                   >
                     See more
-                  </Button>
+            </Button>
                 </div>
               </div>
               {dataLoading ? (
@@ -1123,21 +1130,21 @@ const Leakage = () => {
                 <div className="flex flex-col items-center justify-center min-h-[120px] text-red-400">
                   <AlertCircle className="w-8 h-8 mb-2" />
                   <span className="text-sm">Failed to load data</span>
-                  <Button 
+            <Button
                     variant="outline" 
-                    size="sm" 
+              size="sm"
                     onClick={refetch}
                     className="mt-2"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Retry
-                  </Button>
-                </div>
+            </Button>
+          </div>
               ) : leakageData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[120px] text-gray-400">
                   <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>
                   <span className="mt-2">No leakage history available for {getProvinceName(selectedRegion)}.</span>
-                </div>
+        </div>
               ) : (
                 <table className="w-full text-sm overflow-x-auto">
                   <thead>
@@ -1274,8 +1281,8 @@ const Leakage = () => {
                         </Button>
                       )}
                     </div>
-                  ))}
-                </div>
+          ))}
+        </div>
               )}
               {investigatingLeaks.length > INVESTIGATED_PAGE_SIZE && (
                 <div className="flex items-center justify-center gap-3 mt-4 select-none">
@@ -1325,7 +1332,7 @@ const Leakage = () => {
                   >
                     »
                   </button>
-                </div>
+      </div>
               )}
               {investigatingLeaks.length > INVESTIGATED_PAGE_SIZE && (
                 <Button 
@@ -1459,15 +1466,25 @@ const Leakage = () => {
           {Array.from(notificationCache.values()).map((notification) => (
             <div
               key={notification.id}
-              className="bg-blue-500 text-white p-4 rounded-lg shadow-lg cursor-pointer hover:bg-blue-600 transition-colors max-w-sm"
+              className="bg-red-500 text-white p-4 rounded-lg shadow-lg cursor-pointer hover:bg-red-600 transition-colors max-w-sm"
               onClick={() => handleNotificationClick(notification.id)}
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">Leakage Detected</p>
-                  <p className="text-sm opacity-90">{notification.message}</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-4 h-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <p className="font-bold text-sm">Leakage Detected</p>
+                  </div>
+                  <p className="text-sm opacity-90 mb-1">{notification.message}</p>
+                  {notification.flow_rate && (
+                    <p className="text-xs opacity-75 mb-1">Flow Rate: {notification.flow_rate}. Immediate attention required.</p>
+                  )}
                   <p className="text-xs opacity-75">
-                    {new Date(notification.timestamp).toLocaleTimeString()}
+                    {notification.location} • {new Date(notification.timestamp).toLocaleString()}
                   </p>
                 </div>
                 <div className="ml-2">
@@ -1480,6 +1497,7 @@ const Leakage = () => {
           ))}
         </div>
       )}
+
 
       {/* Leakage Detail Popup */}
       {showLeakageDetailPopup && (
@@ -1504,30 +1522,107 @@ const Leakage = () => {
                   <span className="ml-2 text-gray-600">Loading details...</span>
                 </div>
               ) : leakageDetailData ? (
-                <div className="space-y-6">
-                  {/* Basic Information */}
+                <div>
+                  {/* Debug Info */}
+                  <div className="bg-yellow-100 p-2 mb-4 rounded text-xs">
+                    <strong>DEBUG:</strong> Data received: {JSON.stringify(leakageDetailData, null, 2)}
+                  </div>
+                  <div className="space-y-6">
+                  {/* Header with Warning Icon */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Leakage Detected</h2>
+                  </div>
+
+                  {/* Readings Section */}
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <h3 className="font-semibold text-gray-700 mb-2">Readings</h3>
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-red-600">{leakageDetailData.water_lost_litres}</p>
+                      <p className="text-sm text-gray-600">cm³ water lost</p>
+                    </div>
+                  </div>
+
+                  {/* Location Section */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <h3 className="font-semibold text-gray-700">Location</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">
+                          {leakageDetailData.esp_device?.province?.charAt(0) || 'N'}
+                        </span>
+                      </div>
+                      <p className="text-lg text-gray-900">
+                        {leakageDetailData.esp_device?.province} &gt; {leakageDetailData.esp_device?.district} &gt; {leakageDetailData.esp_device?.village}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Take Action Section */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="font-semibold text-gray-700">Take Action</h3>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                        <span className="text-sm text-gray-600">OFF</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Section with Radio Buttons */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="font-semibold text-gray-700">Status</h3>
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <label className="flex items-center gap-2">
+                        <input 
+                          type="radio" 
+                          name="popup-status" 
+                          value="Resolved" 
+                          checked={leakageDetailData.status === 'RESOLVED'}
+                          readOnly
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm text-gray-700">Resolved</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input 
+                          type="radio" 
+                          name="popup-status" 
+                          value="Investigating" 
+                          checked={leakageDetailData.status === 'INVESTIGATING'}
+                          readOnly
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm text-gray-700">Investigating</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Additional Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-gray-700 mb-2">Leak ID</h3>
                       <p className="text-lg font-bold text-blue-600">#{leakageDetailData.leak_id}</p>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 mb-2">Status</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        leakageDetailData.status === 'INVESTIGATING' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'bg-green-100 text-green-700'
-                      }`}>
-                        {leakageDetailData.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Water Loss and Severity */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 mb-2">Water Lost</h3>
-                      <p className="text-2xl font-bold text-red-600">{leakageDetailData.water_lost_litres} L</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-gray-700 mb-2">Severity</h3>
@@ -1549,12 +1644,6 @@ const Leakage = () => {
                     <p className="text-lg text-gray-900">
                       {new Date(leakageDetailData.occurred_at).toLocaleString()}
                     </p>
-                  </div>
-
-                  {/* Location */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-gray-700 mb-2">Location</h3>
-                    <p className="text-lg text-gray-900">{leakageDetailData.location}</p>
                   </div>
 
                   {/* Device Information */}
@@ -1606,6 +1695,7 @@ const Leakage = () => {
                       </div>
                     </div>
                   )}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">

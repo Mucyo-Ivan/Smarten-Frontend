@@ -107,7 +107,8 @@ const Monitor = () => {
   const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
   const { clearData, getConnectionStatus } = useMonitorData();
   
-  console.log("Fetched real time data ",waterData)
+  console.log("Fetched real time data for", selectedProvince, ":", waterData);
+  console.log("Number of data points:", waterData.length);
   
   
   useEffect(() => {
@@ -128,27 +129,35 @@ const Monitor = () => {
   }, []);
 
 
-  // Process WebSocket data for daily chart
+  // Process WebSocket data for daily chart with improved connectivity
   const processChartData = (rawData: { flow_rate_lph: number; status: string; timestamp: string; province: string }[]) => {
     if (!rawData.length) return [];
 
+    // Filter and sort data to ensure proper chronological order for line connectivity
     const filteredData = rawData
-    .filter(item => item.province === selectedProvince && 
-                   item.flow_rate_lph != null && 
-                   !isNaN(item.flow_rate_lph) && 
-                   item.flow_rate_lph >= 0)
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .slice(-60); // Limit to last 60 points for performance
+      .filter(item => item.province === selectedProvince && 
+                     item.flow_rate_lph != null && 
+                     !isNaN(item.flow_rate_lph) && 
+                     item.flow_rate_lph >= 0 &&
+                     item.timestamp) // Ensure timestamp exists
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) // Strict chronological order
+      .slice(-100); // Increased limit for better trend visualization
 
-    const chartData = filteredData.map(item => ({
-      time: `${new Date(item.timestamp).getHours()}:${new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}`, // Format as '20h'
-      flow: item.flow_rate_lph, // Display flow_rate_lph directly as sent by backend
-      timestamp: item.timestamp,
-      status: item.status,
-      fullData: item // Store the complete data for this point
-    }));
+    // Create chart data with proper time formatting and ensure all points are connected
+    const chartData = filteredData.map((item, index) => {
+      const date = new Date(item.timestamp);
+      return {
+        time: `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`, // Format as 'HH:MM'
+        flow: Number(item.flow_rate_lph), // Ensure numeric value for proper line connection
+        timestamp: item.timestamp,
+        status: item.status,
+        fullData: item, // Store the complete data for this point
+        index: index // Add index for debugging
+      };
+    });
 
-    return chartData;
+    // Ensure data integrity for line connectivity
+    return chartData.filter(item => item.flow !== null && item.flow !== undefined);
   };
 
 // Filter district data for the latest graph point
@@ -493,7 +502,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                           dot={{ r: 4, fill: '#0095ff', stroke: '#fff', strokeWidth: 2 }}
                           activeDot={{ r: 6, fill: '#fff', stroke: '#0095ff', strokeWidth: 3 }}
                           isAnimationActive={false}
-                          connectNulls={false}
+                          connectNulls={true}
                         />
                       </LineChart>
                     </ResponsiveContainer>
