@@ -131,6 +131,10 @@ const ProvinceMonitor = () => {
                      item.flow_rate_lph >= 0 &&
                      item.timestamp) // Ensure timestamp exists
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) // Strict chronological order
+      .filter((item, index, array) => {
+        // Remove duplicates based on timestamp
+        return index === 0 || item.timestamp !== array[index - 1].timestamp;
+      })
       .slice(-100); // Increased limit for better trend visualization
 
     // Create chart data with proper time formatting and ensure all points are connected

@@ -138,17 +138,32 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
         };
         
         setMonitorData(prev => {
-          // Accumulate all data points for each province instead of replacing
-          const updatedData = {
-            ...prev,
-            waterData: [
-              ...prev.waterData,
-              waterDataPoint
-            ].slice(-MAX_WATER_DATA_POINTS), // Keep only the last 100 points total
-            lastUpdated: new Date().toISOString(),
-            currentDay: getCurrentDay(),
-          };
-          return updatedData;
+          // Check for duplicates based on timestamp and province
+          const isDuplicate = prev.waterData.some(existingPoint => 
+            existingPoint.timestamp === waterDataPoint.timestamp && 
+            existingPoint.province === waterDataPoint.province
+          );
+          
+          if (isDuplicate) {
+            console.log(`🚫 Duplicate water data point detected for ${province} at ${waterDataPoint.timestamp}`);
+          }
+          
+          // Only add if it's not a duplicate
+          if (!isDuplicate) {
+            const updatedData = {
+              ...prev,
+              waterData: [
+                ...prev.waterData,
+                waterDataPoint
+              ].slice(-MAX_WATER_DATA_POINTS), // Keep only the last 100 points total
+              lastUpdated: new Date().toISOString(),
+              currentDay: getCurrentDay(),
+            };
+            return updatedData;
+          }
+          
+          // Return previous data if it's a duplicate
+          return prev;
         });
 
         // Update district data
@@ -162,14 +177,25 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
             province: data.province || province,
           }));
           
-          setMonitorData(prev => ({
-            ...prev,
-            districtData: [
-              ...prev.districtData,
-              ...newDistricts
-            ].slice(-MAX_DISTRICT_DATA_POINTS), // Keep only the last 10 points total
-            lastUpdated: new Date().toISOString(),
-          }));
+          setMonitorData(prev => {
+            // Filter out duplicates for district data based on timestamp, province, and district
+            const filteredNewDistricts = newDistricts.filter(newDistrict => 
+              !prev.districtData.some(existingDistrict => 
+                existingDistrict.timestamp === newDistrict.timestamp && 
+                existingDistrict.province === newDistrict.province &&
+                existingDistrict.district === newDistrict.district
+              )
+            );
+            
+            return {
+              ...prev,
+              districtData: [
+                ...prev.districtData,
+                ...filteredNewDistricts
+              ].slice(-MAX_DISTRICT_DATA_POINTS), // Keep only the last 10 points total
+              lastUpdated: new Date().toISOString(),
+            };
+          });
         }
 
         // Update critical readings
