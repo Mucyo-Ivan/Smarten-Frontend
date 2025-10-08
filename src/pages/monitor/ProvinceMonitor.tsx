@@ -323,15 +323,13 @@ const ProvinceMonitor = () => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis 
-                      dataKey="time" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 9, fill: '#888' }}
-                      interval={0}
-                      tickFormatter={(value) => value}
-                      padding={{ left: 30, right: 30 }}
-                    />
+                     <XAxis 
+                       dataKey="time" 
+                       axisLine={false} 
+                       tickLine={false} 
+                       tick={false}
+                       hide={true}
+                     />
                     <YAxis hide />
                     <Tooltip 
                       content={<CustomTooltip />}
@@ -344,7 +342,7 @@ const ProvinceMonitor = () => {
                       dataKey="flow" 
                       stroke="#0095ff"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: '#0095ff', stroke: '#fff', strokeWidth: 2 }}
+                      dot={false}
                       activeDot={{ r: 6, fill: '#fff', stroke: '#0095ff', strokeWidth: 3 }}
                       isAnimationActive={false}
                       connectNulls={true}

@@ -482,10 +482,8 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                           dataKey="time" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 9, fill: '#888' }}
-                          interval={0}
-                          tickFormatter={(value) => value}
-                          padding={{ left: 30, right: 30 }}
+                          tick={false}
+                          hide={true}
                         />
                         <YAxis hide />
                         <Tooltip 
@@ -499,7 +497,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                           dataKey="flow" 
                           stroke="#0095ff"
                           strokeWidth={3}
-                          dot={{ r: 4, fill: '#0095ff', stroke: '#fff', strokeWidth: 2 }}
+                          dot={false}
                           activeDot={{ r: 6, fill: '#fff', stroke: '#0095ff', strokeWidth: 3 }}
                           isAnimationActive={false}
                           connectNulls={true}
