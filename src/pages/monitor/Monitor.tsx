@@ -132,6 +132,10 @@ const Monitor = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Reset pagination when switching between historical and current views
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [isHistoricalView]);
 
   // Process WebSocket data for daily chart with improved connectivity
   const processChartData = (rawData: { flow_rate_lph: number; status: string; timestamp: string; province: string }[]) => {
@@ -680,6 +684,57 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination controls - only show for current view (not historical) and when there are more than 6 records */}
+          {!isHistoricalView && latestDistrictData.length > HISTORY_PAGE_SIZE && (
+            <div className="flex items-center justify-center gap-3 mt-4 select-none">
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                onClick={() => historyPage > 1 && setHistoryPage(1)}
+                disabled={historyPage === 1}
+                aria-label="First page"
+              >
+                «
+              </button>
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                onClick={() => historyPage > 1 && setHistoryPage(historyPage - 1)}
+                disabled={historyPage === 1}
+                aria-label="Previous page"
+              >
+                ‹
+              </button>
+              {Array.from({ length: totalHistoryPages }, (_, i) => i + 1).map((pageNum) => {
+                const isActive = pageNum === historyPage;
+                return (
+                  <button
+                    key={pageNum}
+                    className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    onClick={() => setHistoryPage(pageNum)}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                onClick={() => historyPage < totalHistoryPages && setHistoryPage(historyPage + 1)}
+                disabled={historyPage === totalHistoryPages}
+                aria-label="Next page"
+              >
+                ›
+              </button>
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                onClick={() => historyPage < totalHistoryPages && setHistoryPage(totalHistoryPages)}
+                disabled={historyPage === totalHistoryPages}
+                aria-label="Last page"
+              >
+                »
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Critical Readings */}
