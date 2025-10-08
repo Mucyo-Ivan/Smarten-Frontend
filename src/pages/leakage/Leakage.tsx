@@ -899,7 +899,11 @@ const Leakage = () => {
                             name="status" 
                             value="Resolved" 
                             checked={status === 'Resolved'}
-                            onChange={(e) => setStatus(e.target.value)}
+                            onChange={(e) => {
+                              setStatus(e.target.value);
+                              setShowResolvedForm(true);
+                              setEditResolved(false);
+                            }}
                             className="w-3 h-3"
                           />
                           <span className="text-xs">Resolved</span>
@@ -910,7 +914,11 @@ const Leakage = () => {
                             name="status" 
                             value="Investigating" 
                             checked={status === 'Investigating'}
-                            onChange={(e) => setStatus(e.target.value)}
+                            onChange={(e) => {
+                              setStatus(e.target.value);
+                              setShowResolvedForm(false);
+                              setEditResolved(false);
+                            }}
                             className="w-3 h-3"
                           />
                           <span className="text-xs">Investigating</span>
