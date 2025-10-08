@@ -102,6 +102,10 @@ const Monitor = () => {
   } | null>(null);
   const [isHistoricalView, setIsHistoricalView] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
+  
+  // History pagination (6 per page)
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_PAGE_SIZE = 6;
 
   // Use WebSocket hook
   const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
@@ -180,6 +184,12 @@ const getLatestDistrictData = () => {
 
 const latestDistrictData = getLatestDistrictData();  
 console.log(latestDistrictData)
+
+// Pagination logic for history data
+const totalHistoryPages = Math.max(1, Math.ceil(latestDistrictData.length / HISTORY_PAGE_SIZE));
+const historyStartIndex = (historyPage - 1) * HISTORY_PAGE_SIZE;
+const historyEndIndex = historyStartIndex + HISTORY_PAGE_SIZE;
+const paginatedHistoryData = latestDistrictData.slice(historyStartIndex, historyEndIndex);
 
 // Get latest water data for consistent display (same as dashboard and provincial monitor)
 const getLatestWaterData = () => {
@@ -649,10 +659,10 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 </tr>
               </thead>
               <tbody>
-              {(isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : latestDistrictData).length > 0 ? (
-                  (isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : latestDistrictData).map((item, index) => (
+              {(isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : paginatedHistoryData).length > 0 ? (
+                  (isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : paginatedHistoryData).map((item, index) => (
                     <tr key={`${item.timestamp}-${item.district}`} className="border-b">
-                      <td className="py-3 px-4 text-sm">{index + 1}</td>
+                      <td className="py-3 px-4 text-sm">{historyStartIndex + index + 1}</td>
                       <td className="py-3 px-4 text-sm">{item.district}</td>
                       <td className="py-3 px-4 text-sm">{item.flow_rate.toFixed(2)} lph</td>
                       <td className="py-3 px-4">
