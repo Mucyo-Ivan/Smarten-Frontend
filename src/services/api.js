@@ -292,4 +292,14 @@ export const forgotPassword = async (email) => {
   }
 };
 
+// Get leakage details by ID
+export const getLeakageById = async (leakageId) => {
+  try {
+    const response = await api.post("/leakage-by-id/", { leakage_id: leakageId });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;
