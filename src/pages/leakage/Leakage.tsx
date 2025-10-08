@@ -1083,7 +1083,7 @@ const Leakage = () => {
                         <img 
                           src="/Smarten Assets/assets/No data-cuate.svg" 
                           alt="No leakage detected" 
-                          className="w-48 h-36 object-contain mb-8" 
+                          className="w-48 h-36 object-contain mb-8"
                         />
                       </div>
                     )}
