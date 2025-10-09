@@ -112,8 +112,8 @@ const Users = () => {
                 </span>
                 <span className={`font-semibold ${regionAssets[region.id].text}`}>{region.name}</span>
           </div>
-              <div className="text-2xl font-bold text-black mb-1">{region.users.replace('k', 'k')}</div>
-              <div className="text-xs text-gray-400 mb-2">Users</div>
+              <div className="text-2xl font-bold text-white mb-1">{region.users.replace('k', 'k')}</div>
+              <div className="text-xs text-white mb-2">Users</div>
               <Link to={`/users/detail/${region.id}`}>
                 <button className={`rounded-full px-4 py-1 text-xs font-semibold text-white ${regionAssets[region.id].btn} transition`}>View users</button>
               </Link>
@@ -186,11 +186,11 @@ const Users = () => {
                     <circle cx="32" cy="32" r="28" stroke={regionAssets[region.id].color} strokeWidth="8" fill="none" strokeDasharray={2 * Math.PI * 28} strokeDashoffset={(1 - 0.6) * 2 * Math.PI * 28} style={{ transition: 'stroke-dashoffset 0.5s' }} />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-black">60%</span>
+                    <span className="text-lg font-bold text-white">60%</span>
                 </div>
                 </div>
-                <div className="text-lg font-bold text-black">92,482</div>
-                <div className="text-xs text-gray-400">liters consumed</div>
+                <div className="text-lg font-bold text-white">92,482</div>
+                <div className="text-xs text-white">liters consumed</div>
                   </div>
                 ))}
               </div>
