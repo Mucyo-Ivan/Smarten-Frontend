@@ -16,8 +16,8 @@ const NavItem = ({ to, icon, label, isActive }: NavItemProps) => {
     <Link 
       to={to} 
       className={cn(
-        'flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group',
-        isActive && 'text-blue-600 bg-blue-50 font-medium'
+        'flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-primary hover:bg-accent rounded-lg transition-all duration-200 group dark-mode-transition',
+        isActive && 'text-primary bg-accent font-medium'
       )}
     >
       <div className={cn(
@@ -42,13 +42,13 @@ const SidebarNav = () => {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 shadow-sm">
+    <aside className="w-64 min-h-screen bg-sidebar border-r border-sidebar-border shadow-sm dark-mode-transition">
       <div className="p-6">
         <Link to="/dashboard" className="flex items-center">
           <div className="flex items-center" style={{ marginRight: '0px', position: 'relative', top: '-4px' }}>
             <SmartenLogo className="w-12 h-12" />
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-[#0052a9]" style={{ fontWeight: 900, position: 'relative', top: '0px', letterSpacing: '-0.5px' }}>SMARTEN</span>
+          <span className="text-2xl font-extrabold tracking-tight text-[#0052a9] dark:text-blue-400" style={{ fontWeight: 900, position: 'relative', top: '0px', letterSpacing: '-0.5px' }}>SMARTEN</span>
         </Link>
       </div>
       

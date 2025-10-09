@@ -564,7 +564,7 @@ const Settings = () => {
     }
   };
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, setTheme } = useTheme();
   const { toast } = useToast();
 
   const handleProfileUpdate = (e: React.FormEvent) => {
@@ -966,85 +966,99 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    <h4 className="font-medium">Theme</h4>
+                    <h4 className="font-medium text-foreground">Theme</h4>
                     <div className="grid grid-cols-3 gap-4">
-                      <div className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${theme === 'light' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
-                        <div className="bg-white rounded border shadow-sm p-3 mb-3">
+                      <div 
+                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 ${
+                          theme === 'light' 
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400' 
+                            : 'border-border hover:border-muted-foreground'
+                        }`}
+                        onClick={() => setTheme('light')}
+                      >
+                        <div className="bg-white dark:bg-card rounded border shadow-sm p-3 mb-3">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           </div>
                           <div className="space-y-1">
-                            <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                            <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                            <div className="h-2 bg-gray-200 dark:bg-muted rounded w-3/4"></div>
+                            <div className="h-2 bg-gray-200 dark:bg-muted rounded w-1/2"></div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Sun className="w-4 h-4" />
-                          <span className="font-medium">Light</span>
+                          <Sun className="w-4 h-4 text-foreground" />
+                          <span className="font-medium text-foreground">Light</span>
                         </div>
                       </div>
 
-                      <div className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${theme === 'dark' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`} onClick={toggleTheme}>
-                        <div className="bg-gray-800 rounded border shadow-sm p-3 mb-3">
+                      <div 
+                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 ${
+                          theme === 'dark' 
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400' 
+                            : 'border-border hover:border-muted-foreground'
+                        }`}
+                        onClick={() => setTheme('dark')}
+                      >
+                        <div className="bg-gray-800 dark:bg-card rounded border shadow-sm p-3 mb-3">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           </div>
                           <div className="space-y-1">
-                            <div className="h-2 bg-gray-600 rounded w-3/4"></div>
-                            <div className="h-2 bg-gray-600 rounded w-1/2"></div>
+                            <div className="h-2 bg-gray-600 dark:bg-muted rounded w-3/4"></div>
+                            <div className="h-2 bg-gray-600 dark:bg-muted rounded w-1/2"></div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Moon className="w-4 h-4" />
-                          <span className="font-medium">Dark</span>
+                          <Moon className="w-4 h-4 text-foreground" />
+                          <span className="font-medium text-foreground">Dark</span>
                         </div>
                       </div>
 
-                      <div className="border-2 border-gray-200 rounded-lg p-4 cursor-pointer opacity-50">
-                        <div className="bg-gradient-to-br from-white to-gray-100 rounded border shadow-sm p-3 mb-3">
+                      <div className="border-2 border-border rounded-lg p-4 cursor-pointer opacity-50 hover:opacity-75 transition-opacity">
+                        <div className="bg-gradient-to-br from-white to-gray-100 dark:from-card dark:to-muted rounded border shadow-sm p-3 mb-3">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           </div>
                           <div className="space-y-1">
-                            <div className="h-2 bg-gray-300 rounded w-3/4"></div>
-                            <div className="h-2 bg-gray-300 rounded w-1/2"></div>
+                            <div className="h-2 bg-gray-300 dark:bg-muted rounded w-3/4"></div>
+                            <div className="h-2 bg-gray-300 dark:bg-muted rounded w-1/2"></div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Globe className="w-4 h-4" />
-                          <span className="font-medium">Auto</span>
+                          <Globe className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium text-muted-foreground">Auto</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <h4 className="font-medium">Display Settings</h4>
+                    <h4 className="font-medium text-foreground">Display Settings</h4>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <Label className="text-base">Compact Mode</Label>
-                          <p className="text-sm text-gray-500">Reduce spacing and padding for more content</p>
+                          <Label className="text-base text-foreground">Compact Mode</Label>
+                          <p className="text-sm text-muted-foreground">Reduce spacing and padding for more content</p>
                         </div>
                         <Switch />
                       </div>
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <Label className="text-base">High Contrast</Label>
-                          <p className="text-sm text-gray-500">Increase contrast for better visibility</p>
+                          <Label className="text-base text-foreground">High Contrast</Label>
+                          <p className="text-sm text-muted-foreground">Increase contrast for better visibility</p>
                         </div>
                         <Switch />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Font Size</Label>
+                        <Label className="text-foreground">Font Size</Label>
                         <Select defaultValue="medium">
                           <SelectTrigger className="w-48">
                             <SelectValue />
@@ -1060,7 +1074,7 @@ const Settings = () => {
                   </div>
 
                   <div className="flex justify-end">
-                    <Button className="bg-blue-500 hover:bg-blue-600 gap-2">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
                       <Save className="w-4 h-4" />
                       Save Appearance
                     </Button>

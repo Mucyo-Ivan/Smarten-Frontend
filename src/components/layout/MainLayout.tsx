@@ -21,12 +21,12 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
   const defaultRootPaths = ['/dashboard', '/monitor', '/device', '/control', '/leakage', '/users', '/settings', '/'];
   const hideBackButton = defaultRootPaths.includes(location.pathname);
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen bg-background dark-mode-transition">
       <SidebarNav />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} unreadCount={unreadCount} onShowNotifications={() => setShowNotifications(true)} />
         {/* Unified horizontal line */}
-        <div className="h-px bg-gray-200 w-full"></div>
+        <div className="h-px bg-border w-full"></div>
         <main className="flex-1 overflow-y-auto">
           {!hideBackButton && (
             <div className="px-4 pt-3">
