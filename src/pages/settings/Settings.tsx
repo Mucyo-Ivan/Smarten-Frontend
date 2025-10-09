@@ -758,7 +758,7 @@ const Settings = () => {
                       <div>
                         <div className="text-xs text-gray-500">Phone</div>
                         <div className="text-sm font-medium">{phone}</div>
-                      </div>
+                    </div>
                     </div>
 
                     <div className="flex justify-end">

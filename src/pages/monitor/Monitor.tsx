@@ -67,7 +67,7 @@ const StatusBadge = ({ status }: { status: string }) => {
         };
       default:
         return { 
-          textColor: 'text-gray-700', 
+          textColor: 'text-foreground', 
           bgColor: 'rgba(156, 163, 175, 0.25)', 
           borderColor: 'rgba(156, 163, 175, 0.5)',
           text: `unknown (${status})` // Show raw status for debugging
@@ -568,8 +568,8 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                      {isHistoricalView && selectedHistoricalData 
                        ? selectedHistoricalData.waterData.status
@@ -606,8 +606,8 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 </div>
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                     {isHistoricalView && selectedHistoricalData 
                       ? selectedHistoricalData.waterData.status
@@ -689,7 +689,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
           {!isHistoricalView && latestDistrictData.length > HISTORY_PAGE_SIZE && (
             <div className="flex items-center justify-center gap-3 mt-4 select-none">
               <button
-                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
                 onClick={() => historyPage > 1 && setHistoryPage(1)}
                 disabled={historyPage === 1}
                 aria-label="First page"
@@ -697,7 +697,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 «
               </button>
               <button
-                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
                 onClick={() => historyPage > 1 && setHistoryPage(historyPage - 1)}
                 disabled={historyPage === 1}
                 aria-label="Previous page"
@@ -709,7 +709,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 return (
                   <button
                     key={pageNum}
-                    className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-foreground hover:bg-gray-100'}`}
                     onClick={() => setHistoryPage(pageNum)}
                     aria-current={isActive ? 'page' : undefined}
                   >
@@ -718,7 +718,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 );
               })}
               <button
-                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
                 onClick={() => historyPage < totalHistoryPages && setHistoryPage(historyPage + 1)}
                 disabled={historyPage === totalHistoryPages}
                 aria-label="Next page"
@@ -726,7 +726,7 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 ›
               </button>
               <button
-                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
                 onClick={() => historyPage < totalHistoryPages && setHistoryPage(totalHistoryPages)}
                 disabled={historyPage === totalHistoryPages}
                 aria-label="Last page"

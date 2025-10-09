@@ -772,7 +772,7 @@ const Leakage = () => {
                   <span className="text-lg font-semibold mb-2">Leakage Detection</span>
                   {/* Date and time centered - show structure always */}
                   <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                    <div className="text-xs font-semibold text-black">{mainLeakageData.date || '--'}</div>
+                    <div className="text-xs font-semibold text-foreground">{mainLeakageData.date || '--'}</div>
                     <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time || '--'}</div>
                   </div>
                   {/* Water loss centered */}
@@ -787,27 +787,27 @@ const Leakage = () => {
                   {/* Divider */}
                   <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
                   {/* Location - show structure always */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                     <span>{mainLeakageData.location || '--'}</span>
                   </div>
                   {/* Severity - show structure always */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
                     <span className="font-medium">Severity:</span>
-                    <span className="text-black font-semibold">{mainLeakageData.severity || '--'}</span>
+                    <span className="text-foreground font-semibold">{mainLeakageData.severity || '--'}</span>
                   </div>
                   
                   {/* Action */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                    <CheckCircle size={16} className="text-black" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <CheckCircle size={16} className="text-foreground" />
                     <span className="font-medium">Action:</span>
-                    <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
+                    <span className="text-foreground">{mainLeakageData.action ? 'Yes' : 'No'}</span>
                   </div>
                   
                   {/* Status - show radio buttons when investigating, badge when resolved, placeholder when no data */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                    <Activity size={16} className="text-black" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Activity size={16} className="text-foreground" />
                     <span className="font-medium">Status</span>
                     {mainLeakageData.status === 'Investigating' && !isLeakResolved ? (
                       <div className="flex items-center gap-4 ml-2">
@@ -1084,12 +1084,12 @@ const Leakage = () => {
                   <tbody>
                   {paginatedHistory.map((row, i) => (
                     <tr key={row.id} className="border-t border-gray-100">
-                      <td className="py-2 text-xs text-gray-700">
+                      <td className="py-2 text-xs text-muted-foreground">
                         <div>{row.time.split(' ')[0]}</div>
                         <div className="text-[11px] text-gray-400 leading-tight">{row.time.split(' ').slice(1).join(' ')}</div>
                         </td>
-                      <td className="py-2 text-xs text-gray-700">{row.location}</td>
-                      <td className="py-2 text-xs text-gray-700">{row.waterLost}</td>
+                      <td className="py-2 text-xs text-muted-foreground">{row.location}</td>
+                      <td className="py-2 text-xs text-muted-foreground">{row.waterLost}</td>
                       <td className="py-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'Investigating' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{row.status}</span>
                         </td>
@@ -1102,7 +1102,7 @@ const Leakage = () => {
               {leakageData.length > HISTORY_PAGE_SIZE && (
                 <div className="flex items-center justify-center gap-3 mt-4 select-none">
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage > 1 && setHistoryPage(1)}
                     disabled={historyPage === 1}
                     aria-label="First page"
@@ -1110,7 +1110,7 @@ const Leakage = () => {
                     «
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage > 1 && setHistoryPage(historyPage - 1)}
                     disabled={historyPage === 1}
                     aria-label="Previous page"
@@ -1123,7 +1123,7 @@ const Leakage = () => {
                     return (
                       <button
                         key={pageNum}
-                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:bg-gray-100'}`}
                         onClick={() => setHistoryPage(pageNum)}
                         aria-current={isActive ? 'page' : undefined}
                       >
@@ -1132,7 +1132,7 @@ const Leakage = () => {
                     );
                   })}
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage < totalHistoryPages && setHistoryPage(historyPage + 1)}
                     disabled={historyPage === totalHistoryPages}
                     aria-label="Next page"
@@ -1140,7 +1140,7 @@ const Leakage = () => {
                     ›
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage < totalHistoryPages && setHistoryPage(totalHistoryPages)}
                     disabled={historyPage === totalHistoryPages}
                     aria-label="Last page"
@@ -1216,7 +1216,7 @@ const Leakage = () => {
               {investigatingLeaks.length > INVESTIGATED_PAGE_SIZE && (
                 <div className="flex items-center justify-center gap-3 mt-4 select-none">
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage > 1 && setInvestigatedPage(1)}
                     disabled={investigatedPage === 1}
                     aria-label="First page"
@@ -1224,7 +1224,7 @@ const Leakage = () => {
                     «
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage > 1 && setInvestigatedPage(investigatedPage - 1)}
                     disabled={investigatedPage === 1}
                     aria-label="Previous page"
@@ -1237,7 +1237,7 @@ const Leakage = () => {
                     return (
                       <button
                         key={pageNum}
-                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:bg-gray-100'}`}
                         onClick={() => setInvestigatedPage(pageNum)}
                         aria-current={isActive ? 'page' : undefined}
                       >
@@ -1246,7 +1246,7 @@ const Leakage = () => {
                     );
                   })}
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage < totalInvestigatedPages && setInvestigatedPage(investigatedPage + 1)}
                     disabled={investigatedPage === totalInvestigatedPages}
                     aria-label="Next page"
@@ -1254,7 +1254,7 @@ const Leakage = () => {
                     ›
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage < totalInvestigatedPages && setInvestigatedPage(totalInvestigatedPages)}
                     disabled={investigatedPage === totalInvestigatedPages}
                     aria-label="Last page"
@@ -1324,7 +1324,7 @@ const Leakage = () => {
             {/* Resolve Form */}
             <form onSubmit={handleResolvedFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Resolved Date
                 </label>
                 <input
@@ -1338,7 +1338,7 @@ const Leakage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Plumber Name
                 </label>
                 <input
@@ -1353,7 +1353,7 @@ const Leakage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Resolved Note
                 </label>
                 <textarea
