@@ -25,54 +25,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const alerts = useLeakAlerts();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    // Initial static notifications
-    {
-      id: 1,
-      type: 'alert',
-      title: 'Leakage Detected',
-      message: 'Water leakage detected at Nyarugenge district. Immediate attention required.',
-      time: '5 minutes ago',
-      read: false,
-      location: 'Kigali, Nyarugenge',
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'High Water Pressure',
-      message: 'Water pressure at Kicukiro has exceeded normal levels.',
-      time: '15 minutes ago',
-      read: false,
-      location: 'Kigali, Kicukiro',
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'System Maintenance Complete',
-      message: 'Scheduled maintenance for Gasabo water system has been completed successfully.',
-      time: '1 hour ago',
-      read: true,
-      location: 'Kigali, Gasabo',
-    },
-    {
-      id: 4,
-      type: 'success',
-      title: 'Leak Resolved',
-      message: 'The water leak at Musanze has been successfully repaired.',
-      time: '2 hours ago',
-      read: true,
-      location: 'North, Musanze',
-    },
-    {
-      id: 5,
-      type: 'alert',
-      title: 'Device Offline',
-      message: 'ESP32 device at Huye district is not responding.',
-      time: '3 hours ago',
-      read: false,
-      location: 'South, Huye',
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     alerts.forEach((alert) => {

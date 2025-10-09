@@ -13,71 +13,7 @@ interface NotificationsPanelProps {
   onChangeUnread?: (newUnread: number) => void;
 }
 
-export const initialNotifications = [
-  {
-    id: 1,
-    type: 'leakage',
-    title: 'Leakage detected at Musanze',
-    time: '09:00AM',
-    date: 'Today',
-    new: true,
-    icon: 'leakage',
-  },
-  {
-    id: 2,
-    type: 'critical',
-    title: 'Critical readings at Nyabihu',
-    time: '11:00AM',
-    date: 'Today',
-    new: true,
-    icon: 'critical',
-  },
-  {
-    id: 3,
-    type: 'user',
-    title: 'A new user has been added in Rwamagana',
-    time: '11:00AM',
-    date: 'Today',
-    new: false,
-    icon: 'user',
-  },
-  {
-    id: 4,
-    type: 'action',
-    title: 'Turn on water in Musanze',
-    time: '11:00AM',
-    date: 'Today',
-    new: false,
-    icon: 'action',
-  },
-  {
-    id: 5,
-    type: 'leakage',
-    title: 'Leakage detected at Musanze',
-    time: '09:00AM',
-    date: 'Yesterday',
-    new: false,
-    icon: 'leakage',
-  },
-  {
-    id: 6,
-    type: 'critical',
-    title: 'Critical readings at Nyabihu',
-    time: '11:00AM',
-    date: 'Yesterday',
-    new: false,
-    icon: 'critical',
-  },
-  {
-    id: 7,
-    type: 'user',
-    title: 'A new user has been added in Rwamagana',
-    time: '11:00AM',
-    date: 'Past week',
-    new: false,
-    icon: 'user',
-  },
-];
+// Removed hardcoded notifications - now using only real-time notifications
 
 const getIcon = (icon: string) => {
   switch (icon) {

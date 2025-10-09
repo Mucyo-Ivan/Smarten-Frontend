@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import SidebarNav from './SidebarNav';
 import Header from './Header';
 import Footer from './Footer';
-import NotificationsPanel, { initialNotifications } from '../ui/NotificationsPanel';
+import NotificationsPanel from '../ui/NotificationsPanel';
 import { useNotificationContext } from '@/pages/NotificationContext';
 
 interface MainLayoutProps {
