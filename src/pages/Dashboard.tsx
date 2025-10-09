@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowUpRight, CheckCircle, MapPin, Activity, Clock, Timer, Calendar, ArrowLeftRight, MoveHorizontal, RefreshCw } from 'lucide-react';
 import { useMonitorData } from '@/contexts/MonitorDataContext';
-import { getRecentLeak, getTotalLeakagesPerProvince, getDeviceCount } from '@/services/api.js';
+import { getRecentLeak, getTotalLeakagesPerProvince, getDeviceCount, getUserCountPerProvince } from '@/services/api.js';
 
 const Dashboard = () => {
   const { monitorData } = useMonitorData();
@@ -32,6 +32,11 @@ const Dashboard = () => {
   const [deviceData, setDeviceData] = useState([]);
   const [deviceLoading, setDeviceLoading] = useState(false);
   const [deviceError, setDeviceError] = useState('');
+  
+  // State for user count data
+  const [userCountData, setUserCountData] = useState([]);
+  const [userCountLoading, setUserCountLoading] = useState(false);
+  const [userCountError, setUserCountError] = useState('');
   
   // Province mapping for WebSocket data
   const provinceMapping = {
@@ -159,6 +164,51 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch user count data
+  useEffect(() => {
+    const fetchUserCountData = async () => {
+      try {
+        setUserCountLoading(true);
+        setUserCountError('');
+        const res = await getUserCountPerProvince();
+        console.log("Received User Count Data ", res.data);
+        
+        if (res.data && res.data.provinces) {
+          const userCounts = res.data.provinces.map(province => ({
+            region: province.province,
+            value: province.user_count || 0,
+            unit: 'users',
+            bgColor: getProvinceBgColor(province.province),
+            textColor: getProvinceTextColor(province.province),
+            iconText: getProvinceInitial(province.province),
+            iconSrc: getProvinceIcon(province.province)
+          }));
+          setUserCountData(userCounts);
+        }
+      } catch (err) {
+        setUserCountError(err.message || 'Failed to fetch user count data');
+        console.log("Failed to fetch user count data", err.message);
+        // Keep default values on error
+        setUserCountData([
+          { region: 'North', value: 0, unit: 'users', bgColor: 'bg-yellow-50', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
+          { region: 'South', value: 0, unit: 'users', bgColor: 'bg-blue-50', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
+          { region: 'East', value: 0, unit: 'users', bgColor: 'bg-orange-50', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
+          { region: 'West', value: 0, unit: 'users', bgColor: 'bg-green-50', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
+          { region: 'Kigali', value: 0, unit: 'users', bgColor: 'bg-purple-50', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+        ]);
+      } finally {
+        setUserCountLoading(false);
+      }
+    };
+    
+    fetchUserCountData();
+    
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(fetchUserCountData, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Map backend status to frontend status
   const mapLeakageStatus = (status) => {
     switch (status.toUpperCase()) {
@@ -204,6 +254,28 @@ const Dashboard = () => {
       case 'Western': return '/Smarten Assets/assets/West.svg';
       case 'Kigali': return '/Smarten Assets/assets/Kigali.svg';
       default: return '/Smarten Assets/assets/South.svg';
+    }
+  };
+
+  const getProvinceBgColor = (province) => {
+    switch (province) {
+      case 'Northern': return 'bg-yellow-50';
+      case 'Southern': return 'bg-blue-50';
+      case 'Eastern': return 'bg-orange-50';
+      case 'Western': return 'bg-green-50';
+      case 'Kigali': return 'bg-purple-50';
+      default: return 'bg-blue-50';
+    }
+  };
+
+  const getProvinceInitial = (province) => {
+    switch (province) {
+      case 'Northern': return 'N';
+      case 'Southern': return 'S';
+      case 'Eastern': return 'E';
+      case 'Western': return 'W';
+      case 'Kigali': return 'K';
+      default: return 'S';
     }
   };
 
@@ -285,12 +357,13 @@ const Dashboard = () => {
     { region: 'Kigali', count: 0, color: 'rgba(233, 213, 255, 0.25)', textColor: 'rgba(192, 132, 252, 0.6)', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
 
-  const customerData = [
-    { region: 'North', value: 20, unit: 'users', bgColor: 'bg-yellow-50', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
-    { region: 'South', value: 20, unit: 'users', bgColor: 'bg-blue-50', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
-    { region: 'East', value: 20, unit: 'users', bgColor: 'bg-orange-50', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
-    { region: 'West', value: 20, unit: 'users', bgColor: 'bg-green-50', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
-    { region: 'Kigali', value: 20, unit: 'users', bgColor: 'bg-purple-50', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+  // Use real user count data or fallback to default
+  const customerData = userCountData.length > 0 ? userCountData : [
+    { region: 'North', value: 0, unit: 'users', bgColor: 'bg-yellow-50', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
+    { region: 'South', value: 0, unit: 'users', bgColor: 'bg-blue-50', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
+    { region: 'East', value: 0, unit: 'users', bgColor: 'bg-orange-50', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
+    { region: 'West', value: 0, unit: 'users', bgColor: 'bg-green-50', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
+    { region: 'Kigali', value: 0, unit: 'users', bgColor: 'bg-purple-50', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
 
   // Use real device data or fallback to default

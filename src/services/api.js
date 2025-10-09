@@ -282,6 +282,9 @@ export const getTotalLeakagesPerProvince = () => api.get("/total-leakages-provin
 // Get device count for dashboard
 export const getDeviceCount = () => api.get("/device-count/");
 
+// Get user count per province for dashboard
+export const getUserCountPerProvince = () => api.get("/user-count-per-province/");
+
 // Forgot password function
 export const forgotPassword = async (email) => {
   try {
