@@ -11,7 +11,7 @@ const RegisterESPSuccess = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col dark-mode-transition">
       {/* Logo - Top Left */}
       <div className="p-6">
         <div className="flex items-center gap-2">
@@ -33,8 +33,8 @@ const RegisterESPSuccess = () => {
 
         {/* Success Message */}
         <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-gray-800 mb-3">Connected Successfully</h1>
-          <p className="text-sm text-gray-600">Congratulations to you. You are now connected to the device.</p>
+          <h1 className="text-xl font-bold text-foreground mb-3">Connected Successfully</h1>
+          <p className="text-sm text-muted-foreground">Congratulations to you. You are now connected to the device.</p>
         </div>
 
         {/* Back Button */}
