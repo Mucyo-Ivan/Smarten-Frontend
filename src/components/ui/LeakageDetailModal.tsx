@@ -129,8 +129,14 @@ const LeakageDetailModal = ({ notification, onClose }: LeakageDetailModalProps) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full mx-4 relative max-h-[80vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-3xl shadow-xl max-w-2xl w-full mx-4 relative max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-center p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
