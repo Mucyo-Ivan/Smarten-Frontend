@@ -259,12 +259,12 @@ const Dashboard = () => {
 
   const getProvinceBgColor = (province) => {
     switch (province) {
-      case 'Northern': return 'bg-yellow-50';
-      case 'Southern': return 'bg-blue-50';
-      case 'Eastern': return 'bg-orange-50';
-      case 'Western': return 'bg-green-50';
-      case 'Kigali': return 'bg-purple-50';
-      default: return 'bg-blue-50';
+      case 'Northern': return 'bg-yellow-50 dark:bg-yellow-950';
+      case 'Southern': return 'bg-blue-50 dark:bg-blue-950';
+      case 'Eastern': return 'bg-orange-50 dark:bg-orange-950';
+      case 'Western': return 'bg-green-50 dark:bg-green-950';
+      case 'Kigali': return 'bg-purple-50 dark:bg-purple-950';
+      default: return 'bg-blue-50 dark:bg-blue-950';
     }
   };
 
@@ -296,8 +296,8 @@ const Dashboard = () => {
       name: 'North', 
       value: getProvinceData('north'), 
       unit: 'lph', 
-      bgColor: 'bg-white', 
-      textColor: 'text-black',
+      bgColor: 'bg-card', 
+      textColor: 'text-foreground',
       iconBg: 'bg-yellow-500',
       iconText: 'N',
       iconSrc: '/Smarten Assets/assets/North.svg'
@@ -307,8 +307,8 @@ const Dashboard = () => {
       name: 'South', 
       value: getProvinceData('south'), 
       unit: 'lph', 
-      bgColor: 'bg-white', 
-      textColor: 'text-black',
+      bgColor: 'bg-card', 
+      textColor: 'text-foreground',
       iconBg: 'bg-blue-500',
       iconText: 'S',
       iconSrc: '/Smarten Assets/assets/South.svg'
@@ -318,8 +318,8 @@ const Dashboard = () => {
       name: 'East', 
       value: getProvinceData('east'), 
       unit: 'lph', 
-      bgColor: 'bg-white', 
-      textColor: 'text-black',
+      bgColor: 'bg-card', 
+      textColor: 'text-foreground',
       iconBg: 'bg-orange-500',
       iconText: 'E',
       iconSrc: '/Smarten Assets/assets/East.svg'
@@ -329,8 +329,8 @@ const Dashboard = () => {
       name: 'West', 
       value: getProvinceData('west'), 
       unit: 'lph', 
-      bgColor: 'bg-white',
-      textColor: 'text-black', 
+      bgColor: 'bg-card',
+      textColor: 'text-foreground', 
       iconBg: 'bg-green-500',
       iconText: 'W',
       iconSrc: '/Smarten Assets/assets/West.svg'
@@ -340,8 +340,8 @@ const Dashboard = () => {
       name: 'Kigali', 
       value: getProvinceData('kigali'), 
       unit: 'lph', 
-      bgColor: 'bg-white', 
-      textColor: 'text-black',
+      bgColor: 'bg-card', 
+      textColor: 'text-foreground',
       iconBg: 'bg-purple-500',
       iconText: 'K',
       iconSrc: '/Smarten Assets/assets/Kigali.svg'
@@ -359,11 +359,11 @@ const Dashboard = () => {
 
   // Use real user count data or fallback to default
   const customerData = userCountData.length > 0 ? userCountData : [
-    { region: 'North', value: 0, unit: 'users', bgColor: 'bg-yellow-50', textColor: 'text-yellow-500', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
-    { region: 'South', value: 0, unit: 'users', bgColor: 'bg-blue-50', textColor: 'text-blue-500', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
-    { region: 'East', value: 0, unit: 'users', bgColor: 'bg-orange-50', textColor: 'text-orange-500', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
-    { region: 'West', value: 0, unit: 'users', bgColor: 'bg-green-50', textColor: 'text-green-500', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
-    { region: 'Kigali', value: 0, unit: 'users', bgColor: 'bg-purple-50', textColor: 'text-purple-500', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
+    { region: 'North', value: 0, unit: 'users', bgColor: 'bg-yellow-50 dark:bg-yellow-950', textColor: 'text-yellow-500 dark:text-yellow-400', iconText: 'N', iconSrc: '/Smarten Assets/assets/North.svg' },
+    { region: 'South', value: 0, unit: 'users', bgColor: 'bg-blue-50 dark:bg-blue-950', textColor: 'text-blue-500 dark:text-blue-400', iconText: 'S', iconSrc: '/Smarten Assets/assets/South.svg' },
+    { region: 'East', value: 0, unit: 'users', bgColor: 'bg-orange-50 dark:bg-orange-950', textColor: 'text-orange-500 dark:text-orange-400', iconText: 'E', iconSrc: '/Smarten Assets/assets/East.svg' },
+    { region: 'West', value: 0, unit: 'users', bgColor: 'bg-green-50 dark:bg-green-950', textColor: 'text-green-500 dark:text-green-400', iconText: 'W', iconSrc: '/Smarten Assets/assets/West.svg' },
+    { region: 'Kigali', value: 0, unit: 'users', bgColor: 'bg-purple-50 dark:bg-purple-950', textColor: 'text-purple-500 dark:text-purple-400', iconText: 'K', iconSrc: '/Smarten Assets/assets/Kigali.svg' },
   ];
 
   // Use real device data or fallback to default
@@ -381,22 +381,28 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
-      <div className="bg-white min-h-screen">
-        <h1 className="text-xl font-semibold mb-2 ml-4 mt-1">Overview</h1>
+      <div className="bg-background min-h-screen dark-mode-transition">
+        <h1 className="text-xl font-semibold mb-2 ml-4 mt-1 text-foreground">Overview</h1>
         <div className="grid grid-cols-5 gap-4 px-4 mb-6">
           {regions.map((region) => (
             <Link to={`/monitor/${region.id}`} key={region.id} className="no-underline">
-              <div className="bg-white rounded-xl p-5 cursor-pointer" style={{boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', background: `linear-gradient(to bottom right, white, ${region.id === 'north' ? '#fffbeb' : region.id === 'south' ? '#eff6ff' : region.id === 'east' ? '#fff7ed' : region.id === 'west' ? '#f0fdf4' : '#faf5ff'}`}}>
+              <div 
+                className="bg-card dark:bg-card rounded-xl p-5 cursor-pointer border border-border dark-mode-transition" 
+                style={{
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                  background: `linear-gradient(to bottom right, ${region.id === 'north' ? '#fffbeb' : region.id === 'south' ? '#eff6ff' : region.id === 'east' ? '#fff7ed' : region.id === 'west' ? '#f0fdf4' : '#faf5ff'}, hsl(var(--card)))`
+                }}
+              >
                 <div className="flex items-center gap-2 mb-3">
                   <div className={`w-8 h-8 ${region.iconBg} rounded-full flex items-center justify-center shadow-sm`}>
                     <img src={region.iconSrc} alt={region.name} className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm font-medium">{region.name}</span>
+                  <span className="text-sm font-medium text-foreground">{region.name}</span>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-black leading-tight mb-1">{region.value}</div>
-                  <div className="text-xs font-medium text-black">{region.unit}</div>
-                  <div className="text-xs font-medium text-black">Daily Average</div>
+                  <div className="text-3xl font-bold text-foreground leading-tight mb-1">{region.value}</div>
+                  <div className="text-xs font-medium text-foreground">{region.unit}</div>
+                  <div className="text-xs font-medium text-foreground">Daily Average</div>
                 </div>
               </div>
             </Link>
