@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { useNotificationContext } from './NotificationContext';
-// Removed Dialog import - notifications are no longer clickable
+import LeakageDetailModal from '@/components/ui/LeakageDetailModal';
 
 const Notifications: React.FC = () => {
   const { notifications, unreadCount, markAsRead, removeNotification, markAllAsRead } = useNotificationContext();
-  // Removed selectedNotification state - notifications are no longer clickable
+  const [selectedNotification, setSelectedNotification] = useState<null | any>(null);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -38,7 +38,16 @@ const Notifications: React.FC = () => {
     }
   };
 
-  // Removed notification click functionality - notifications are no longer clickable
+  const handleNotificationClick = (notification: any) => {
+    if (notification.type === 'alert' || notification.type === 'warning') {
+      setSelectedNotification(notification);
+      markAsRead(notification.id); // Mark as read when clicked
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedNotification(null);
+  };
 
   return (
     <MainLayout title="Notifications">
@@ -83,7 +92,8 @@ const Notifications: React.FC = () => {
                   key={notification.id}
                   className={`p-6 border-l-4 ${getBorderColor(notification.type)} ${
                     !notification.read ? 'bg-blue-50/30' : 'bg-white'
-                  } transition-colors duration-200`}
+                  } hover:bg-gray-50 transition-colors duration-200 cursor-pointer`}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -152,27 +162,12 @@ const Notifications: React.FC = () => {
           </Card>
         )}
 
-        {/* Popup for Leak Alerts */}
+        {/* Leakage Detail Modal */}
         {selectedNotification && (
-          <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{selectedNotification.title}</DialogTitle>
-                <DialogDescription>
-                  <p>{selectedNotification.message}</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    <strong>Location:</strong> {selectedNotification.location}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong>Time:</strong> {selectedNotification.time}
-                  </p>
-                </DialogDescription>
-              </DialogHeader>
-              <Button onClick={() => setSelectedNotification(null)} className="mt-4">
-                Close
-              </Button>
-            </DialogContent>
-          </Dialog>
+          <LeakageDetailModal 
+            notification={selectedNotification} 
+            onClose={closeModal} 
+          />
         )}
       </div>
     </MainLayout>

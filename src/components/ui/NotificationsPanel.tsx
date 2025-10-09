@@ -5,7 +5,7 @@ import LeakageButtonIcon from '../../../Smarten Assets/assets/Leakage button.svg
 import PeopleIcon from '../../../Smarten Assets/assets/People.svg';
 import ToggleRightIcon from '../../../Smarten Assets/assets/toggle-right 1.svg';
 import DropletsIcon from '../../../Smarten Assets/assets/droplets.svg';
-// Removed NotificationDetailModal import - notifications are no longer clickable
+import LeakageDetailModal from './LeakageDetailModal';
 import { useNotificationContext } from '@/pages/NotificationContext';
 
 interface NotificationsPanelProps {
@@ -32,6 +32,7 @@ const getIcon = (icon: string) => {
 
 const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
+  const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
   // Group notifications by date (convert to the format expected by the UI)
   const grouped = notifications.reduce((acc: Record<string, any[]>, notif) => {
@@ -44,14 +45,36 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
       time: new Date(notif.time).toLocaleTimeString(),
       date: date,
       new: !notif.read,
-      icon: notif.type === 'alert' ? 'leakage' : notif.type === 'warning' ? 'critical' : 'user'
+      icon: notif.type === 'alert' ? 'leakage' : notif.type === 'warning' ? 'critical' : 'user',
+      // Keep all original notification data for modal
+      leakage_id: notif.leakage_id,
+      water_lost: notif.water_lost,
+      location: notif.location,
+      timestamp: notif.timestamp,
+      severity: notif.severity,
+      status: notif.status,
+      message: notif.message
     });
     return acc;
   }, {});
 
-  // Removed notification click functionality - notifications are no longer clickable
+  const handleNotificationClick = (notification: any) => {
+    console.log('=== NOTIFICATIONS PANEL CLICK DEBUG ===');
+    console.log('NotificationsPanel: Clicking notification:', notification);
+    console.log('NotificationsPanel: notification.leakage_id:', notification.leakage_id);
+    console.log('NotificationsPanel: notification.water_lost:', notification.water_lost);
+    console.log('NotificationsPanel: notification.location:', notification.location);
+    console.log('NotificationsPanel: notification.time:', notification.time);
+    console.log('NotificationsPanel: notification.timestamp:', notification.timestamp);
+    console.log('Full notification object keys:', Object.keys(notification));
+    console.log('=== END NOTIFICATIONS PANEL DEBUG ===');
+    setSelectedNotification(notification);
+    markAsRead(notification.id);
+  };
 
-  // Removed closeModal function - no longer needed
+  const closeModal = () => {
+    setSelectedNotification(null);
+  };
 
   return (
     <div className="fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 animate-slide-in" style={{ minWidth: 380 }}>
@@ -84,7 +107,7 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
                     {getIcon(notif.icon)}
                   </span>
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleNotificationClick(notif)}>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900" style={{fontWeight: notif.new ? 600 : 500}}>{notif.title}</span>
                     {notif.new && <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full font-semibold">New</span>}
@@ -100,7 +123,13 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
         ))}
       </div>
       
-      {/* Removed notification detail modal - notifications are no longer clickable */}
+      {/* Leakage Detail Modal */}
+      {selectedNotification && (
+        <LeakageDetailModal 
+          notification={selectedNotification} 
+          onClose={closeModal} 
+        />
+      )}
     </div>
   );
 };
