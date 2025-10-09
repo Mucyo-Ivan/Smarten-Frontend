@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { useNotificationContext } from './NotificationContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+// Removed Dialog import - notifications are no longer clickable
 
 const Notifications: React.FC = () => {
   const { notifications, unreadCount, markAsRead, removeNotification, markAllAsRead } = useNotificationContext();
-  const [selectedNotification, setSelectedNotification] = useState<null | { id: number; title: string; message: string; location: string; time: string }>(null);
+  // Removed selectedNotification state - notifications are no longer clickable
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -38,12 +38,7 @@ const Notifications: React.FC = () => {
     }
   };
 
-  const handleNotificationClick = (notification: { id: number; type: string; title: string; message: string; location: string; time: string }) => {
-    if (notification.type === 'alert' || notification.type === 'warning') {
-      setSelectedNotification(notification);
-      markAsRead(notification.id); // Mark as read when clicked
-    }
-  };
+  // Removed notification click functionality - notifications are no longer clickable
 
   return (
     <MainLayout title="Notifications">
@@ -88,8 +83,7 @@ const Notifications: React.FC = () => {
                   key={notification.id}
                   className={`p-6 border-l-4 ${getBorderColor(notification.type)} ${
                     !notification.read ? 'bg-blue-50/30' : 'bg-white'
-                  } hover:bg-gray-50 transition-colors duration-200 cursor-pointer`}
-                  onClick={() => handleNotificationClick(notification)}
+                  } transition-colors duration-200`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">

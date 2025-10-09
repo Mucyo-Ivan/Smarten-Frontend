@@ -27,15 +27,25 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  // Process real-time notifications from WebSocket alerts
   useEffect(() => {
     alerts.forEach((alert) => {
       if (alert.status === 'potential_leak') {
+        // Validate timestamp to prevent "Invalid Date" issues
+        const timestamp = alert.timestamp;
+        const isValidTimestamp = timestamp && !isNaN(new Date(timestamp).getTime());
+        
+        if (!isValidTimestamp) {
+          console.warn('Invalid timestamp received, skipping notification:', alert);
+          return;
+        }
+
         const newNotification: Notification = {
           id: alert.leak_id,
           type: alert.severity === 'HIGH' ? 'alert' : 'warning',
           title: 'Leakage Detected',
           message: `Water leakage detected at ${alert.village}, ${alert.district}. Flow Rate: ${alert.flow_rate_lph} L/h. Immediate attention required.`,
-          time: alert.timestamp,
+          time: timestamp,
           read: false,
           location: `${alert.village}, ${alert.district}, ${alert.province}, ${alert.country}`,
         };
@@ -51,7 +61,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             description: (
               <div>
                 <p>{newNotification.message}</p>
-                <p className="text-xs font-bold text-white-500 mt-1">{newNotification.location} • {newNotification.time}</p>
+                <p className="text-xs font-bold text-white-500 mt-1">{newNotification.location} • {new Date(timestamp).toLocaleString()}</p>
               </div>
             ),
             variant: alert.severity === 'HIGH' ? 'destructive' : 'default',

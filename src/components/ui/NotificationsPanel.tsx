@@ -5,7 +5,7 @@ import LeakageButtonIcon from '../../../Smarten Assets/assets/Leakage button.svg
 import PeopleIcon from '../../../Smarten Assets/assets/People.svg';
 import ToggleRightIcon from '../../../Smarten Assets/assets/toggle-right 1.svg';
 import DropletsIcon from '../../../Smarten Assets/assets/droplets.svg';
-import NotificationDetailModal from './NotificationDetailModal';
+// Removed NotificationDetailModal import - notifications are no longer clickable
 import { useNotificationContext } from '@/pages/NotificationContext';
 
 interface NotificationsPanelProps {
@@ -32,7 +32,6 @@ const getIcon = (icon: string) => {
 
 const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
-  const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
   // Group notifications by date (convert to the format expected by the UI)
   const grouped = notifications.reduce((acc: Record<string, any[]>, notif) => {
@@ -50,14 +49,9 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
     return acc;
   }, {});
 
-  const handleNotificationClick = (notification: any) => {
-    setSelectedNotification(notification);
-    markAsRead(notification.id);
-  };
+  // Removed notification click functionality - notifications are no longer clickable
 
-  const closeModal = () => {
-    setSelectedNotification(null);
-  };
+  // Removed closeModal function - no longer needed
 
   return (
     <div className="fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 animate-slide-in" style={{ minWidth: 380 }}>
@@ -90,7 +84,7 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
                     {getIcon(notif.icon)}
                   </span>
                 )}
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleNotificationClick(notif)}>
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900" style={{fontWeight: notif.new ? 600 : 500}}>{notif.title}</span>
                     {notif.new && <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full font-semibold">New</span>}
@@ -106,13 +100,7 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
         ))}
       </div>
       
-      {/* Notification Detail Modal */}
-      {selectedNotification && (
-        <NotificationDetailModal 
-          notification={selectedNotification} 
-          onClose={closeModal} 
-        />
-      )}
+      {/* Removed notification detail modal - notifications are no longer clickable */}
     </div>
   );
 };
