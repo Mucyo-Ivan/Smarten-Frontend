@@ -53,7 +53,7 @@ api.interceptors.request.use(
   async (config) => {
     const nonSafeMethods = ['post', 'put', 'delete', 'patch'];
     const url = config?.url || '';
-    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token)\/?(\?.*)?$/.test(url);
+    const isPublicEndpoint = /\/(refresh|login|register|logout|verify-email|validate-token|reset-password)\/?(\?.*)?$/.test(url);
 
     // Remove Authorization header for public endpoints
     if (isPublicEndpoint && config.headers.Authorization) {
@@ -282,10 +282,23 @@ export const getTotalLeakagesPerProvince = () => api.get("/total-leakages-provin
 // Get device count for dashboard
 export const getDeviceCount = () => api.get("/device-count/");
 
+// Get user count per province for dashboard
+export const getUserCountPerProvince = () => api.get("/user-count-per-province/");
+
 // Forgot password function
 export const forgotPassword = async (email) => {
   try {
     const response = await noAuthApi.post("/forgot-password/", { email });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Reset password function
+export const resetPassword = async (data) => {
+  try {
+    const response = await noAuthApi.post("/reset-password/", data);
     return response.data;
   } catch (error) {
     throw error;

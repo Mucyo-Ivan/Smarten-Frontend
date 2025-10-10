@@ -6,6 +6,7 @@ import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'luci
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getAllLeaks, getInvestigatingLeaks, resolveLeakage, getRecentLeakageProvince, getLeakageById } from '@/services/api.js';
+import LeakageResolutionModal from '@/components/ui/LeakageResolutionModal';
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
 import SouthIcon from '../../../Smarten Assets/assets/South.svg';
@@ -24,110 +25,7 @@ const regions = [
   { id: 'kigali', name: 'Kigali', icon: KigaliIcon, color: '#A855F7' },
 ];
 
-const provinceLeakageData = {
-  north: {
-    leakageData: {
-      date: '06/04/2025',
-      time: '12:00 AM',
-      waterLoss: 20,
-      location: 'Kigali, Kicukiro,Kamashahi',
-      severity: 'High',
-      action: true,
-      status: 'Investigating',
-      pressureDrop: 20,
-    },
-    history: [
-      { time: '06/04/2025 12:00 AM', location: 'Gicumbi', waterLost: '200cm³/s', status: 'Investigating' },
-      { time: '06/04/2025 12:00 AM', location: 'Musanze', waterLost: '200cm³/s', status: 'Investigating' },
-      { time: '06/04/2025 12:00 AM', location: 'Gakenke', waterLost: '200cm³/s', status: 'Investigating' },
-      { time: '06/04/2025 12:00 AM', location: 'Rulindo', waterLost: '200cm³/s', status: 'Resolved' },
-      { time: '06/04/2025 12:00 AM', location: 'Burera', waterLost: '200cm³/s', status: 'Resolved' },
-    ],
-    investigatedLeaks: [
-      { date: '06/04/2025 12:00 AM', desc: 'Leakage detected in Musanze' },
-      { date: '06/04/2025 12:00 AM', desc: 'Leakage detected in Nyabihu' },
-      { date: '06/04/2025 12:00 AM', desc: 'Leakage detected in Karongi' },
-    ],
-  },
-  east: {
-    leakageData: {
-      date: '07/04/2025',
-      time: '01:00 AM',
-      waterLoss: 15,
-      location: 'Ngoma, Kibungo',
-      severity: 'Medium',
-      action: false,
-      status: 'Resolved',
-      pressureDrop: 15,
-    },
-    history: [
-      { time: '07/04/2025 01:00 AM', location: 'Ngoma', waterLost: '150cm³/s', status: 'Resolved' },
-      { time: '07/04/2025 01:00 AM', location: 'Kirehe', waterLost: '120cm³/s', status: 'Investigating' },
-      { time: '07/04/2025 01:00 AM', location: 'Bugesera', waterLost: '110cm³/s', status: 'Investigating' },
-    ],
-    investigatedLeaks: [
-      { date: '07/04/2025 01:00 AM', desc: 'Leakage detected in Ngoma' },
-      { date: '07/04/2025 01:00 AM', desc: 'Leakage detected in Kirehe' },
-    ],
-  },
-  south: {
-    leakageData: {
-      date: '08/04/2025',
-      time: '02:00 AM',
-      waterLoss: 10,
-      location: 'Huye, Tumba',
-      severity: 'Low',
-      action: true,
-      status: 'Investigating',
-      pressureDrop: 10,
-    },
-    history: [
-      { time: '08/04/2025 02:00 AM', location: 'Huye', waterLost: '100cm³/s', status: 'Investigating' },
-      { time: '08/04/2025 02:00 AM', location: 'Nyanza', waterLost: '90cm³/s', status: 'Resolved' },
-    ],
-    investigatedLeaks: [
-      { date: '08/04/2025 02:00 AM', desc: 'Leakage detected in Huye' },
-    ],
-  },
-  west: {
-    leakageData: {
-      date: '09/04/2025',
-      time: '03:00 AM',
-      waterLoss: 25,
-      location: 'Rubavu, Gisenyi',
-      severity: 'High',
-      action: false,
-      status: 'Investigating',
-      pressureDrop: 25,
-    },
-    history: [
-      { time: '09/04/2025 03:00 AM', location: 'Rubavu', waterLost: '250cm³/s', status: 'Investigating' },
-      { time: '09/04/2025 03:00 AM', location: 'Karongi', waterLost: '200cm³/s', status: 'Resolved' },
-    ],
-    investigatedLeaks: [
-      { date: '09/04/2025 03:00 AM', desc: 'Leakage detected in Rubavu' },
-    ],
-  },
-  kigali: {
-    leakageData: {
-      date: '10/04/2025',
-      time: '04:00 AM',
-      waterLoss: 30,
-      location: 'Gasabo, Remera',
-      severity: 'Medium',
-      action: true,
-      status: 'Resolved',
-      pressureDrop: 30,
-    },
-    history: [
-      { time: '10/04/2025 04:00 AM', location: 'Gasabo', waterLost: '300cm³/s', status: 'Resolved' },
-      { time: '10/04/2025 04:00 AM', location: 'Kicukiro', waterLost: '280cm³/s', status: 'Investigating' },
-    ],
-    investigatedLeaks: [
-      { date: '10/04/2025 04:00 AM', desc: 'Leakage detected in Gasabo' },
-    ],
-  },
-};
+// Removed hardcoded data - now using dynamic data from API
 
 
 const Leakage = () => {
@@ -158,9 +56,6 @@ const Leakage = () => {
   
   // WebSocket notification system
   const [notificationCache, setNotificationCache] = useState(new Map());
-  const [showLeakageDetailPopup, setShowLeakageDetailPopup] = useState(false);
-  const [leakageDetailData, setLeakageDetailData] = useState(null);
-  const [loadingLeakageDetail, setLoadingLeakageDetail] = useState(false);
 
   // Get the province name for the API call
   const getProvinceName = (regionId: string) => {
@@ -169,50 +64,32 @@ const Leakage = () => {
   };
 
   // WebSocket notification functions
-  const handleNotificationReceived = (notificationData) => {
+  const handleNotificationReceived = async (notificationData) => {
     if (notificationData.leakage_id) {
-      setNotificationCache(prev => {
-        const newCache = new Map(prev);
-        newCache.set(notificationData.leakage_id, {
-          id: notificationData.leakage_id,
-          timestamp: new Date().toISOString(),
-          message: notificationData.message || 'New leakage detected',
-          location: notificationData.location || 'Unknown location',
-          water_lost: notificationData.water_lost_litres || 0,
-          severity: notificationData.severity || 'UNKNOWN',
-          ...notificationData
+      // Fetch the actual leakage data from API
+      const leakageData = await fetchLeakageData(notificationData.leakage_id);
+      
+      if (leakageData) {
+        // Store notification with actual data
+        setNotificationCache(prev => {
+          const newCache = new Map(prev);
+          newCache.set(notificationData.leakage_id, {
+            id: notificationData.leakage_id,
+            timestamp: leakageData.occurred_at,
+            message: notificationData.message || 'New leakage detected',
+            location: leakageData.location,
+            water_lost: leakageData.water_lost_litres,
+            severity: leakageData.severity,
+            status: leakageData.status,
+            ...leakageData
+          });
+          return newCache;
         });
-        return newCache;
-      });
+      }
     }
   };
 
 
-  const handleNotificationClick = async (leakageId) => {
-    try {
-      setLoadingLeakageDetail(true);
-      console.log('Fetching leakage details for ID:', leakageId);
-      const response = await getLeakageById(leakageId);
-      console.log('API Response:', response);
-      console.log('Leakage Data:', response.leakage);
-      setLeakageDetailData(response.leakage);
-      setShowLeakageDetailPopup(true);
-    } catch (error) {
-      console.error('Error fetching leakage details:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch leakage details',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoadingLeakageDetail(false);
-    }
-  };
-
-  const closeLeakageDetailPopup = () => {
-    setShowLeakageDetailPopup(false);
-    setLeakageDetailData(null);
-  };
 
   // State for leakage data (following control page pattern)
   const [leakageData, setLeakageData] = useState([]);
@@ -255,11 +132,115 @@ const Leakage = () => {
   const [selectedLeak, setSelectedLeak] = useState<{ id?: number; date?: string; time?: string; waterLoss?: number; location?: string; severity?: string; status?: string } | null>(null);
   const [selectedLeakId, setSelectedLeakId] = useState<number | null>(null);
 
+  // State for storing leakage data by ID
+  const [leakageDataMap, setLeakageDataMap] = useState(new Map());
+  
+  // State for current leakage data
+  const [currentLeakageData, setCurrentLeakageData] = useState(null);
+  
+  // State for loading
+  const [isLoadingLeakageData, setIsLoadingLeakageData] = useState(false);
+
   // Helper: format yyyy-mm-dd to dd-mm-yyyy
   const formatToDDMMYYYY = (value: string) => {
     if (!value) return '';
     const [yyyy, mm, dd] = value.split('-');
     return `${dd}-${mm}-${yyyy}`;
+  };
+
+  // Function to fetch leakage data by ID
+  const fetchLeakageData = async (leakageId: number) => {
+    try {
+      setIsLoadingLeakageData(true);
+      const response = await getLeakageById(leakageId);
+      
+      if (response && response.leakage) {
+        const leakage = response.leakage;
+        
+        // Store in Map for future reference
+        setLeakageDataMap(prev => {
+          const newMap = new Map(prev);
+          newMap.set(leakageId, leakage);
+          return newMap;
+        });
+
+        // Update main leakage data
+        const occurredDate = new Date(leakage.occurred_at);
+        setMainLeakageData({
+          date: formatToDDMMYYYY(occurredDate.toISOString().split('T')[0]),
+          time: occurredDate.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          waterLoss: leakage.water_lost_litres,
+          location: leakage.location,
+          severity: leakage.severity,
+          action: leakage.status === 'INVESTIGATING',
+          status: leakage.status === 'INVESTIGATING' ? 'Investigating' : 'Resolved',
+        });
+
+        setCurrentLeakageData(leakage);
+        setSelectedLeakId(leakageId);
+        setStatus(leakage.status === 'INVESTIGATING' ? 'Investigating' : 'Resolved');
+        setIsLeakResolved(leakage.status === 'RESOLVED');
+        
+        return leakage;
+      }
+    } catch (error) {
+      console.error('Error fetching leakage data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch leakage data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingLeakageData(false);
+    }
+  };
+
+  // Function to load recent leakage data for the selected province
+  const loadRecentLeakageData = async () => {
+    try {
+      const response = await getRecentLeakageProvince(getProvinceName(selectedRegion));
+      console.log("Received Recent Leakage Province Data ", response.data);
+      
+      if (response.data && response.data.leak) {
+        const leak = response.data.leak;
+        await fetchLeakageData(leak.leak_id);
+      } else {
+        // No recent leakage data, reset to default state
+        setMainLeakageData({
+          date: '',
+          time: '',
+          waterLoss: 0,
+          location: '',
+          severity: '',
+          action: false,
+          status: '',
+        });
+        setCurrentLeakageData(null);
+        setSelectedLeakId(null);
+        setStatus('Investigating');
+        setIsLeakResolved(false);
+      }
+    } catch (error) {
+      console.error('Error loading recent leakage data:', error);
+      // Reset to default state on error
+      setMainLeakageData({
+        date: '',
+        time: '',
+        waterLoss: 0,
+        location: '',
+        severity: '',
+        action: false,
+        status: '',
+      });
+      setCurrentLeakageData(null);
+      setSelectedLeakId(null);
+      setStatus('Investigating');
+      setIsLeakResolved(false);
+    }
   };
 
   // Helper: apply a leak to the main left card UI
@@ -298,6 +279,43 @@ const Leakage = () => {
     setSelectedLeakForResolve(leak);
     setShowResolvePopup(true);
   };
+
+  // Function to fetch investigating leaks
+  const fetchInvestigatingLeaks = async () => {
+    try {
+      setInvestigatingLoading(true);
+      setInvestigatingError('');
+      const res = await getInvestigatingLeaks(getProvinceName(selectedRegion));
+      console.log("Received Investigating Leaks Data ", res.data);
+      
+      if (res.data.leaks) {
+        // Process the data to match frontend format
+        const processedData = res.data.leaks.map(leak => ({
+          id: leak.leak_id,
+          time: formatDateTime(leak.occurred_at),
+          description: `Leakage detected in ${leak.esp_device.district}`,
+          location: leak.location,
+          waterLost: leak.water_lost_litres.toFixed(2),
+          severity: leak.severity,
+          occurredAt: leak.occurred_at,
+          district: leak.esp_device.district,
+          village: leak.esp_device.village
+        }));
+        
+        setInvestigatingLeaks(processedData);
+        setTotalInvestigating(res.data.total_leaks);
+      }
+    } catch (err) {
+      setInvestigatingError(err.message || 'Failed to fetch investigating leaks data');
+      console.log("Failed to fetch investigating leaks data", err.message);
+      // Set mock data as fallback
+      setInvestigatingLeaks(getMockInvestigatingData(selectedRegion));
+      setTotalInvestigating(getMockInvestigatingData(selectedRegion).length);
+    } finally {
+      setInvestigatingLoading(false);
+    }
+  };
+
   // Fetch leakage data (following control page pattern)
   useEffect(() => {
     const fetchLeakageData = async () => {
@@ -372,108 +390,11 @@ const Leakage = () => {
 
   // Fetch recent leakage for the selected province
   useEffect(() => {
-    const fetchRecentLeakageProvince = async () => {
-      try {
-        const res = await getRecentLeakageProvince(getProvinceName(selectedRegion));
-        console.log("Received Recent Leakage Province Data ", res.data);
-        
-        if (res.data.leak) {
-          const leak = res.data.leak;
-          const occurredDate = new Date(leak.occurred_at);
-          const [day, month, year] = occurredDate.toLocaleDateString('en-GB').split('/');
-          const time = occurredDate.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: true 
-          });
-          
-          setMainLeakageData({
-            date: `${day}/${month}/${year}`,
-            time: time,
-            waterLoss: leak.water_lost_litres,
-            location: leak.location,
-            severity: leak.severity === 'HIGH' ? 'High' : leak.severity === 'LOW' ? 'Low' : 'Medium',
-            action: true,
-            status: mapStatus(leak.status)
-          });
-          
-          setSelectedLeakId(leak.leak_id);
-          setStatus(mapStatus(leak.status));
-          setIsLeakResolved(mapStatus(leak.status) === 'Resolved');
-        } else {
-          // No leakage found for this province - reset to default state
-          setMainLeakageData({
-            date: '',
-            time: '',
-            waterLoss: 0,
-            location: '',
-            severity: '',
-            action: false,
-            status: ''
-          });
-          setSelectedLeakId(null);
-          setStatus('Investigating');
-          setIsLeakResolved(false);
-        }
-      } catch (err) {
-        console.log("Failed to fetch recent leakage province data", err.message);
-        // Reset to default state on error
-        setMainLeakageData({
-          date: '',
-          time: '',
-          waterLoss: 0,
-          location: '',
-          severity: '',
-          action: false,
-          status: ''
-        });
-        setSelectedLeakId(null);
-        setStatus('Investigating');
-        setIsLeakResolved(false);
-        // Keep current data or use fallback
-      }
-    };
-    
-    fetchRecentLeakageProvince();
+    loadRecentLeakageData();
   }, [selectedRegion]);
 
   // Fetch investigating leaks data
   useEffect(() => {
-    const fetchInvestigatingLeaks = async () => {
-      try {
-        setInvestigatingLoading(true);
-        setInvestigatingError('');
-        const res = await getInvestigatingLeaks(getProvinceName(selectedRegion));
-        console.log("Received Investigating Leaks Data ", res.data);
-        
-        if (res.data.leaks) {
-          // Process the data to match frontend format
-          const processedData = res.data.leaks.map(leak => ({
-            id: leak.leak_id,
-            time: formatDateTime(leak.occurred_at),
-            description: `Leakage detected in ${leak.esp_device.district}`,
-            location: leak.location,
-            waterLost: leak.water_lost_litres.toFixed(2),
-            severity: leak.severity,
-            occurredAt: leak.occurred_at,
-            district: leak.esp_device.district,
-            village: leak.esp_device.village
-          }));
-          
-          setInvestigatingLeaks(processedData);
-          setTotalInvestigating(res.data.total_leaks);
-        }
-      } catch (err) {
-        setInvestigatingError(err.message || 'Failed to fetch investigating leaks data');
-        console.log("Failed to fetch investigating leaks data", err.message);
-        // Set mock data as fallback
-        setInvestigatingLeaks(getMockInvestigatingData(selectedRegion));
-        setTotalInvestigating(getMockInvestigatingData(selectedRegion).length);
-      } finally {
-        setInvestigatingLoading(false);
-      }
-    };
-    
     fetchInvestigatingLeaks();
   }, [selectedRegion]);
 
@@ -661,7 +582,7 @@ const Leakage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   const region = regions.find(r => r.id === selectedRegion);
-  const currentData = provinceLeakageData[selectedRegion];
+  // Removed hardcoded currentData - now using dynamic data from API
 
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
@@ -854,7 +775,7 @@ const Leakage = () => {
                   <span className="text-lg font-semibold mb-2">Leakage Detection</span>
                   {/* Date and time centered - show structure always */}
                   <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-                    <div className="text-xs font-semibold text-black">{mainLeakageData.date || '--'}</div>
+                    <div className="text-xs font-semibold text-foreground">{mainLeakageData.date || '--'}</div>
                     <div className="text-xs text-gray-400 -mt-1 mb-2">{mainLeakageData.time || '--'}</div>
                   </div>
                   {/* Water loss centered */}
@@ -869,27 +790,27 @@ const Leakage = () => {
                   {/* Divider */}
                   <hr className="border-t border-gray-200 my-2 w-full max-w-xs mx-auto" />
                   {/* Location - show structure always */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                     <span>{mainLeakageData.location || '--'}</span>
                   </div>
                   {/* Severity - show structure always */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <img src={AlertIcon} alt="Severity" className="w-4 h-4" />
                     <span className="font-medium">Severity:</span>
-                    <span className="text-black font-semibold">{mainLeakageData.severity || '--'}</span>
+                    <span className="text-foreground font-semibold">{mainLeakageData.severity || '--'}</span>
                   </div>
                   
                   {/* Action */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                    <CheckCircle size={16} className="text-black" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <CheckCircle size={16} className="text-foreground" />
                     <span className="font-medium">Action:</span>
-                    <span className="text-black">{mainLeakageData.action ? 'Yes' : 'No'}</span>
+                    <span className="text-foreground">{mainLeakageData.action ? 'Yes' : 'No'}</span>
                   </div>
                   
                   {/* Status - show radio buttons when investigating, badge when resolved, placeholder when no data */}
-                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                    <Activity size={16} className="text-black" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Activity size={16} className="text-foreground" />
                     <span className="font-medium">Status</span>
                     {mainLeakageData.status === 'Investigating' && !isLeakResolved ? (
                       <div className="flex items-center gap-4 ml-2">
@@ -899,7 +820,11 @@ const Leakage = () => {
                             name="status" 
                             value="Resolved" 
                             checked={status === 'Resolved'}
-                            onChange={(e) => setStatus(e.target.value)}
+                            onChange={(e) => {
+                              setStatus(e.target.value);
+                              setShowResolvedForm(true);
+                              setEditResolved(false);
+                            }}
                             className="w-3 h-3"
                           />
                           <span className="text-xs">Resolved</span>
@@ -910,7 +835,11 @@ const Leakage = () => {
                             name="status" 
                             value="Investigating" 
                             checked={status === 'Investigating'}
-                            onChange={(e) => setStatus(e.target.value)}
+                            onChange={(e) => {
+                              setStatus(e.target.value);
+                              setShowResolvedForm(false);
+                              setEditResolved(false);
+                            }}
                             className="w-3 h-3"
                           />
                           <span className="text-xs">Investigating</span>
@@ -1075,7 +1004,7 @@ const Leakage = () => {
                         <img 
                           src="/Smarten Assets/assets/No data-cuate.svg" 
                           alt="No leakage detected" 
-                          className="w-48 h-36 object-contain mb-8" 
+                          className="w-48 h-36 object-contain mb-8"
                         />
                       </div>
                     )}
@@ -1158,12 +1087,12 @@ const Leakage = () => {
                   <tbody>
                   {paginatedHistory.map((row, i) => (
                     <tr key={row.id} className="border-t border-gray-100">
-                      <td className="py-2 text-xs text-gray-700">
+                      <td className="py-2 text-xs text-muted-foreground">
                         <div>{row.time.split(' ')[0]}</div>
                         <div className="text-[11px] text-gray-400 leading-tight">{row.time.split(' ').slice(1).join(' ')}</div>
                         </td>
-                      <td className="py-2 text-xs text-gray-700">{row.location}</td>
-                      <td className="py-2 text-xs text-gray-700">{row.waterLost}</td>
+                      <td className="py-2 text-xs text-muted-foreground">{row.location}</td>
+                      <td className="py-2 text-xs text-muted-foreground">{row.waterLost}</td>
                       <td className="py-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'Investigating' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{row.status}</span>
                         </td>
@@ -1176,7 +1105,7 @@ const Leakage = () => {
               {leakageData.length > HISTORY_PAGE_SIZE && (
                 <div className="flex items-center justify-center gap-3 mt-4 select-none">
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage > 1 && setHistoryPage(1)}
                     disabled={historyPage === 1}
                     aria-label="First page"
@@ -1184,7 +1113,7 @@ const Leakage = () => {
                     «
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage > 1 && setHistoryPage(historyPage - 1)}
                     disabled={historyPage === 1}
                     aria-label="Previous page"
@@ -1197,7 +1126,7 @@ const Leakage = () => {
                     return (
                       <button
                         key={pageNum}
-                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:bg-gray-100'}`}
                         onClick={() => setHistoryPage(pageNum)}
                         aria-current={isActive ? 'page' : undefined}
                       >
@@ -1206,7 +1135,7 @@ const Leakage = () => {
                     );
                   })}
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage < totalHistoryPages && setHistoryPage(historyPage + 1)}
                     disabled={historyPage === totalHistoryPages}
                     aria-label="Next page"
@@ -1214,7 +1143,7 @@ const Leakage = () => {
                     ›
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => historyPage < totalHistoryPages && setHistoryPage(totalHistoryPages)}
                     disabled={historyPage === totalHistoryPages}
                     aria-label="Last page"
@@ -1256,12 +1185,15 @@ const Leakage = () => {
                       setEditResolved(false);
                       // Map details to the left card data
                       const [d, t, period] = item.time.split(' ');
-                      currentData.leakageData.date = d;
-                      currentData.leakageData.time = `${t} ${period || ''}`.trim();
-                      currentData.leakageData.waterLoss = Number(item.waterLost);
-                      currentData.leakageData.location = item.location;
-                      currentData.leakageData.severity = item.severity === 'HIGH' ? 'High' : item.severity === 'LOW' ? 'Low' : 'Medium';
-                      currentData.leakageData.status = 'Investigating';
+                      setMainLeakageData({
+                        date: d,
+                        time: `${t} ${period || ''}`.trim(),
+                        waterLoss: Number(item.waterLost),
+                        location: item.location,
+                        severity: item.severity === 'HIGH' ? 'High' : item.severity === 'LOW' ? 'Low' : 'Medium',
+                        action: true,
+                        status: 'Investigating'
+                      });
                     }}>
                       <div className="flex flex-col items-center mr-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500"></div>
@@ -1287,7 +1219,7 @@ const Leakage = () => {
               {investigatingLeaks.length > INVESTIGATED_PAGE_SIZE && (
                 <div className="flex items-center justify-center gap-3 mt-4 select-none">
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage > 1 && setInvestigatedPage(1)}
                     disabled={investigatedPage === 1}
                     aria-label="First page"
@@ -1295,7 +1227,7 @@ const Leakage = () => {
                     «
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage > 1 && setInvestigatedPage(investigatedPage - 1)}
                     disabled={investigatedPage === 1}
                     aria-label="Previous page"
@@ -1308,7 +1240,7 @@ const Leakage = () => {
                     return (
                       <button
                         key={pageNum}
-                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                        className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:bg-gray-100'}`}
                         onClick={() => setInvestigatedPage(pageNum)}
                         aria-current={isActive ? 'page' : undefined}
                       >
@@ -1317,7 +1249,7 @@ const Leakage = () => {
                     );
                   })}
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage < totalInvestigatedPages && setInvestigatedPage(investigatedPage + 1)}
                     disabled={investigatedPage === totalInvestigatedPages}
                     aria-label="Next page"
@@ -1325,7 +1257,7 @@ const Leakage = () => {
                     ›
                   </button>
                   <button
-                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 hover:text-black'}`}
+                    className={`px-2 py-1 text-sm ${investigatedPage === totalInvestigatedPages ? 'text-gray-300 cursor-not-allowed' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={() => investigatedPage < totalInvestigatedPages && setInvestigatedPage(totalInvestigatedPages)}
                     disabled={investigatedPage === totalInvestigatedPages}
                     aria-label="Last page"
@@ -1355,110 +1287,19 @@ const Leakage = () => {
       </div>
 
       {/* Resolve Popup Modal */}
-      {showResolvePopup && selectedLeakForResolve && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Resolve Leakage</h3>
-              <button
-                onClick={() => setShowResolvePopup(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Leakage Details */}
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600">Time:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.time}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Location:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.location}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Water Lost:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.waterLost}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Severity:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.severity}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Resolve Form */}
-            <form onSubmit={handleResolvedFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Resolved Date
-                </label>
-                <input
-                  type="date"
-                  value={resolvedForm.date}
-                  onChange={(e) => setResolvedForm({...resolvedForm, date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {resolvedErrors.date && <p className="text-red-500 text-xs mt-1">{resolvedErrors.date}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Plumber Name
-                </label>
-                <input
-                  type="text"
-                  value={resolvedForm.plumber}
-                  onChange={(e) => setResolvedForm({...resolvedForm, plumber: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter plumber name"
-                  required
-                />
-                {resolvedErrors.plumber && <p className="text-red-500 text-xs mt-1">{resolvedErrors.plumber}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Resolved Note
-                </label>
-                <textarea
-                  value={resolvedForm.note}
-                  onChange={(e) => setResolvedForm({...resolvedForm, note: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Enter resolution details"
-                  required
-                />
-                {resolvedErrors.note && <p className="text-red-500 text-xs mt-1">{resolvedErrors.note}</p>}
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowResolvePopup(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {loading ? 'Resolving...' : 'Resolve Leakage'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Leakage Resolution Modal */}
+      <LeakageResolutionModal
+        isOpen={showResolvePopup}
+        onClose={() => setShowResolvePopup(false)}
+        leakageData={selectedLeakForResolve}
+        onResolved={() => {
+          // Refresh the investigating leaks data
+          fetchInvestigatingLeaks();
+          // Reset form
+          setResolvedForm({ date: '', plumber: '', note: '' });
+          setResolvedErrors({ date: '', plumber: '', note: '' });
+        }}
+      />
 
       {/* Notification Display */}
       {notificationCache.size > 0 && (
@@ -1466,8 +1307,7 @@ const Leakage = () => {
           {Array.from(notificationCache.values()).map((notification) => (
             <div
               key={notification.id}
-              className="bg-red-500 text-white p-4 rounded-lg shadow-lg cursor-pointer hover:bg-red-600 transition-colors max-w-sm"
-              onClick={() => handleNotificationClick(notification.id)}
+              className="bg-red-500 text-white p-4 rounded-lg shadow-lg max-w-sm"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -1480,8 +1320,8 @@ const Leakage = () => {
                     <p className="font-bold text-sm">Leakage Detected</p>
                   </div>
                   <p className="text-sm opacity-90 mb-1">{notification.message}</p>
-                  {notification.flow_rate && (
-                    <p className="text-xs opacity-75 mb-1">Flow Rate: {notification.flow_rate}. Immediate attention required.</p>
+                  {notification.water_lost && (
+                    <p className="text-xs opacity-75 mb-1">Water Lost: {notification.water_lost}L • Severity: {notification.severity}</p>
                   )}
                   <p className="text-xs opacity-75">
                     {notification.location} • {new Date(notification.timestamp).toLocaleString()}
@@ -1499,213 +1339,6 @@ const Leakage = () => {
       )}
 
 
-      {/* Leakage Detail Popup */}
-      {showLeakageDetailPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Leakage Details</h2>
-                <button
-                  onClick={closeLeakageDetailPopup}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {loadingLeakageDetail ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  <span className="ml-2 text-gray-600">Loading details...</span>
-                </div>
-              ) : leakageDetailData ? (
-                <div>
-                  {/* Debug Info */}
-                  <div className="bg-yellow-100 p-2 mb-4 rounded text-xs">
-                    <strong>DEBUG:</strong> Data received: {JSON.stringify(leakageDetailData, null, 2)}
-                  </div>
-                  <div className="space-y-6">
-                  {/* Header with Warning Icon */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Leakage Detected</h2>
-                  </div>
-
-                  {/* Readings Section */}
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                    <h3 className="font-semibold text-gray-700 mb-2">Readings</h3>
-                    <div className="text-center">
-                      <p className="text-4xl font-bold text-red-600">{leakageDetailData.water_lost_litres}</p>
-                      <p className="text-sm text-gray-600">cm³ water lost</p>
-                    </div>
-                  </div>
-
-                  {/* Location Section */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <h3 className="font-semibold text-gray-700">Location</h3>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-bold text-white">
-                          {leakageDetailData.esp_device?.province?.charAt(0) || 'N'}
-                        </span>
-                      </div>
-                      <p className="text-lg text-gray-900">
-                        {leakageDetailData.esp_device?.province} &gt; {leakageDetailData.esp_device?.district} &gt; {leakageDetailData.esp_device?.village}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Take Action Section */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h3 className="font-semibold text-gray-700">Take Action</h3>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
-                        <span className="text-sm text-gray-600">OFF</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Status Section with Radio Buttons */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h3 className="font-semibold text-gray-700">Status</h3>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <label className="flex items-center gap-2">
-                        <input 
-                          type="radio" 
-                          name="popup-status" 
-                          value="Resolved" 
-                          checked={leakageDetailData.status === 'RESOLVED'}
-                          readOnly
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm text-gray-700">Resolved</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input 
-                          type="radio" 
-                          name="popup-status" 
-                          value="Investigating" 
-                          checked={leakageDetailData.status === 'INVESTIGATING'}
-                          readOnly
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm text-gray-700">Investigating</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Additional Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 mb-2">Leak ID</h3>
-                      <p className="text-lg font-bold text-blue-600">#{leakageDetailData.leak_id}</p>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 mb-2">Severity</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        leakageDetailData.severity === 'HIGH' 
-                          ? 'bg-red-100 text-red-700' 
-                          : leakageDetailData.severity === 'MEDIUM'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-green-100 text-green-700'
-                      }`}>
-                        {leakageDetailData.severity}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Date and Time */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-gray-700 mb-2">Occurred At</h3>
-                    <p className="text-lg text-gray-900">
-                      {new Date(leakageDetailData.occurred_at).toLocaleString()}
-                    </p>
-                  </div>
-
-                  {/* Device Information */}
-                  {leakageDetailData.esp_device && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 mb-3">Device Information</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">MAC Address</p>
-                          <p className="font-mono text-sm text-gray-900">{leakageDetailData.esp_device.mac_address}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Village</p>
-                          <p className="text-gray-900">{leakageDetailData.esp_device.village}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Cell</p>
-                          <p className="text-gray-900">{leakageDetailData.esp_device.cell}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Sector</p>
-                          <p className="text-gray-900">{leakageDetailData.esp_device.sector}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">District</p>
-                          <p className="text-gray-900">{leakageDetailData.esp_device.district}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Province</p>
-                          <p className="text-gray-900">{leakageDetailData.esp_device.province}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Coordinates */}
-                  {leakageDetailData.esp_device && (leakageDetailData.esp_device.Longitude || leakageDetailData.esp_device.Latitude) && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold text-gray-700 mb-3">Coordinates</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Longitude</p>
-                          <p className="font-mono text-lg text-gray-900">{leakageDetailData.esp_device.Longitude}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Latitude</p>
-                          <p className="font-mono text-lg text-gray-900">{leakageDetailData.esp_device.Latitude}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No data available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </MainLayout>
   );
 };

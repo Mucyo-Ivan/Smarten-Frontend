@@ -33,7 +33,7 @@ const UserDetail = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 bg-gray-50 min-h-screen space-y-6">
+      <div className="p-6 bg-background min-h-screen space-y-6 dark-mode-transition">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link to="/users">
@@ -46,42 +46,42 @@ const UserDetail = () => {
             <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">N</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">North</h1>
+            <h1 className="text-2xl font-bold text-foreground">North</h1>
           </div>
         </div>
 
         {/* User Info Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold">1.Rulindo</h2>
+            <h2 className="text-xl font-semibold text-foreground">1.Rulindo</h2>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-gray-500" />
-                <span className="font-medium">{user.totalUsers.toLocaleString()}</span>
-                <span className="text-gray-500">Users</span>
+                <User className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">{user.totalUsers.toLocaleString()}</span>
+                <span className="text-muted-foreground">Users</span>
               </div>
               <div className="flex items-center gap-2">
-                <Droplets className="w-5 h-5 text-gray-500" />
-                <span className="font-medium">{user.totalLiters.toLocaleString()}</span>
-                <span className="text-gray-500">liters</span>
+                <Droplets className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">{user.totalLiters.toLocaleString()}</span>
+                <span className="text-muted-foreground">liters</span>
               </div>
             </div>
           </div>
-          <div className="text-gray-500">
+          <div className="text-muted-foreground">
             {user.esp32Count} esp32
           </div>
         </div>
 
         {/* Base Section */}
-        <div className="bg-white rounded-lg p-6">
+        <div className="bg-card rounded-lg p-6 dark-mode-transition">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold">Base</h3>
+            <h3 className="text-lg font-semibold text-foreground">Base</h3>
             <div className="w-full max-w-xs">
-              <div className="flex justify-between text-sm text-gray-500 mb-1">
+              <div className="flex justify-between text-sm text-muted-foreground mb-1">
                 <span>Progress</span>
                 <span>{user.esp32Count} esp32</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-muted rounded-full h-2">
                 <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '75%' }}></div>
               </div>
             </div>
@@ -102,34 +102,34 @@ const UserDetail = () => {
                 />
               </div>
 
-              <h4 className="text-xl font-semibold mb-4">{user.name}</h4>
+              <h4 className="text-xl font-semibold mb-4 text-foreground">{user.name}</h4>
 
               {/* Consumption Data */}
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h5 className="font-semibold mb-3">Consumed Water</h5>
+                  <h5 className="font-semibold mb-3 text-foreground">Consumed Water</h5>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Daily</span>
-                      <span className="font-medium">{user.dailyConsumption} litres</span>
+                      <span className="text-muted-foreground">Daily</span>
+                      <span className="font-medium text-foreground">{user.dailyConsumption} litres</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Monthly</span>
-                      <span className="font-medium">{user.monthlyConsumption} litres</span>
+                      <span className="text-muted-foreground">Monthly</span>
+                      <span className="font-medium text-foreground">{user.monthlyConsumption} litres</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h5 className="font-semibold mb-3">Leakage</h5>
+                  <h5 className="font-semibold mb-3 text-foreground">Leakage</h5>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{user.leakageDates.daily}</span>
-                      <span className="font-medium">{user.leakageDaily} litres</span>
+                      <span className="text-muted-foreground">{user.leakageDates.daily}</span>
+                      <span className="font-medium text-foreground">{user.leakageDaily} litres</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{user.leakageDates.monthly}</span>
-                      <span className="font-medium">{user.leakageMonthly} litres</span>
+                      <span className="text-muted-foreground">{user.leakageDates.monthly}</span>
+                      <span className="font-medium text-foreground">{user.leakageMonthly} litres</span>
                     </div>
                   </div>
                 </div>
@@ -137,8 +137,8 @@ const UserDetail = () => {
 
               {/* Location */}
               <div>
-                <h5 className="font-semibold mb-3">Location</h5>
-                <div className="flex items-center justify-center gap-2 text-sm">
+                <h5 className="font-semibold mb-3 text-foreground">Location</h5>
+                <div className="flex items-center justify-center gap-2 text-sm text-foreground">
                   <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">N</span>
                   </div>
@@ -160,34 +160,34 @@ const UserDetail = () => {
         {/* Table continues below */}
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-hidden rounded-lg border border-gray-200">
+            <div className="overflow-hidden rounded-lg border border-border dark-mode-transition">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-muted">
                   <tr>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">N°</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Names</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Location</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">Consumed</th>
-                    <th className="text-left text-sm font-medium text-gray-500 px-4 py-3">More</th>
+                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">N°</th>
+                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">Names</th>
+                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">Location</th>
+                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">Consumed</th>
+                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">More</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-border dark-mode-transition">
                   {Array.from({ length: 10 }, (_, i) => (
-                    <tr key={i + 2} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">{i + 2}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                    <tr key={i + 2} className="hover:bg-accent dark-mode-transition">
+                      <td className="px-4 py-3 text-sm text-foreground">{i + 2}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-foreground">
                         {['Mugisha Patrick', 'Kaliza Joannah', 'Cyubahiro Yvan', 'Umwari Vanessa', 'Kimenyi Yves', 'Uwase Honorine', 'Muvunyi Guillain', 'Keza Louange', 'Bigwi Aloys'][i] || `User ${i + 2}`}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
+                      <td className="px-4 py-3 text-sm text-foreground">
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <MapPin className="w-4 h-4 text-muted-foreground" />
                           <span>Cyahoha</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
+                      <td className="px-4 py-3 text-sm text-foreground">
                         <div>
                           <div className="font-medium">20k</div>
-                          <div className="text-xs text-gray-500">litres/month</div>
+                          <div className="text-xs text-muted-foreground">litres/month</div>
                         </div>
                       </td>
                       <td className="px-4 py-3">

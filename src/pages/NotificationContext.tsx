@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useLeakAlerts } from '@/hooks/useLeakAlerts';
 import { useToast } from '@/hooks/use-toast';
 
@@ -10,6 +10,12 @@ interface Notification {
   time: string;
   read: boolean;
   location: string;
+  // Additional fields for leakage detail modal
+  leakage_id?: number;
+  water_lost?: number;
+  severity?: string;
+  status?: string;
+  timestamp?: string; // For modal compatibility
 }
 
 interface NotificationContextType {
@@ -18,6 +24,14 @@ interface NotificationContextType {
   markAsRead: (id: number) => void;
   removeNotification: (id: number) => void;
   markAllAsRead: () => void;
+  getLeakageData: (leakageId: number) => any;
+  setLeakageData: (leakageId: number, data: any) => void;
+  // Toast modal functionality
+  selectedToastNotification: Notification | null;
+  openToastModal: (notification: Notification) => void;
+  closeToastModal: () => void;
+  // Session cleanup functionality
+  cleanupReadNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -25,89 +39,120 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const alerts = useLeakAlerts();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    // Initial static notifications
-    {
-      id: 1,
-      type: 'alert',
-      title: 'Leakage Detected',
-      message: 'Water leakage detected at Nyarugenge district. Immediate attention required.',
-      time: '5 minutes ago',
-      read: false,
-      location: 'Kigali, Nyarugenge',
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'High Water Pressure',
-      message: 'Water pressure at Kicukiro has exceeded normal levels.',
-      time: '15 minutes ago',
-      read: false,
-      location: 'Kigali, Kicukiro',
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'System Maintenance Complete',
-      message: 'Scheduled maintenance for Gasabo water system has been completed successfully.',
-      time: '1 hour ago',
-      read: true,
-      location: 'Kigali, Gasabo',
-    },
-    {
-      id: 4,
-      type: 'success',
-      title: 'Leak Resolved',
-      message: 'The water leak at Musanze has been successfully repaired.',
-      time: '2 hours ago',
-      read: true,
-      location: 'North, Musanze',
-    },
-    {
-      id: 5,
-      type: 'alert',
-      title: 'Device Offline',
-      message: 'ESP32 device at Huye district is not responding.',
-      time: '3 hours ago',
-      read: false,
-      location: 'South, Huye',
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  // Track processed alerts to prevent re-processing on re-renders or stale array references
+  const processedAlertKeysRef = useRef<Set<string>>(new Set());
+  // Map to store leakage data by leakage_id for quick retrieval
+  const [leakageDataMap, setLeakageDataMap] = useState<Map<number, any>>(new Map());
+  // Toast modal state
+  const [selectedToastNotification, setSelectedToastNotification] = useState<Notification | null>(null);
+  const STORAGE_KEY = 'smarten.notifications.v1';
 
+  // Hydrate notifications from localStorage on first mount
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved: Notification[] = JSON.parse(raw);
+        if (Array.isArray(saved)) {
+          // Only load unread notifications (read notifications are session-only)
+          const unreadNotifications = saved.filter(notification => !notification.read);
+          setNotifications(unreadNotifications);
+        }
+      }
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }, []);
+
+  // Persist only unread notifications to localStorage
+  useEffect(() => {
+    try {
+      // Only save unread notifications to localStorage
+      const unreadNotifications = notifications.filter(notification => !notification.read);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(unreadNotifications));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }, [notifications]);
+
+  // Process real-time notifications from WebSocket alerts
+  useEffect(() => {
+    if (!Array.isArray(alerts) || alerts.length === 0) {
+      return;
+    }
+
     alerts.forEach((alert) => {
+      // Build a unique key per alert occurrence (id + timestamp)
+      const alertTimestampRaw = (alert as any)?.timestamp;
+      const alertIdRaw = (alert as any)?.leak_id;
+      const uniqueKey = `${alertIdRaw ?? 'unknown'}-${alertTimestampRaw ?? 'no-ts'}`;
+
+      // Skip if already processed
+      if (processedAlertKeysRef.current.has(uniqueKey)) {
+        return;
+      }
+
       if (alert.status === 'potential_leak') {
-        const newNotification: Notification = {
-          id: alert.leak_id,
-          type: alert.severity === 'HIGH' ? 'alert' : 'warning',
-          title: 'Leakage Detected',
-          message: `Water leakage detected at ${alert.village}, ${alert.district}. Flow Rate: ${alert.flow_rate_lph} L/h. Immediate attention required.`,
-          time: alert.timestamp,
-          read: false,
-          location: `${alert.village}, ${alert.district}, ${alert.province}, ${alert.country}`,
-        };
+        // Validate timestamp to prevent "Invalid Date" issues; fallback to now if invalid
+        const rawTs = alert.timestamp;
+        const isValidTimestamp = rawTs && !isNaN(new Date(rawTs).getTime());
+        const timestamp = isValidTimestamp ? rawTs : new Date().toISOString();
+
+         const newNotification: Notification = {
+           id: alert.leak_id,
+           type: alert.severity === 'HIGH' ? 'alert' : 'warning',
+           title: 'Leakage Detected',
+           message: `Water leakage detected at ${alert.village}, ${alert.district}. Flow Rate: ${alert.flow_rate_lph} L/h. Immediate attention required.`,
+           time: timestamp,
+           read: false,
+           location: `${alert.village}, ${alert.district}, ${alert.province}, ${alert.country}`,
+           // Additional leakage data for modal - store the leak_id for API calls
+           leakage_id: alert.leak_id, // This is the ID we'll send to the API
+           water_lost: alert.flow_rate_lph || 0,
+           severity: alert.severity,
+           status: 'INVESTIGATING', // Default status
+           // Add timestamp field for modal compatibility
+           timestamp: timestamp,
+         };
+
+        // Debug: Log the alert data and created notification
+        console.log('=== WEBSOCKET ALERT DEBUG ===');
+        console.log('WebSocket alert received:', alert);
+        console.log('Alert leak_id:', alert.leak_id);
+        console.log('Alert flow_rate_lph:', alert.flow_rate_lph);
+        console.log('Alert village:', alert.village);
+        console.log('Alert district:', alert.district);
+        console.log('Alert province:', alert.province);
+        console.log('Alert country:', alert.country);
+        console.log('Alert timestamp:', alert.timestamp);
+        console.log('Created notification:', newNotification);
+        console.log('Created notification with leakage_id:', newNotification.leakage_id);
+        console.log('Created notification water_lost:', newNotification.water_lost);
+        console.log('Created notification location:', newNotification.location);
+        console.log('=== END WEBSOCKET DEBUG ===');
 
         setNotifications((prev) => {
-          if (prev.some((n) => n.id === newNotification.id)) {
-            return prev; // Prevent duplicates
+          // If an item with same id and exact time exists, skip; otherwise append
+          if (prev.some((n) => n.id === newNotification.id && n.time === newNotification.time)) {
+            return prev;
           }
 
           // Show toast notification only for leak alerts
           toast({
             title: newNotification.title,
-            description: (
-              <div>
-                <p>{newNotification.message}</p>
-                <p className="text-xs font-bold text-white-500 mt-1">{newNotification.location} • {newNotification.time}</p>
-              </div>
-            ),
+            description: `${newNotification.message}\n${newNotification.location} • ${new Date(timestamp).toLocaleString()}`,
             variant: alert.severity === 'HIGH' ? 'destructive' : 'default',
-            duration: 6000,
-            className: `border-l-4 ${alert.severity === 'HIGH' ? 'border-red-500' : 'border-yellow-500'}`,
+            duration: 8000, // Longer duration to allow clicking
+            className: `border-l-4 ${alert.severity === 'HIGH' ? 'border-red-500' : 'border-yellow-500'} cursor-pointer hover:opacity-90 transition-opacity`,
+            onClick: () => openToastModal(newNotification), // Make entire toast clickable
           });
 
           return [...prev, newNotification];
         });
+
+        // Mark this alert as processed after enqueueing
+        processedAlertKeysRef.current.add(uniqueKey);
       }
     });
   }, [alerts, toast]);
@@ -128,9 +173,72 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  // Map functions for leakage data
+  const getLeakageData = (leakageId: number) => {
+    return leakageDataMap.get(leakageId);
+  };
+
+  const setLeakageData = (leakageId: number, data: any) => {
+    setLeakageDataMap(prev => {
+      const newMap = new Map(prev);
+      newMap.set(leakageId, data);
+      return newMap;
+    });
+  };
+
+  // Toast modal functions
+  const openToastModal = (notification: Notification) => {
+    setSelectedToastNotification(notification);
+  };
+
+  const closeToastModal = () => {
+    setSelectedToastNotification(null);
+  };
+
+  // Function to manually clean up read notifications
+  const cleanupReadNotifications = () => {
+    setNotifications(prev => {
+      const unreadNotifications = prev.filter(notification => !notification.read);
+      return unreadNotifications;
+    });
+  };
+
+  // Clean up read notifications on page unload (session end)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Remove read notifications from localStorage when session ends
+      try {
+        const unreadNotifications = notifications.filter(notification => !notification.read);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(unreadNotifications));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    };
+
+    // Add event listener for page unload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [notifications]);
+
   return (
     <NotificationContext.Provider
-      value={{ notifications, unreadCount, markAsRead, removeNotification, markAllAsRead }}
+      value={{ 
+        notifications, 
+        unreadCount, 
+        markAsRead, 
+        removeNotification, 
+        markAllAsRead,
+        getLeakageData,
+        setLeakageData,
+        selectedToastNotification,
+        openToastModal,
+        closeToastModal,
+        cleanupReadNotifications
+      }}
     >
       {children}
     </NotificationContext.Provider>

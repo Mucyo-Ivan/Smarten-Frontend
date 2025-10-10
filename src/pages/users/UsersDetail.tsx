@@ -197,7 +197,7 @@ const UsersDetail = () => {
 
   return (
     <MainLayout>
-      <div className="w-full min-h-screen bg-[#FAFAFB] px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
+      <div className="w-full min-h-screen bg-background px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 dark-mode-transition">
         {/* Region and District Selectors with Stats */}
         <div className="flex items-center justify-between mt-6 ml-6 mr-6">
           {/* Left side - Dropdowns */}
@@ -205,29 +205,29 @@ const UsersDetail = () => {
             {/* Province Dropdown */}
             <div className="relative" ref={regionDropdownRef}>
               <button
-                className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm text-sm font-semibold focus:outline-none transition hover:shadow-md active:scale-95"
+                className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-border shadow-sm text-sm font-semibold focus:outline-none transition hover:shadow-md active:scale-95 dark-mode-transition"
                 onClick={() => setRegionDropdownOpen(!regionDropdownOpen)}
                 style={{ minWidth: 100 }}
               >
                 <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: currentProvince.color }}>
                   <img src={currentProvince.icon} alt={currentProvince.name} className="w-4 h-4" />
                 </div>
-                <span style={{ color: '#1E1E1E' }}>{currentProvince.name}</span>
+                <span className="text-foreground">{currentProvince.name}</span>
                 <ChevronDown className="w-3 h-3 text-gray-500" />
               </button>
               
               {regionDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="absolute top-full left-0 mt-2 w-40 bg-card rounded-lg shadow-lg border border-border z-50 dark-mode-transition">
                   {provinces.map((province) => (
                     <button
                       key={province.id}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-accent transition-colors dark-mode-transition"
                       onClick={() => handleRegionChange(province.id)}
                     >
                       <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: province.color }}>
                         <img src={province.icon} alt={province.name} className="w-3 h-3" />
                       </div>
-                      <span className="text-[#1E1E1E] font-medium text-sm">{province.name}</span>
+                      <span className="text-foreground font-medium text-sm">{province.name}</span>
                     </button>
                   ))}
                 </div>
@@ -237,25 +237,25 @@ const UsersDetail = () => {
             {/* District Dropdown */}
             <div className="relative" ref={districtDropdownRef}>
               <button
-                className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm text-sm font-semibold focus:outline-none transition hover:shadow-md active:scale-95"
+                className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-border shadow-sm text-sm font-semibold focus:outline-none transition hover:shadow-md active:scale-95 dark-mode-transition"
                 onClick={() => setDistrictDropdownOpen(!districtDropdownOpen)}
                 style={{ minWidth: 100 }}
               >
-                <span className="text-[#1E1E1E] text-sm font-semibold">
+                <span className="text-foreground text-sm font-semibold">
                   {districtNames[selectedDistrict]}
                 </span>
                 <ChevronDown className="w-3 h-3 text-gray-500" />
               </button>
               
               {districtDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="absolute top-full left-0 mt-2 w-40 bg-card rounded-lg shadow-lg border border-border z-50 dark-mode-transition">
                   {currentProvince.districts.map((districtId, index) => (
                     <button
                       key={districtId}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-accent transition-colors dark-mode-transition"
                       onClick={() => handleDistrictChange(districtId)}
                     >
-                      <span className="text-[#1E1E1E] font-medium text-sm">
+                      <span className="text-foreground font-medium text-sm">
                         {districtNames[districtId]}
                       </span>
                     </button>
@@ -270,22 +270,22 @@ const UsersDetail = () => {
             {/* Users Count */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center">
-                <img src={UsersIcon} alt="Users" className="w-8 h-8" />
+                <img src={UsersIcon} alt="Users" className="w-8 h-8 dark:invert dark:brightness-0 dark:contrast-100" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[#1E1E1E] text-2xl font-medium">{currentData.users.toLocaleString()}</span>
-                <span className="text-[#92929D] text-sm font-medium">Users</span>
+                <span className="text-foreground text-2xl font-medium">{currentData.users.toLocaleString()}</span>
+                <span className="text-muted-foreground text-sm font-medium">Users</span>
               </div>
             </div>
 
             {/* Total Consumption */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center">
-                <img src={WaterIcon} alt="Water" className="w-8 h-8" />
+                <img src={WaterIcon} alt="Water" className="w-8 h-8 dark:invert dark:brightness-0 dark:contrast-100" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[#1E1E1E] text-2xl font-medium">{currentData.consumption.toLocaleString()}</span>
-                <span className="text-[#92929D] text-sm font-medium">liters</span>
+                <span className="text-foreground text-2xl font-medium">{currentData.consumption.toLocaleString()}</span>
+                <span className="text-muted-foreground text-sm font-medium">liters</span>
               </div>
             </div>
           </div>
@@ -293,12 +293,12 @@ const UsersDetail = () => {
 
         {/* Main Content Card - Wider */}
         <div className="mt-8 mx-6">
-          <div className="bg-white rounded-lg shadow-sm p-8 max-w-7xl">
+          <div className="bg-card rounded-lg shadow-sm p-8 max-w-7xl dark-mode-transition">
             {/* Header with Base and Device Info */}
             <div className="flex items-center mb-8">
               <div className="relative" ref={baseDropdownRef}>
                 <button
-                  className="flex items-center gap-2 text-black text-lg font-semibold hover:text-gray-700 transition-colors"
+                  className="flex items-center gap-2 text-foreground text-lg font-semibold hover:text-muted-foreground transition-colors dark-mode-transition"
                   onClick={() => setBaseDropdownOpen(!baseDropdownOpen)}
                 >
                   {selectedBase}
@@ -306,15 +306,15 @@ const UsersDetail = () => {
                 </button>
                 
                 {baseDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="absolute top-full left-0 mt-2 w-32 bg-card rounded-lg shadow-lg border border-border z-50 dark-mode-transition">
                     <button
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-accent transition-colors dark-mode-transition"
                       onClick={() => { setSelectedBase('Base'); setBaseDropdownOpen(false); }}
                     >
                       Base
                     </button>
                     <button
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-accent transition-colors dark-mode-transition"
                       onClick={() => { setSelectedBase('Advanced'); setBaseDropdownOpen(false); }}
                     >
                       Advanced
@@ -324,39 +324,39 @@ const UsersDetail = () => {
               </div>
               
               {/* Horizontal Line */}
-              <div className="flex-1 h-px bg-gray-300 mx-4 relative">
+              <div className="flex-1 h-px bg-border mx-4 relative">
                 {/* Diamond shape at the end */}
-                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-300 rotate-45"></div>
+                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-border rotate-45"></div>
               </div>
               
               <div className="flex items-center gap-2">
-                <span className="text-black text-lg font-semibold">{currentData.deviceCount} esp32</span>
+                <span className="text-foreground text-lg font-semibold">{currentData.deviceCount} esp32</span>
               </div>
             </div>
 
             {/* Users Table - Better Spacing */}
             <div className="w-full">
               {/* Table Header */}
-              <div className="w-full h-10 bg-white shadow-sm rounded-md mb-2 flex items-center px-8">
-                <div className="w-16 text-[#1E1E1E] text-base font-medium">N°</div>
-                <div className="w-64 ml-12 text-[#1E1E1E] text-base font-medium">Names</div>
-                <div className="w-40 ml-16 text-[#1E1E1E] text-base font-medium">Location</div>
-                <div className="w-40 ml-16 text-[#1E1E1E] text-base font-semibold text-center">Consumed</div>
-                <div className="w-32 ml-16 text-[#1E1E1E] text-base font-medium">More</div>
+              <div className="w-full h-10 bg-card shadow-sm rounded-md mb-2 flex items-center px-8 dark-mode-transition">
+                <div className="w-16 text-foreground text-base font-medium">N°</div>
+                <div className="w-64 ml-12 text-foreground text-base font-medium">Names</div>
+                <div className="w-40 ml-16 text-foreground text-base font-medium">Location</div>
+                <div className="w-40 ml-16 text-foreground text-base font-semibold text-center">Consumed</div>
+                <div className="w-32 ml-16 text-foreground text-base font-medium">More</div>
               </div>
 
               {/* Table Rows */}
               {users.map((user, index) => (
-                <div key={user.id} className="w-full h-10 bg-[#FAFAFB] rounded-md mb-2 flex items-center px-8">
-                  <div className="w-16 text-[#1E1E1E] text-base font-medium">{user.id}</div>
-                  <div className="w-64 ml-12 text-[#1E1E1E] text-base font-medium">{user.name}</div>
+                <div key={user.id} className="w-full h-10 bg-muted rounded-md mb-2 flex items-center px-8 dark-mode-transition">
+                  <div className="w-16 text-foreground text-base font-medium">{user.id}</div>
+                  <div className="w-64 ml-12 text-foreground text-base font-medium">{user.name}</div>
                   <div className="w-40 ml-16 flex items-center gap-1">
-                    <MapPin className="w-4 h-4 text-black" />
-                    <span className="text-[#1E1E1E] text-base font-medium">{user.location}</span>
+                    <MapPin className="w-4 h-4 text-foreground" />
+                    <span className="text-foreground text-base font-medium">{user.location}</span>
                   </div>
                   <div className="w-40 ml-16 flex flex-col items-center justify-center">
-                    <span className="text-[#1E1E1E] text-sm font-semibold">{user.consumed}</span>
-                    <span className="text-[#92929D] text-xs font-semibold">{user.unit}</span>
+                    <span className="text-foreground text-sm font-semibold">{user.consumed}</span>
+                    <span className="text-muted-foreground text-xs font-semibold">{user.unit}</span>
                   </div>
                   <div className="w-32 ml-16">
                     <Button 
@@ -394,7 +394,7 @@ const UsersDetail = () => {
                 variant={currentPage === 1 ? "default" : "ghost"}
                 size="sm" 
                 onClick={() => handlePageChange(1)}
-                className={`w-6 h-6 p-0 ${currentPage === 1 ? 'bg-[#0E9CFF] text-white' : 'text-[#1E1E1E]'}`}
+                className={`w-6 h-6 p-0 ${currentPage === 1 ? 'bg-[#0E9CFF] text-white' : 'text-foreground'}`}
               >
                 1
               </Button>
@@ -402,7 +402,7 @@ const UsersDetail = () => {
                 variant={currentPage === 2 ? "default" : "ghost"}
                 size="sm" 
                 onClick={() => handlePageChange(2)}
-                className={`w-6 h-6 p-0 ${currentPage === 2 ? 'bg-[#0E9CFF] text-white' : 'text-[#1E1E1E]'}`}
+                className={`w-6 h-6 p-0 ${currentPage === 2 ? 'bg-[#0E9CFF] text-white' : 'text-foreground'}`}
               >
                 2
               </Button>
@@ -410,7 +410,7 @@ const UsersDetail = () => {
                 variant={currentPage === 3 ? "default" : "ghost"}
                 size="sm" 
                 onClick={() => handlePageChange(3)}
-                className={`w-6 h-6 p-0 ${currentPage === 3 ? 'bg-[#0E9CFF] text-white' : 'text-[#1E1E1E]'}`}
+                className={`w-6 h-6 p-0 ${currentPage === 3 ? 'bg-[#0E9CFF] text-white' : 'text-foreground'}`}
               >
                 3
               </Button>

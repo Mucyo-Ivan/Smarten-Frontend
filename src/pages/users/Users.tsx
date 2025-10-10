@@ -101,19 +101,19 @@ const Users = () => {
 
   return (
     <MainLayout title="User Management">
-      <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32">
+      <div className="w-full min-h-screen bg-background px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-32 dark-mode-transition">
         {/* Top region cards */}
         <div className="flex gap-8 px-8 pt-8"> {/* Increased gap from 4 to 8 */}
           {regions.map(region => (
-            <div key={region.id} className="flex-1 bg-white rounded-2xl shadow flex flex-col items-center py-4 px-2 min-w-[120px] max-w-[180px]">
+            <div key={region.id} className="flex-1 bg-card rounded-2xl shadow flex flex-col items-center py-4 px-2 min-w-[120px] max-w-[180px] dark-mode-transition">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: `${regionAssets[region.id].color}33` }}>
                   <img src={regionAssets[region.id].icon} alt={region.name} className="w-5 h-5" />
                 </span>
                 <span className={`font-semibold ${regionAssets[region.id].text}`}>{region.name}</span>
           </div>
-              <div className="text-2xl font-bold text-black mb-1">{region.users.replace('k', 'k')}</div>
-              <div className="text-xs text-gray-400 mb-2">Users</div>
+              <div className="text-2xl font-bold text-foreground mb-1">{region.users.replace('k', 'k')}</div>
+              <div className="text-xs text-foreground mb-2">Users</div>
               <Link to={`/users/detail/${region.id}`}>
                 <button className={`rounded-full px-4 py-1 text-xs font-semibold text-white ${regionAssets[region.id].btn} transition`}>View users</button>
               </Link>
@@ -121,20 +121,20 @@ const Users = () => {
           ))}
         </div>
         {/* Consumed water chart */}
-        <div className="bg-white rounded-2xl shadow mt-8 mx-8 px-8 py-6">
+        <div className="bg-card rounded-2xl shadow mt-8 mx-8 px-8 py-6 dark-mode-transition">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-lg font-semibold">Consumed water</span>
+            <span className="text-lg font-semibold text-foreground">Consumed water</span>
             <div className="flex gap-2">
               <button
-                className={`w-8 h-8 rounded-full font-bold shadow-sm transition-colors ${viewMode === 'day' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`w-8 h-8 rounded-full font-bold shadow-sm transition-colors ${viewMode === 'day' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'}`}
                 onClick={() => setViewMode('day')}
               >D</button>
               <button
-                className={`w-8 h-8 rounded-full font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`w-8 h-8 rounded-full font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'}`}
                 onClick={() => setViewMode('month')}
               >M</button>
               <button
-                className={`w-8 h-8 rounded-full font-bold shadow-sm transition-colors ${viewMode === 'year' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`w-8 h-8 rounded-full font-bold shadow-sm transition-colors ${viewMode === 'year' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'}`}
                 onClick={() => setViewMode('year')}
               >Y</button>
             </div>
@@ -155,21 +155,21 @@ const Users = () => {
                       </span>
                 </div>
                   </div>
-                  <span className="text-xs text-gray-500 mt-1">{bar.label}</span>
+                  <span className="text-xs text-muted-foreground mt-1">{bar.label}</span>
                 </div>
               );
             })}
           </div>
           <div className="flex items-center justify-center gap-2 mt-4">
             <svg width="24" height="24" fill="none" stroke="#3b82f6" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C12 2 7 8.5 7 13a5 5 0 0 0 10 0c0-4.5-5-11-5-11z"/><circle cx="12" cy="17" r="1"/></svg>
-            <span className="text-base font-semibold">1M litres</span>
-            <span className="text-sm text-gray-500">consumed water</span>
+            <span className="text-base font-semibold text-foreground">1M litres</span>
+            <span className="text-sm text-muted-foreground">consumed water</span>
           </div>
         </div>
         {/* Regional consumption breakdown */}
-        <div className="bg-white rounded-2xl shadow mt-8 mx-8 px-8 py-6">
+        <div className="bg-card rounded-2xl shadow mt-8 mx-8 px-8 py-6 dark-mode-transition">
           <div className="flex items-center mb-6">
-            <span className="text-lg font-semibold">Consumed water</span>
+            <span className="text-lg font-semibold text-foreground">Consumed water</span>
               </div>
           <div className="flex gap-4">
             {regions.map((region, idx) => (
@@ -186,11 +186,11 @@ const Users = () => {
                     <circle cx="32" cy="32" r="28" stroke={regionAssets[region.id].color} strokeWidth="8" fill="none" strokeDasharray={2 * Math.PI * 28} strokeDashoffset={(1 - 0.6) * 2 * Math.PI * 28} style={{ transition: 'stroke-dashoffset 0.5s' }} />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-black">60%</span>
+                    <span className="text-lg font-bold text-foreground">60%</span>
                 </div>
                 </div>
-                <div className="text-lg font-bold text-black">92,482</div>
-                <div className="text-xs text-gray-400">liters consumed</div>
+                <div className="text-lg font-bold text-foreground">92,482</div>
+                <div className="text-xs text-foreground">liters consumed</div>
                   </div>
                 ))}
               </div>

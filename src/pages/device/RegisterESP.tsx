@@ -77,7 +77,7 @@ const RegisterESP = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left Section - Form */}
-      <div className="w-1/2 bg-white flex flex-col">
+      <div className="w-1/2 bg-background flex flex-col dark-mode-transition">
         {/* Logo */}
         <div className="p-6">
            <div className="flex items-center gap-2">
@@ -101,20 +101,20 @@ const RegisterESP = () => {
               >
                 Connect to Esp32
               </h1>
-              <p className="text-gray-500 text-sm">Please provide accurate device credentials</p>
+              <p className="text-muted-foreground text-sm">Please provide accurate device credentials</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Location Section */}
               <div>
                  <div className="flex items-center gap-2 mb-4">
-                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6" />
-                   <h3 className="text-lg font-bold text-black">Location</h3>
+                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6 dark:invert dark:brightness-0 dark:contrast-100" />
+                   <h3 className="text-lg font-bold text-foreground">Location</h3>
                  </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="country" className="text-black text-sm font-medium">
+                    <Label htmlFor="country" className="text-foreground text-sm font-medium">
                       Country*
                     </Label>
                     <Input
@@ -123,17 +123,17 @@ const RegisterESP = () => {
                       placeholder="e.g Rwanda"
                       value={formData.country}
                       onChange={(e) => handleInputChange('country', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                       required
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="province" className="text-black text-sm font-medium">
+                    <Label htmlFor="province" className="text-foreground text-sm font-medium">
                       Province*
                     </Label>
                     <Select value={formData.province} onValueChange={(value) => handleInputChange('province', value)}>
-                      <SelectTrigger className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
+                      <SelectTrigger className="mt-1 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground">
                         <SelectValue placeholder="e.g Northern" />
                       </SelectTrigger>
                       <SelectContent>
@@ -147,7 +147,7 @@ const RegisterESP = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="district" className="text-black text-sm font-medium">
+                    <Label htmlFor="district" className="text-foreground text-sm font-medium">
                       District*
                     </Label>
                     <Input
@@ -156,13 +156,13 @@ const RegisterESP = () => {
                       placeholder="e.g Kicukiro"
                       value={formData.district}
                       onChange={(e) => handleInputChange('district', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                       required
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="sector" className="text-black text-sm font-medium">
+                    <Label htmlFor="sector" className="text-foreground text-sm font-medium">
                       Sector*
                     </Label>
                     <Input
@@ -171,13 +171,13 @@ const RegisterESP = () => {
                       placeholder="e.g Kimironko"
                       value={formData.sector}
                       onChange={(e) => handleInputChange('sector', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                       required
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="cell" className="text-black text-sm font-medium">
+                    <Label htmlFor="cell" className="text-foreground text-sm font-medium">
                       Cell*
                     </Label>
                     <Input
@@ -186,13 +186,13 @@ const RegisterESP = () => {
                       placeholder="e.g Kamashashi"
                       value={formData.cell}
                       onChange={(e) => handleInputChange('cell', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                       required
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="village" className="text-black text-sm font-medium">
+                    <Label htmlFor="village" className="text-foreground text-sm font-medium">
                       Village*
                     </Label>
                     <Input
@@ -201,7 +201,7 @@ const RegisterESP = () => {
                       placeholder="e.g Kibaya"
                       value={formData.village}
                       onChange={(e) => handleInputChange('village', e.target.value)}
-                      className="mt-1 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-1 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                       required
                     />
                   </div>
@@ -211,13 +211,13 @@ const RegisterESP = () => {
               {/* ESP32 Section */}
               <div>
                  <div className="flex items-center gap-2 mb-4">
-                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6" />
-                   <h3 className="text-lg font-bold text-black">ESP32</h3>
+                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6 dark:invert dark:brightness-0 dark:contrast-100" />
+                   <h3 className="text-lg font-bold text-foreground">ESP32</h3>
                  </div>
                 
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="macAddress" className="text-black text-sm font-medium">
+                    <Label htmlFor="macAddress" className="text-foreground text-sm font-medium">
                       Mac Address*
                     </Label>
                     <Input
@@ -226,13 +226,13 @@ const RegisterESP = () => {
                       placeholder="e.g 01:AB:2C:AA:AA:AA"
                       value={formData.mac_address}
                       onChange={(e) => handleInputChange('mac_address', e.target.value)}
-                      className="mt-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-2 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                       required
                     />
                   </div>
                   
                    <div>
-                     <Label className="text-black text-sm font-medium">
+                     <Label className="text-foreground text-sm font-medium">
                        Select*
                      </Label>
                      <div className="mt-3 flex space-x-6">
@@ -244,9 +244,9 @@ const RegisterESP = () => {
                            value="Sensor"
                            checked={formData.device_type === 'Sensor'}
                            onChange={(e) => handleInputChange('device_type', e.target.value)}
-                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                           className="w-4 h-4 text-blue-600 border-border focus:ring-blue-500"
                          />
-                         <Label htmlFor="sensor" className="text-black">Sensor</Label>
+                         <Label htmlFor="sensor" className="text-foreground">Sensor</Label>
                        </div>
                        <div className="flex items-center space-x-2">
                          <input
@@ -256,15 +256,15 @@ const RegisterESP = () => {
                            value="Smart Valve"
                            checked={formData.device_type === 'Smart Valve'}
                            onChange={(e) => handleInputChange('device_type', e.target.value)}
-                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                           className="w-4 h-4 text-blue-600 border-border focus:ring-blue-500"
                          />
-                         <Label htmlFor="smartValve" className="text-black">Smart Valve</Label>
+                         <Label htmlFor="smartValve" className="text-foreground">Smart Valve</Label>
                        </div>
                      </div>
                    </div>
                   
                   <div>
-                    <Label htmlFor="deviceCount" className="text-black text-sm font-medium">
+                    <Label htmlFor="deviceCount" className="text-foreground text-sm font-medium">
                       No of Sensors/Smart valve
                     </Label>
                     <Input
@@ -273,7 +273,7 @@ const RegisterESP = () => {
                       placeholder="e.g 2"
                       value={formData.count}
                       onChange={(e) => handleInputChange('count', e.target.value)}
-                      className="mt-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                      className="mt-2 border-border rounded-md focus:border-blue-500 focus:ring-blue-500 bg-background text-foreground"
                     />
                   </div>
                 </div>

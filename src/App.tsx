@@ -38,6 +38,7 @@ import { NotificationProvider } from './pages/NotificationContext';
 import { MonitorDataProvider } from './contexts/MonitorDataContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import ToastModalProvider from './components/ToastModalProvider';
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import EmailVerified from "./pages/auth/EmailVerified";
@@ -54,6 +55,7 @@ const App = () => (
   
     <ErrorBoundary>
     <NotificationProvider>
+    <ToastModalProvider>
     <MonitorDataProvider>
     <BrowserRouter>
     <AuthProvider>
@@ -107,6 +109,7 @@ const App = () => (
       </AuthProvider>
     </BrowserRouter>
     </MonitorDataProvider>
+    </ToastModalProvider>
     </NotificationProvider>
     </ErrorBoundary>
 );

@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { useNotificationContext } from './NotificationContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import LeakageDetailModal from '@/components/ui/LeakageDetailModal';
 
 const Notifications: React.FC = () => {
   const { notifications, unreadCount, markAsRead, removeNotification, markAllAsRead } = useNotificationContext();
-  const [selectedNotification, setSelectedNotification] = useState<null | { id: number; title: string; message: string; location: string; time: string }>(null);
+  const [selectedNotification, setSelectedNotification] = useState<null | any>(null);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -38,11 +38,15 @@ const Notifications: React.FC = () => {
     }
   };
 
-  const handleNotificationClick = (notification: { id: number; type: string; title: string; message: string; location: string; time: string }) => {
+  const handleNotificationClick = (notification: any) => {
     if (notification.type === 'alert' || notification.type === 'warning') {
       setSelectedNotification(notification);
       markAsRead(notification.id); // Mark as read when clicked
     }
+  };
+
+  const closeModal = () => {
+    setSelectedNotification(null);
   };
 
   return (
@@ -60,7 +64,7 @@ const Notifications: React.FC = () => {
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+              <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
               <p className="text-gray-600">
                 {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All notifications read'}
               </p>
@@ -98,7 +102,7 @@ const Notifications: React.FC = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <h3
                             className={`font-medium ${
-                              !notification.read ? 'text-gray-900' : 'text-gray-700'
+                              !notification.read ? 'text-foreground' : 'text-muted-foreground'
                             }`}
                           >
                             {notification.title}
@@ -152,33 +156,18 @@ const Notifications: React.FC = () => {
           <Card>
             <CardContent className="p-12 text-center">
               <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">No notifications</h3>
               <p className="text-gray-600">You're all caught up! No new notifications to show.</p>
             </CardContent>
           </Card>
         )}
 
-        {/* Popup for Leak Alerts */}
+        {/* Leakage Detail Modal */}
         {selectedNotification && (
-          <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{selectedNotification.title}</DialogTitle>
-                <DialogDescription>
-                  <p>{selectedNotification.message}</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    <strong>Location:</strong> {selectedNotification.location}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong>Time:</strong> {selectedNotification.time}
-                  </p>
-                </DialogDescription>
-              </DialogHeader>
-              <Button onClick={() => setSelectedNotification(null)} className="mt-4">
-                Close
-              </Button>
-            </DialogContent>
-          </Dialog>
+          <LeakageDetailModal 
+            notification={selectedNotification} 
+            onClose={closeModal} 
+          />
         )}
       </div>
     </MainLayout>

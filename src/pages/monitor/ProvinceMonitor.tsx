@@ -263,9 +263,9 @@ const ProvinceMonitor = () => {
     <MainLayout>
       <div className="pt-2 px-6 pb-6 bg-gray-50 min-h-screen space-y-4">
         {/* Header */}
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <img src={currentProvince?.icon} alt={currentProvince?.name} className="h-8 w-8 object-contain" />
-              <h1 className="text-2xl font-bold text-gray-900">{currentProvince?.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{currentProvince?.name}</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -399,8 +399,8 @@ const ProvinceMonitor = () => {
                 
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                      {pastHour.status}
                     </div>
@@ -427,8 +427,8 @@ const ProvinceMonitor = () => {
                 </div>
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                     {dailyAverage.status}
                     </div>
@@ -600,8 +600,8 @@ const ProvinceMonitor = () => {
                           </div>
                         </div>
                         <div className="flex items-center">
-                          <Activity className="w-3 h-3 mr-1 text-black" />
-                          <span className="mr-1 text-xs font-bold text-black">Status</span>
+                          <Activity className="w-3 h-3 mr-1 text-foreground" />
+                          <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                           <StatusBadge status={reading.status as any} />
                         </div>
                       </div>
@@ -633,8 +633,8 @@ const ProvinceMonitor = () => {
                     </div>
                   </div>
                   <div className="flex items-center">
-                    <Activity className="w-3 h-3 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-3 h-3 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <StatusBadge status={reading.status as any} />
                   </div>
                 </div>

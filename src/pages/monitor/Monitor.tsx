@@ -67,7 +67,7 @@ const StatusBadge = ({ status }: { status: string }) => {
         };
       default:
         return { 
-          textColor: 'text-gray-700', 
+          textColor: 'text-foreground', 
           bgColor: 'rgba(156, 163, 175, 0.25)', 
           borderColor: 'rgba(156, 163, 175, 0.5)',
           text: `unknown (${status})` // Show raw status for debugging
@@ -102,6 +102,10 @@ const Monitor = () => {
   } | null>(null);
   const [isHistoricalView, setIsHistoricalView] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
+  
+  // History pagination (6 per page)
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_PAGE_SIZE = 6;
 
   // Use WebSocket hook
   const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
@@ -128,6 +132,10 @@ const Monitor = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Reset pagination when switching between historical and current views
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [isHistoricalView]);
 
   // Process WebSocket data for daily chart with improved connectivity
   const processChartData = (rawData: { flow_rate_lph: number; status: string; timestamp: string; province: string }[]) => {
@@ -180,6 +188,12 @@ const getLatestDistrictData = () => {
 
 const latestDistrictData = getLatestDistrictData();  
 console.log(latestDistrictData)
+
+// Pagination logic for history data
+const totalHistoryPages = Math.max(1, Math.ceil(latestDistrictData.length / HISTORY_PAGE_SIZE));
+const historyStartIndex = (historyPage - 1) * HISTORY_PAGE_SIZE;
+const historyEndIndex = historyStartIndex + HISTORY_PAGE_SIZE;
+const paginatedHistoryData = latestDistrictData.slice(historyStartIndex, historyEndIndex);
 
 // Get latest water data for consistent display (same as dashboard and provincial monitor)
 const getLatestWaterData = () => {
@@ -554,8 +568,8 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                      {isHistoricalView && selectedHistoricalData 
                        ? selectedHistoricalData.waterData.status
@@ -592,8 +606,8 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 </div>
                 <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center">
-                    <Activity className="w-4 h-4 mr-1 text-black" />
-                    <span className="mr-1 text-xs font-bold text-black">Status</span>
+                    <Activity className="w-4 h-4 mr-1 text-foreground" />
+                    <span className="mr-1 text-xs font-bold text-foreground">Status</span>
                     <div className="text-green-700 text-xs px-3 py-1 rounded-full font-medium" style={{backgroundColor: 'rgba(52, 211, 153, 0.25)', border: '1px solid rgba(52, 211, 153, 0.5)'}}>
                     {isHistoricalView && selectedHistoricalData 
                       ? selectedHistoricalData.waterData.status
@@ -649,10 +663,10 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
                 </tr>
               </thead>
               <tbody>
-              {(isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : latestDistrictData).length > 0 ? (
-                  (isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : latestDistrictData).map((item, index) => (
+              {(isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : paginatedHistoryData).length > 0 ? (
+                  (isHistoricalView && selectedHistoricalData ? selectedHistoricalData.districtData : paginatedHistoryData).map((item, index) => (
                     <tr key={`${item.timestamp}-${item.district}`} className="border-b">
-                      <td className="py-3 px-4 text-sm">{index + 1}</td>
+                      <td className="py-3 px-4 text-sm">{historyStartIndex + index + 1}</td>
                       <td className="py-3 px-4 text-sm">{item.district}</td>
                       <td className="py-3 px-4 text-sm">{item.flow_rate.toFixed(2)} lph</td>
                       <td className="py-3 px-4">
@@ -670,6 +684,57 @@ const getHistoricalDataForTimestamp = (timestamp: string) => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination controls - only show for current view (not historical) and when there are more than 6 records */}
+          {!isHistoricalView && latestDistrictData.length > HISTORY_PAGE_SIZE && (
+            <div className="flex items-center justify-center gap-3 mt-4 select-none">
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
+                onClick={() => historyPage > 1 && setHistoryPage(1)}
+                disabled={historyPage === 1}
+                aria-label="First page"
+              >
+                «
+              </button>
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
+                onClick={() => historyPage > 1 && setHistoryPage(historyPage - 1)}
+                disabled={historyPage === 1}
+                aria-label="Previous page"
+              >
+                ‹
+              </button>
+              {Array.from({ length: totalHistoryPages }, (_, i) => i + 1).map((pageNum) => {
+                const isActive = pageNum === historyPage;
+                return (
+                  <button
+                    key={pageNum}
+                    className={`min-w-[28px] h-7 rounded-md text-sm font-medium ${isActive ? 'bg-blue-500 text-white' : 'text-foreground hover:bg-gray-100'}`}
+                    onClick={() => setHistoryPage(pageNum)}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
+                onClick={() => historyPage < totalHistoryPages && setHistoryPage(historyPage + 1)}
+                disabled={historyPage === totalHistoryPages}
+                aria-label="Next page"
+              >
+                ›
+              </button>
+              <button
+                className={`px-2 py-1 text-sm ${historyPage === totalHistoryPages ? 'text-gray-300 cursor-not-allowed' : 'text-foreground hover:text-foreground'}`}
+                onClick={() => historyPage < totalHistoryPages && setHistoryPage(totalHistoryPages)}
+                disabled={historyPage === totalHistoryPages}
+                aria-label="Last page"
+              >
+                »
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Critical Readings */}

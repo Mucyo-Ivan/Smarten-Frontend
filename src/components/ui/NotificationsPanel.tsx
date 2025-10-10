@@ -5,7 +5,7 @@ import LeakageButtonIcon from '../../../Smarten Assets/assets/Leakage button.svg
 import PeopleIcon from '../../../Smarten Assets/assets/People.svg';
 import ToggleRightIcon from '../../../Smarten Assets/assets/toggle-right 1.svg';
 import DropletsIcon from '../../../Smarten Assets/assets/droplets.svg';
-import NotificationDetailModal from './NotificationDetailModal';
+import LeakageDetailModal from './LeakageDetailModal';
 import { useNotificationContext } from '@/pages/NotificationContext';
 
 interface NotificationsPanelProps {
@@ -13,82 +13,18 @@ interface NotificationsPanelProps {
   onChangeUnread?: (newUnread: number) => void;
 }
 
-export const initialNotifications = [
-  {
-    id: 1,
-    type: 'leakage',
-    title: 'Leakage detected at Musanze',
-    time: '09:00AM',
-    date: 'Today',
-    new: true,
-    icon: 'leakage',
-  },
-  {
-    id: 2,
-    type: 'critical',
-    title: 'Critical readings at Nyabihu',
-    time: '11:00AM',
-    date: 'Today',
-    new: true,
-    icon: 'critical',
-  },
-  {
-    id: 3,
-    type: 'user',
-    title: 'A new user has been added in Rwamagana',
-    time: '11:00AM',
-    date: 'Today',
-    new: false,
-    icon: 'user',
-  },
-  {
-    id: 4,
-    type: 'action',
-    title: 'Turn on water in Musanze',
-    time: '11:00AM',
-    date: 'Today',
-    new: false,
-    icon: 'action',
-  },
-  {
-    id: 5,
-    type: 'leakage',
-    title: 'Leakage detected at Musanze',
-    time: '09:00AM',
-    date: 'Yesterday',
-    new: false,
-    icon: 'leakage',
-  },
-  {
-    id: 6,
-    type: 'critical',
-    title: 'Critical readings at Nyabihu',
-    time: '11:00AM',
-    date: 'Yesterday',
-    new: false,
-    icon: 'critical',
-  },
-  {
-    id: 7,
-    type: 'user',
-    title: 'A new user has been added in Rwamagana',
-    time: '11:00AM',
-    date: 'Past week',
-    new: false,
-    icon: 'user',
-  },
-];
+// Removed hardcoded notifications - now using only real-time notifications
 
 const getIcon = (icon: string) => {
   switch (icon) {
     case 'leakage':
-      return <img src={DropletsIcon} alt="Leakage" className="w-7 h-7" />;
+      return <img src={DropletsIcon} alt="Leakage" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     case 'critical':
-      return <img src={LeakageButtonIcon} alt="Critical" className="w-7 h-7" />;
+      return <img src={LeakageButtonIcon} alt="Critical" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     case 'user':
-      return <img src={PeopleIcon} alt="User" className="w-7 h-7" />;
+      return <img src={PeopleIcon} alt="User" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     case 'action':
-      return <img src={ToggleRightIcon} alt="Action" className="w-7 h-7" />;
+      return <img src={ToggleRightIcon} alt="Action" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     default:
       return null;
   }
@@ -109,12 +45,29 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
       time: new Date(notif.time).toLocaleTimeString(),
       date: date,
       new: !notif.read,
-      icon: notif.type === 'alert' ? 'leakage' : notif.type === 'warning' ? 'critical' : 'user'
+      icon: notif.type === 'alert' ? 'leakage' : notif.type === 'warning' ? 'critical' : 'user',
+      // Keep all original notification data for modal
+      leakage_id: notif.leakage_id,
+      water_lost: notif.water_lost,
+      location: notif.location,
+      timestamp: notif.timestamp,
+      severity: notif.severity,
+      status: notif.status,
+      message: notif.message
     });
     return acc;
   }, {});
 
   const handleNotificationClick = (notification: any) => {
+    console.log('=== NOTIFICATIONS PANEL CLICK DEBUG ===');
+    console.log('NotificationsPanel: Clicking notification:', notification);
+    console.log('NotificationsPanel: notification.leakage_id:', notification.leakage_id);
+    console.log('NotificationsPanel: notification.water_lost:', notification.water_lost);
+    console.log('NotificationsPanel: notification.location:', notification.location);
+    console.log('NotificationsPanel: notification.time:', notification.time);
+    console.log('NotificationsPanel: notification.timestamp:', notification.timestamp);
+    console.log('Full notification object keys:', Object.keys(notification));
+    console.log('=== END NOTIFICATIONS PANEL DEBUG ===');
     setSelectedNotification(notification);
     markAsRead(notification.id);
   };
@@ -170,9 +123,9 @@ const NotificationsPanel = ({ onClose }: NotificationsPanelProps) => {
         ))}
       </div>
       
-      {/* Notification Detail Modal */}
+      {/* Leakage Detail Modal */}
       {selectedNotification && (
-        <NotificationDetailModal 
+        <LeakageDetailModal 
           notification={selectedNotification} 
           onClose={closeModal} 
         />

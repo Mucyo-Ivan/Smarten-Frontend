@@ -13,20 +13,29 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('theme') as Theme) || 'light';
-    }
+    // Always default to light mode on app load
     return 'light';
   });
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
     
+    // Ultra-fast theme switching with optimized DOM manipulation
+    const root = document.documentElement;
+    
+    // Add theme-switching class for minimal transition
+    root.classList.add('theme-switching');
+    
     if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
     }
+    
+    // Remove theme-switching class after minimal delay
+    setTimeout(() => {
+      root.classList.remove('theme-switching');
+    }, 50);
   }, [theme]);
 
   const toggleTheme = () => {

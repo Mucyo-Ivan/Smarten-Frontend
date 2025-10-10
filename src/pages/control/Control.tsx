@@ -755,7 +755,7 @@ const Control = () => {
                           style={{ background: `${region.color}33`, width: '80px', height: '80px' }}
                         >
                           <img src={region.icon} alt={region.name} className="w-10 h-10" />
-                          <span className="text-xs text-black font-bold">
+                          <span className="text-xs text-foreground font-bold">
                           {provinceCommandCounts?.data?.[region.name] || 0} cmd
                             </span>
                         </div>
@@ -769,7 +769,7 @@ const Control = () => {
                           style={{ background: `${region.color}33`, width: '80px', height: '80px' }}
                         >
                           <img src={region.icon} alt={region.name} className="w-10 h-10" />
-                          <span className="text-xs text-black font-bold">
+                          <span className="text-xs text-foreground font-bold">
                           {provinceCommandCounts?.data?.[region.name] || 0} cmd
                             </span>
                         </div>
