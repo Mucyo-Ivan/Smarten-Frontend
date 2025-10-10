@@ -118,6 +118,7 @@ const Leakage = () => {
   const [investigatingLoading, setInvestigatingLoading] = useState(false);
   const [investigatingError, setInvestigatingError] = useState('');
   const [totalInvestigating, setTotalInvestigating] = useState(0);
+  const [resolvedLeakageIds, setResolvedLeakageIds] = useState(new Set());
 
   // Pagination state for investigated leaks
   const [investigatedPage, setInvestigatedPage] = useState(1);
@@ -662,6 +663,10 @@ const Leakage = () => {
         plumber: payload.plumber_name,
         note: payload.resolved_note,
       });
+      
+      // Add the resolved leakage ID to the set
+      setResolvedLeakageIds(prev => new Set([...prev, leakId]));
+      
       toast({ title: 'Leak resolved', description: 'Resolved note saved successfully.' });
       setShowResolvedForm(false);
       setEditResolved(false);
@@ -986,7 +991,7 @@ const Leakage = () => {
                         </div>
       <div className="mb-6">
                           <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
-                          <div className="text-sm leading-snug text-blue-300">{resolvedData.note}</div>
+                          <div className="text-sm leading-snug text-blue-600 font-medium">{resolvedData.note}</div>
                         </div>
                         <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-25 select-none pointer-events-none">
                           <img src={SuccessIcon} alt="Success" className="h-8 w-auto" />
@@ -1236,16 +1241,24 @@ const Leakage = () => {
                         <p className="text-xs text-gray-700">Water Lost: {item.waterLost}L</p>
                       </div>
                       <div className="flex items-center gap-2 -ml-8">
-                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                          Investigating
-                        </span>
-                        <Button 
-                          variant="link" 
-                          className="text-blue-500 text-xs px-0 py-0 h-auto"
-                          onClick={(e) => handleResolveClick(item, e)}
-                        >
-                          Resolve
-                        </Button>
+                        {resolvedLeakageIds.has(item.id) ? (
+                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
+                            Resolved
+                          </span>
+                        ) : (
+                          <>
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                              Investigating
+                            </span>
+                            <Button 
+                              variant="link" 
+                              className="text-blue-500 text-xs px-0 py-0 h-auto"
+                              onClick={(e) => handleResolveClick(item, e)}
+                            >
+                              Resolve
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
           ))}
@@ -1328,6 +1341,10 @@ const Leakage = () => {
         onClose={() => setShowResolvePopup(false)}
         leakageData={selectedLeakForResolve}
         onResolved={() => {
+          // Add the resolved leakage ID to the set
+          if (selectedLeakForResolve?.id) {
+            setResolvedLeakageIds(prev => new Set([...prev, selectedLeakForResolve.id]));
+          }
           // Refresh the investigating leaks data
           fetchInvestigatingLeaks();
           // Reset form

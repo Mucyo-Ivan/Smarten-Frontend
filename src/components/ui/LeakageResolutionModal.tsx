@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
+import { MapPin, AlertTriangle, CheckCircle, Activity, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getLeakageById, resolveLeakage } from '@/services/api';
@@ -373,7 +373,15 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 </div>
               )}
               {resolvedData && (
-                <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
+                <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in overflow-hidden" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
+                  {/* Edit Icon */}
+                  <Edit3 size={20} className="text-white absolute top-4 right-4 cursor-pointer hover:text-blue-200 transition-colors" />
+                  
+                  {/* Success Watermark */}
+                  <div className="absolute bottom-2 right-2 text-white opacity-20 text-6xl font-bold pointer-events-none">
+                    Success
+                  </div>
+                  
                   <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
                   <div className="flex flex-col w-full gap-4 items-center">
                     <div className="flex w-full gap-4">
@@ -391,9 +399,9 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                       </div>
                     </div>
                     <div className="flex flex-col w-full">
-                      <label className="text-white text-sm mb-1">Note</label>
+                      <label className="text-white text-sm mb-1">Resolved note</label>
                       <div className="bg-white rounded-lg px-3 py-2 text-black min-h-[80px]">
-                        <div className="text-sm leading-snug text-blue-300">{resolvedData.note}</div>
+                        <div className="text-sm leading-snug text-blue-600 font-medium">{resolvedData.note}</div>
                       </div>
                     </div>
                   </div>
