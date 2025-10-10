@@ -6,6 +6,7 @@ import { ChevronDown, AlertCircle, CheckCircle, Activity, RefreshCw } from 'luci
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getAllLeaks, getInvestigatingLeaks, resolveLeakage, getRecentLeakageProvince, getLeakageById } from '@/services/api.js';
+import LeakageResolutionModal from '@/components/ui/LeakageResolutionModal';
 // Import SVG icons
 import NorthIcon from '../../../Smarten Assets/assets/North.svg';
 import SouthIcon from '../../../Smarten Assets/assets/South.svg';
@@ -278,6 +279,43 @@ const Leakage = () => {
     setSelectedLeakForResolve(leak);
     setShowResolvePopup(true);
   };
+
+  // Function to fetch investigating leaks
+  const fetchInvestigatingLeaks = async () => {
+    try {
+      setInvestigatingLoading(true);
+      setInvestigatingError('');
+      const res = await getInvestigatingLeaks(getProvinceName(selectedRegion));
+      console.log("Received Investigating Leaks Data ", res.data);
+      
+      if (res.data.leaks) {
+        // Process the data to match frontend format
+        const processedData = res.data.leaks.map(leak => ({
+          id: leak.leak_id,
+          time: formatDateTime(leak.occurred_at),
+          description: `Leakage detected in ${leak.esp_device.district}`,
+          location: leak.location,
+          waterLost: leak.water_lost_litres.toFixed(2),
+          severity: leak.severity,
+          occurredAt: leak.occurred_at,
+          district: leak.esp_device.district,
+          village: leak.esp_device.village
+        }));
+        
+        setInvestigatingLeaks(processedData);
+        setTotalInvestigating(res.data.total_leaks);
+      }
+    } catch (err) {
+      setInvestigatingError(err.message || 'Failed to fetch investigating leaks data');
+      console.log("Failed to fetch investigating leaks data", err.message);
+      // Set mock data as fallback
+      setInvestigatingLeaks(getMockInvestigatingData(selectedRegion));
+      setTotalInvestigating(getMockInvestigatingData(selectedRegion).length);
+    } finally {
+      setInvestigatingLoading(false);
+    }
+  };
+
   // Fetch leakage data (following control page pattern)
   useEffect(() => {
     const fetchLeakageData = async () => {
@@ -357,41 +395,6 @@ const Leakage = () => {
 
   // Fetch investigating leaks data
   useEffect(() => {
-    const fetchInvestigatingLeaks = async () => {
-      try {
-        setInvestigatingLoading(true);
-        setInvestigatingError('');
-        const res = await getInvestigatingLeaks(getProvinceName(selectedRegion));
-        console.log("Received Investigating Leaks Data ", res.data);
-        
-        if (res.data.leaks) {
-          // Process the data to match frontend format
-          const processedData = res.data.leaks.map(leak => ({
-            id: leak.leak_id,
-            time: formatDateTime(leak.occurred_at),
-            description: `Leakage detected in ${leak.esp_device.district}`,
-            location: leak.location,
-            waterLost: leak.water_lost_litres.toFixed(2),
-            severity: leak.severity,
-            occurredAt: leak.occurred_at,
-            district: leak.esp_device.district,
-            village: leak.esp_device.village
-          }));
-          
-          setInvestigatingLeaks(processedData);
-          setTotalInvestigating(res.data.total_leaks);
-        }
-      } catch (err) {
-        setInvestigatingError(err.message || 'Failed to fetch investigating leaks data');
-        console.log("Failed to fetch investigating leaks data", err.message);
-        // Set mock data as fallback
-        setInvestigatingLeaks(getMockInvestigatingData(selectedRegion));
-        setTotalInvestigating(getMockInvestigatingData(selectedRegion).length);
-      } finally {
-        setInvestigatingLoading(false);
-      }
-    };
-    
     fetchInvestigatingLeaks();
   }, [selectedRegion]);
 
@@ -1284,110 +1287,19 @@ const Leakage = () => {
       </div>
 
       {/* Resolve Popup Modal */}
-      {showResolvePopup && selectedLeakForResolve && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Resolve Leakage</h3>
-              <button
-                onClick={() => setShowResolvePopup(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Leakage Details */}
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600">Time:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.time}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Location:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.location}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Water Lost:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.waterLost}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Severity:</span>
-                  <p className="text-gray-900">{selectedLeakForResolve.severity}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Resolve Form */}
-            <form onSubmit={handleResolvedFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Resolved Date
-                </label>
-                <input
-                  type="date"
-                  value={resolvedForm.date}
-                  onChange={(e) => setResolvedForm({...resolvedForm, date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {resolvedErrors.date && <p className="text-red-500 text-xs mt-1">{resolvedErrors.date}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Plumber Name
-                </label>
-                <input
-                  type="text"
-                  value={resolvedForm.plumber}
-                  onChange={(e) => setResolvedForm({...resolvedForm, plumber: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter plumber name"
-                  required
-                />
-                {resolvedErrors.plumber && <p className="text-red-500 text-xs mt-1">{resolvedErrors.plumber}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Resolved Note
-                </label>
-                <textarea
-                  value={resolvedForm.note}
-                  onChange={(e) => setResolvedForm({...resolvedForm, note: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Enter resolution details"
-                  required
-                />
-                {resolvedErrors.note && <p className="text-red-500 text-xs mt-1">{resolvedErrors.note}</p>}
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowResolvePopup(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {loading ? 'Resolving...' : 'Resolve Leakage'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Leakage Resolution Modal */}
+      <LeakageResolutionModal
+        isOpen={showResolvePopup}
+        onClose={() => setShowResolvePopup(false)}
+        leakageData={selectedLeakForResolve}
+        onResolved={() => {
+          // Refresh the investigating leaks data
+          fetchInvestigatingLeaks();
+          // Reset form
+          setResolvedForm({ date: '', plumber: '', note: '' });
+          setResolvedErrors({ date: '', plumber: '', note: '' });
+        }}
+      />
 
       {/* Notification Display */}
       {notificationCache.size > 0 && (
