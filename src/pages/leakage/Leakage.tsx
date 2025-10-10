@@ -37,8 +37,17 @@ const Leakage = () => {
   const [status, setStatus] = useState('Investigating');
   const [editResolved, setEditResolved] = useState(false);
   const [showResolvedForm, setShowResolvedForm] = useState(false);
+  // Get today's date in YYYY-MM-DD format for the date input
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [resolvedForm, setResolvedForm] = useState({
-    date: '',
+    date: getTodayDate(), // Set default to today's date
     plumber: '',
     note: '',
   });
@@ -597,12 +606,28 @@ const Leakage = () => {
 
   const handleResolvedFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
     const errors = { date: '', plumber: '', note: '' };
-    if (!resolvedForm.date) errors.date = 'Date is required';
-    if (!resolvedForm.plumber) errors.plumber = 'Plumber name is required';
-    if (!resolvedForm.note) errors.note = 'Resolved note is required';
+    if (!resolvedForm.date) {
+      errors.date = 'Date is required';
+    } else {
+      // Check if date is in the future
+      const selectedDate = new Date(resolvedForm.date);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // End of today
+      
+      if (selectedDate > today) {
+        errors.date = 'Resolved date cannot be in the future';
+      }
+    }
+    if (!resolvedForm.plumber.trim()) errors.plumber = 'Plumber name is required';
+    if (!resolvedForm.note.trim()) errors.note = 'Resolution note is required';
+    
     setResolvedErrors(errors);
-    if (errors.date || errors.plumber || errors.note) return;
+    if (Object.values(errors).some(error => error)) {
+      return;
+    }
 
     try {
       setLoading(true);
@@ -610,12 +635,24 @@ const Leakage = () => {
       const leakId = selectedLeakForResolve?.id || selectedLeakId || investigatingLeaks[0]?.id || leakageData[0]?.id;
       if (!leakId) throw new Error('No leakage selected to resolve');
 
+      // Format date to DD-MM-YYYY format as expected by API
+      const formatDateForAPI = (dateString: string) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
+
       const payload = {
         leakage: leakId,
-        resolved_date: formatToDDMMYYYY(resolvedForm.date),
+        resolved_date: formatDateForAPI(resolvedForm.date),
         plumber_name: resolvedForm.plumber,
         resolved_note: resolvedForm.note,
       };
+      
+      console.log('Sending resolution data:', payload);
       const res = await resolveLeakage(payload);
       console.log('Resolved leak response', res.data);
 
@@ -701,7 +738,15 @@ const Leakage = () => {
       ]);
     } catch (err) {
       console.error('Failed to save resolved leak', err);
-      toast({ title: 'Failed to save', description: 'Please try again.', variant: 'destructive' as any });
+      let errorMessage = "Failed to resolve leakage.";
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      }
+      toast({ title: 'Failed to save', description: errorMessage, variant: 'destructive' as any });
     } finally {
       setLoading(false);
     }
@@ -884,6 +929,7 @@ const Leakage = () => {
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
                                 style={{ color: resolvedForm.date ? 'black' : '#9CA3AF' }}
+                                max={getTodayDate()} // Prevent future dates
                                 required
                               />
                               {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
@@ -896,6 +942,7 @@ const Leakage = () => {
                                 value={resolvedForm.plumber}
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                max={getTodayDate()} // Prevent future dates
                                 required
                               />
                               {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
@@ -961,6 +1008,7 @@ const Leakage = () => {
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
                                 style={{ color: resolvedForm.date ? 'black' : '#9CA3AF' }}
+                                max={getTodayDate()} // Prevent future dates
                                 required
                               />
                               {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
@@ -973,6 +1021,7 @@ const Leakage = () => {
                                 value={resolvedForm.plumber}
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                                max={getTodayDate()} // Prevent future dates
                                 required
                               />
                               {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
