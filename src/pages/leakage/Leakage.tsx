@@ -368,7 +368,7 @@ const Leakage = () => {
   // WebSocket connection for notifications
   useEffect(() => {
     // Mock WebSocket connection - replace with actual WebSocket URL
-    const ws = new WebSocket('ws://127.0.0.1:8000/ws/notifications/');
+    const ws = new WebSocket('ws://127.0.0.1:8000/ws/leak-alerts/');
     
     ws.onopen = () => {
       console.log('WebSocket connected');
@@ -667,7 +667,7 @@ const Leakage = () => {
       setEditResolved(false);
       setStatus('Resolved');
       setIsLeakResolved(true);
-      setResolvedForm({ date: '', plumber: '', note: '' });
+      setResolvedForm({ date: getTodayDate(), plumber: '', note: '' });
       
       // Close the popup if it's open
       setShowResolvePopup(false);
@@ -942,7 +942,6 @@ const Leakage = () => {
                                 value={resolvedForm.plumber}
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
-                                max={getTodayDate()} // Prevent future dates
                                 required
                               />
                               {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
@@ -987,7 +986,7 @@ const Leakage = () => {
                         </div>
       <div className="mb-6">
                           <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
-                          <div className="text-sm leading-snug text-white/80">{resolvedData.note}</div>
+                          <div className="text-sm leading-snug text-blue-300">{resolvedData.note}</div>
                         </div>
                         <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-25 select-none pointer-events-none">
                           <img src={SuccessIcon} alt="Success" className="h-8 w-auto" />
@@ -1021,7 +1020,6 @@ const Leakage = () => {
                                 value={resolvedForm.plumber}
                                 onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
                                 className="rounded-lg px-3 py-2 outline-none border-none w-full" 
-                                max={getTodayDate()} // Prevent future dates
                                 required
                               />
                               {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
@@ -1333,7 +1331,7 @@ const Leakage = () => {
           // Refresh the investigating leaks data
           fetchInvestigatingLeaks();
           // Reset form
-          setResolvedForm({ date: '', plumber: '', note: '' });
+          setResolvedForm({ date: getTodayDate(), plumber: '', note: '' });
           setResolvedErrors({ date: '', plumber: '', note: '' });
         }}
       />

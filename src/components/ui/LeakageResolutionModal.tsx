@@ -38,6 +38,7 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
   const [resolvedErrors, setResolvedErrors] = useState({ date: '', plumber: '', note: '' });
   const [loading, setLoading] = useState(false);
   const [detailedLeakageData, setDetailedLeakageData] = useState(null);
+  const [resolvedData, setResolvedData] = useState(null);
 
   // Fetch detailed leakage data when modal opens
   useEffect(() => {
@@ -53,6 +54,15 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
         }
       };
       fetchDetailedData();
+    }
+    
+    // Reset states when modal opens
+    if (isOpen) {
+      setSelectedStatus('investigating');
+      setShowResolvedForm(false);
+      setResolvedData(null);
+      setResolvedForm({ date: getTodayDate(), plumber: '', note: '' });
+      setResolvedErrors({ date: '', plumber: '', note: '' });
     }
   }, [isOpen, leakageData?.id]);
 
@@ -133,6 +143,13 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
 
       // Only update status to resolved after successful submission
       setSelectedStatus('resolved');
+      
+      // Save resolved data to display
+      setResolvedData({
+        date: resolvedForm.date,
+        plumber: resolvedForm.plumber,
+        note: resolvedForm.note,
+      });
       
       // Reset form
       setResolvedForm({ date: getTodayDate(), plumber: '', note: '' });
@@ -309,7 +326,7 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
             </div>
             <div className={`w-full h-full transition-all duration-300 ${showResolvedForm ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
               style={{ position: showResolvedForm ? 'relative' : 'absolute' }}>
-              {showResolvedForm && (
+              {showResolvedForm && !resolvedData && (
                 <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
                   <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
                   <form onSubmit={handleResolvedFormSubmit} className="flex flex-col w-full gap-4 items-center">
@@ -353,6 +370,33 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                     </div>
                     <button type="submit" className="bg-[#0EA5E9] text-white font-semibold rounded-lg px-8 py-2 mt-2 self-center">Save</button>
                   </form>
+                </div>
+              )}
+              {resolvedData && (
+                <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
+                  <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
+                  <div className="flex flex-col w-full gap-4 items-center">
+                    <div className="flex w-full gap-4">
+                      <div className="flex flex-col flex-1">
+                        <label className="text-white text-sm mb-1">Date</label>
+                        <div className="bg-white rounded-lg px-3 py-2 text-black">
+                          {resolvedData.date}
+                        </div>
+                      </div>
+                      <div className="flex flex-col flex-1">
+                        <label className="text-white text-sm mb-1">Plumber</label>
+                        <div className="bg-white rounded-lg px-3 py-2 text-black">
+                          {resolvedData.plumber}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col w-full">
+                      <label className="text-white text-sm mb-1">Note</label>
+                      <div className="bg-white rounded-lg px-3 py-2 text-black min-h-[80px]">
+                        <div className="text-sm leading-snug text-blue-300">{resolvedData.note}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
