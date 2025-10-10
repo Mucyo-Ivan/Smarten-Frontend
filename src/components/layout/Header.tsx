@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 interface HeaderProps {
   title?: string;
@@ -43,6 +44,8 @@ const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) =>
         </div>
         
         <div className="flex items-center gap-2">
+          <ThemeToggle />
+          
           <Button variant="ghost" size="sm" className="relative p-1" onClick={onShowNotifications}>
             <div className="relative">
               <Bell className="w-5 h-5 text-muted-foreground" />
