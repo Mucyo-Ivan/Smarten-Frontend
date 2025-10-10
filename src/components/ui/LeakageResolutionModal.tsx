@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, AlertTriangle, CheckCircle, Activity, X } from 'lucide-react';
+import { MapPin, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { resolveLeakage, getLeakageById } from '@/services/api';
+import { getLeakageById, resolveLeakage } from '@/services/api';
 import HouseSearchingCuate from '../../../Smarten Assets/assets/House searching-cuate 1.svg';
 
 interface LeakageResolutionModalProps {
@@ -21,8 +21,17 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
   const { toast } = useToast();
   const [selectedStatus, setSelectedStatus] = useState<'investigating' | 'resolved'>('investigating');
   const [showResolvedForm, setShowResolvedForm] = useState(false);
+  // Get today's date in YYYY-MM-DD format for the date input
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [resolvedForm, setResolvedForm] = useState({
-    date: '',
+    date: getTodayDate(), // Set default to today's date
     plumber: '',
     note: '',
   });
@@ -49,11 +58,12 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
 
   // Handle status change
   const handleStatusChange = (status: 'investigating' | 'resolved') => {
-    setSelectedStatus(status);
     if (status === 'resolved') {
       setShowResolvedForm(true);
+      // Don't change selectedStatus yet - only change after successful form submission
     } else {
       setShowResolvedForm(false);
+      setSelectedStatus('investigating');
     }
   };
 
@@ -63,7 +73,18 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
     
     // Validation
     const errors = { date: '', plumber: '', note: '' };
-    if (!resolvedForm.date) errors.date = 'Date is required';
+    if (!resolvedForm.date) {
+      errors.date = 'Date is required';
+    } else {
+      // Check if date is in the future
+      const selectedDate = new Date(resolvedForm.date);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // End of today
+      
+      if (selectedDate > today) {
+        errors.date = 'Resolved date cannot be in the future';
+      }
+    }
     if (!resolvedForm.plumber.trim()) errors.plumber = 'Plumber name is required';
     if (!resolvedForm.note.trim()) errors.note = 'Resolution note is required';
     
@@ -76,25 +97,46 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
     try {
       setLoading(true);
       
-      const resolutionData = {
-        leakage_id: leakageData.id,
-        resolved_date: resolvedForm.date,
-        plumber_name: resolvedForm.plumber,
-        resolution_note: resolvedForm.note,
-        status: 'RESOLVED'
+      // Format date to DD-MM-YYYY format as expected by API
+      const formatDateForAPI = (dateString: string) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
       };
 
-      await resolveLeakage(resolutionData);
+      const resolutionData = {
+        leakage: leakageData.id,
+        resolved_date: formatDateForAPI(resolvedForm.date),
+        plumber_name: resolvedForm.plumber,
+        resolved_note: resolvedForm.note
+      };
+
+      console.log('Sending resolution data:', resolutionData);
+      console.log('Leakage data ID:', leakageData.id);
+      console.log('Leakage data:', leakageData);
+      
+      // Validate leakage ID
+      if (!leakageData.id || leakageData.id <= 0) {
+        throw new Error('Invalid leakage ID');
+      }
+
+      const response = await resolveLeakage(resolutionData);
+      console.log('Resolution response:', response);
       
       toast({
         title: "Leakage Resolved",
-        description: "The leakage has been successfully resolved.",
+        description: response.message || "The leakage has been successfully resolved.",
       });
 
-      // Reset form
-      setResolvedForm({ date: '', plumber: '', note: '' });
-      setShowResolvedForm(false);
+      // Only update status to resolved after successful submission
       setSelectedStatus('resolved');
+      
+      // Reset form
+      setResolvedForm({ date: getTodayDate(), plumber: '', note: '' });
+      setShowResolvedForm(false);
       
       // Call the callback to refresh data
       onResolved();
@@ -105,9 +147,25 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       }, 1000);
       
     } catch (error: any) {
+      console.error('Resolution error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+      
+      let errorMessage = "Failed to resolve leakage.";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data) {
+        errorMessage = JSON.stringify(error.response.data);
+      }
+      
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Failed to resolve leakage.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -143,182 +201,161 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
   const dateTime = formatDateTime(displayData?.occurredAt || displayData?.time || '');
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 relative max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         <div className="flex">
-          {/* Left side - Details */}
-          <div className="flex-1 p-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Leakage Detection</h2>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">{dateTime.date}</p>
-                <p className="text-sm text-gray-600">{dateTime.time}</p>
+          {/* Left side - Leakage Detection Details (exact copy from main page) */}
+          <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
+            <span className="text-lg font-semibold mb-2">Leakage Detection</span>
+            {/* Date and time centered - show structure always */}
+            <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+              <div className="text-xs font-semibold text-foreground">{dateTime.date || '--'}</div>
+              <div className="text-xs text-gray-400 -mt-1 mb-2">{dateTime.time || '--'}</div>
+            </div>
+            {/* Water loss centered */}
+            <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+              <div className="flex items-end gap-1">
+                <span className="text-4xl font-bold text-foreground">
+                  {displayData?.water_lost_litres ? Number(displayData.water_lost_litres).toFixed(1) : 
+                   displayData?.waterLost ? parseFloat(displayData.waterLost.replace('L', '')).toFixed(1) : '0.0'}
+                </span>
+                <span className="text-sm text-gray-500 mb-1">cm³</span>
               </div>
+              <div className="text-xs text-gray-500">water lost</div>
             </div>
-
-            {/* Water Lost */}
-            <div className="mb-6">
-              <p className="text-4xl font-bold text-gray-900">
-                {displayData?.water_lost_litres ? Number(displayData.water_lost_litres).toFixed(1) : 
-                 displayData?.waterLost ? parseFloat(displayData.waterLost.replace('L', '')).toFixed(1) : '0.0'}
-              </p>
-              <p className="text-sm text-gray-600">Water Lost (L)</p>
-            </div>
-
+            
+            {/* Separator line */}
+            <div className="w-full h-px bg-gray-200 my-4"></div>
+            
             {/* Location */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Location</span>
-              </div>
-              <p className="text-lg text-gray-900">
-                {displayData?.location || 'Location not available'}
-              </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <MapPin size={16} className="text-foreground" />
+              <span className="font-medium">Location:</span>
+              <span className="text-foreground">{displayData?.location || 'Location not available'}</span>
             </div>
-
+            
             {/* Severity */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-red-500" />
-                <span className="text-sm font-medium text-gray-700">Severity</span>
-              </div>
-              <p className="text-lg font-bold text-red-600">
-                {displayData?.severity || 'HIGH'}
-              </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <AlertTriangle size={16} className="text-red-500" />
+              <span className="font-medium">Severity:</span>
+              <span className="text-foreground font-semibold">{displayData?.severity || 'HIGH'}</span>
             </div>
-
+            
             {/* Action */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm font-medium text-gray-700">Action</span>
-              </div>
-              <p className="text-lg text-gray-900">Yes</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <CheckCircle size={16} className="text-foreground" />
+              <span className="font-medium">Action:</span>
+              <span className="text-foreground">Yes</span>
             </div>
-
-            {/* Status */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Status</span>
-              </div>
-              
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="resolved"
-                    checked={selectedStatus === 'resolved'}
-                    onChange={() => handleStatusChange('resolved')}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <span className="text-sm font-medium text-gray-700">Resolved</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="investigating"
-                    checked={selectedStatus === 'investigating'}
-                    onChange={() => handleStatusChange('investigating')}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <span className="text-sm font-medium text-gray-700">Investigating</span>
-                </label>
-              </div>
+            
+            {/* Status - show radio buttons when investigating, badge when resolved */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Activity size={16} className="text-foreground" />
+              <span className="font-medium">Status</span>
+              {selectedStatus === 'investigating' ? (
+                <div className="flex items-center gap-4 ml-2">
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      value="resolved" 
+                      checked={showResolvedForm}
+                      onChange={() => handleStatusChange('resolved')}
+                      className="w-3 h-3"
+                    />
+                    <span className="text-xs">Resolved</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      value="investigating" 
+                      checked={!showResolvedForm}
+                      onChange={() => handleStatusChange('investigating')}
+                      className="w-3 h-3"
+                    />
+                    <span className="text-xs">Investigating</span>
+                  </label>
+                </div>
+              ) : selectedStatus === 'resolved' ? (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  Resolved
+                </span>
+              ) : (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  Investigating
+                </span>
+              )}
             </div>
-
-            {/* Resolved Form */}
-            {showResolvedForm && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Resolved Note Registration Details</h3>
-                <form onSubmit={handleResolvedFormSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Resolved Date
-                    </label>
-                    <input
-                      type="date"
-                      value={resolvedForm.date}
-                      onChange={(e) => setResolvedForm({...resolvedForm, date: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    {resolvedErrors.date && <p className="text-red-500 text-xs mt-1">{resolvedErrors.date}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Plumber Name
-                    </label>
-                    <input
-                      type="text"
-                      value={resolvedForm.plumber}
-                      onChange={(e) => setResolvedForm({...resolvedForm, plumber: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter plumber name"
-                      required
-                    />
-                    {resolvedErrors.plumber && <p className="text-red-500 text-xs mt-1">{resolvedErrors.plumber}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Resolved Note
-                    </label>
-                    <textarea
-                      value={resolvedForm.note}
-                      onChange={(e) => setResolvedForm({...resolvedForm, note: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={3}
-                      placeholder="Enter resolution details"
-                      required
-                    />
-                    {resolvedErrors.note && <p className="text-red-500 text-xs mt-1">{resolvedErrors.note}</p>}
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowResolvedForm(false)}
-                      disabled={loading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {loading ? 'Resolving...' : 'Save Resolution'}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            )}
           </div>
 
-          {/* Right side - Illustration */}
-          <div className="w-80 bg-blue-600 rounded-r-3xl flex flex-col items-center justify-center p-8">
-            <h3 className="text-white text-xl font-semibold mb-6 text-center">
-              Ongoing Analysis of Detected Leakage
-            </h3>
-            <img 
-              src={HouseSearchingCuate} 
-              alt="Leakage Analysis" 
-              className="w-full h-auto max-w-xs"
-            />
+          {/* Right side: Ongoing Analysis or Resolved Leakage (exact copy from main page) */}
+          <div className="flex-1 flex flex-col items-center justify-center p-0 relative" style={{ minWidth: 0, minHeight: 300 }}>
+            <div className={`w-full h-full transition-all duration-300 ${(selectedStatus === 'investigating' && !showResolvedForm) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+              style={{ position: (selectedStatus === 'investigating' && !showResolvedForm) ? 'relative' : 'absolute' }}>
+              {(selectedStatus === 'investigating' && !showResolvedForm) && (
+                <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 animate-fade-in" style={{maxWidth: 340, minHeight: 240, width: '100%', display: 'flex'}}>
+                  <span className="text-white text-lg font-semibold mb-2 mt-8 text-center">Ongoing Analysis of<br/>Detected Leakage</span>
+                  <img src={HouseSearchingCuate} alt="Ongoing Analysis" className="w-56 h-44 object-contain mb-8" />
+                </div>
+              )}
+            </div>
+            <div className={`w-full h-full transition-all duration-300 ${showResolvedForm ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+              style={{ position: showResolvedForm ? 'relative' : 'absolute' }}>
+              {showResolvedForm && (
+                <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
+                  <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
+                  <form onSubmit={handleResolvedFormSubmit} className="flex flex-col w-full gap-4 items-center">
+                    <div className="flex w-full gap-4">
+                      <div className="flex flex-col flex-1">
+                        <label className="text-white text-sm mb-1">Date</label>
+                        <input 
+                          type="date" 
+                          value={resolvedForm.date}
+                          onChange={(e) => setResolvedForm(prev => ({ ...prev, date: e.target.value }))}
+                          className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                          style={{ color: resolvedForm.date ? 'black' : '#9CA3AF' }}
+                          max={getTodayDate()} // Prevent future dates
+                          required
+                        />
+                        {resolvedErrors.date && <span className="text-red-300 text-xs mt-1">{resolvedErrors.date}</span>}
+                      </div>
+                      <div className="flex flex-col flex-1">
+                        <label className="text-white text-sm mb-1">Plumber</label>
+                        <input 
+                          type="text" 
+                          placeholder="Plumber name" 
+                          value={resolvedForm.plumber}
+                          onChange={(e) => setResolvedForm(prev => ({ ...prev, plumber: e.target.value }))}
+                          className="rounded-lg px-3 py-2 outline-none border-none w-full" 
+                          required
+                        />
+                        {resolvedErrors.plumber && <span className="text-red-300 text-xs mt-1">{resolvedErrors.plumber}</span>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col w-full">
+                      <label className="text-white text-sm mb-1">Note</label>
+                      <textarea 
+                        placeholder="Resolution note" 
+                        value={resolvedForm.note}
+                        onChange={(e) => setResolvedForm(prev => ({ ...prev, note: e.target.value }))}
+                        className="rounded-lg px-3 py-2 outline-none border-none w-full min-h-[80px]" 
+                        required
+                      />
+                      {resolvedErrors.note && <span className="text-red-300 text-xs mt-1">{resolvedErrors.note}</span>}
+                    </div>
+                    <button type="submit" className="bg-[#0EA5E9] text-white font-semibold rounded-lg px-8 py-2 mt-2 self-center">Save</button>
+                  </form>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

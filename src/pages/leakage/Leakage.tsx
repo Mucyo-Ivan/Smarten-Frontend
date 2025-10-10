@@ -1177,41 +1177,29 @@ const Leakage = () => {
               ) : (
                 <div className="flex flex-col gap-4 mt-2 overflow-y-auto" style={{maxHeight: 220}}>
                   {paginatedInvestigated.map((item, idx) => (
-                    <div key={item.id} className="flex items-start gap-2 cursor-pointer" onClick={() => {
-                      setSelectedLeakId(item.id);
-                      // Populate main card from clicked investigated leak
-                      setStatus('Investigating');
-                      setShowResolvedForm(false);
-                      setEditResolved(false);
-                      // Map details to the left card data
-                      const [d, t, period] = item.time.split(' ');
-                      setMainLeakageData({
-                        date: d,
-                        time: `${t} ${period || ''}`.trim(),
-                        waterLoss: Number(item.waterLost),
-                        location: item.location,
-                        severity: item.severity === 'HIGH' ? 'High' : item.severity === 'LOW' ? 'Low' : 'Medium',
-                        action: true,
-                        status: 'Investigating'
-                      });
-                    }}>
+                    <div key={item.id} className="flex items-start gap-2">
                       <div className="flex flex-col items-center mr-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                         {idx !== paginatedInvestigated.length - 1 && <div className="h-6 w-0.5 bg-blue-200 mx-auto mt-1"></div>}
                       </div>
                       <div className="flex-1">
                         <p className="text-xs text-gray-500">{item.time}</p>
-                        <p className="text-sm text-gray-900">{item.description}</p>
+                        <p className="text-sm font-semibold text-gray-900">{item.description}</p>
+                        <p className="text-xs text-gray-700">Location: {item.location}</p>
+                        <p className="text-xs text-gray-700">Water Lost: {item.waterLost}L</p>
                       </div>
-                      {item.status === 'Investigating' && (
+                      <div className="flex items-center gap-2 -ml-8">
+                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                          Investigating
+                        </span>
                         <Button 
                           variant="link" 
-                          className="text-blue-500 text-xs px-0 py-0 h-auto ml-2"
+                          className="text-blue-500 text-xs px-0 py-0 h-auto"
                           onClick={(e) => handleResolveClick(item, e)}
                         >
                           Resolve
                         </Button>
-                      )}
+                      </div>
                     </div>
           ))}
         </div>
