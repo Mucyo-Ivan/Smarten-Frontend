@@ -263,7 +263,7 @@ const ProvinceMonitor = () => {
     <MainLayout>
       <div className="pt-2 px-6 pb-6 bg-gray-50 min-h-screen space-y-4">
         {/* Header */}
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <img src={currentProvince?.icon} alt={currentProvince?.name} className="h-8 w-8 object-contain" />
               <h1 className="text-2xl font-bold text-foreground">{currentProvince?.name}</h1>
         </div>

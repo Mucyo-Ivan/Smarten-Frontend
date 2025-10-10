@@ -541,7 +541,7 @@ const Dashboard = () => {
                 {customerData.slice(0, 3).map((item, index) => (
                   <div key={index} className={`rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px', backgroundColor: index === 0 ? 'rgba(250, 204, 21, 0.3)' : index === 1 ? 'rgba(96, 165, 250, 0.3)' : 'rgba(251, 146, 60, 0.3)'}}>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center mb-0.5 border" style={{backgroundColor: index === 0 ? 'rgba(250, 204, 21, 0.6)' : index === 1 ? 'rgba(96, 165, 250, 0.6)' : 'rgba(251, 146, 60, 0.6)', borderColor: index === 0 ? 'rgba(250, 204, 21, 0.4)' : index === 1 ? 'rgba(96, 165, 250, 0.4)' : 'rgba(251, 146, 60, 0.4)'}}>
-                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4" />
+                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4 dark:invert dark:brightness-0 dark:contrast-100" />
                     </div>
                     <div className="text-lg font-bold text-foreground">
                       {item.value}<span className="text-[10px] ml-0.5">{item.unit}</span>
@@ -553,7 +553,7 @@ const Dashboard = () => {
                 {customerData.slice(3, 5).map((item, index) => (
                   <div key={index} className={`rounded-full p-1.5 text-center flex flex-col items-center justify-center aspect-square`} style={{width: '85px', height: '85px', backgroundColor: index === 0 ? 'rgba(52, 211, 153, 0.3)' : 'rgba(192, 132, 252, 0.3)'}}>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center mb-0.5 border" style={{backgroundColor: index === 0 ? 'rgba(52, 211, 153, 0.6)' : 'rgba(192, 132, 252, 0.6)', borderColor: index === 0 ? 'rgba(52, 211, 153, 0.4)' : 'rgba(192, 132, 252, 0.4)'}}>
-                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4" />
+                      <img src={item.iconSrc} alt={item.region} className="w-4 h-4 dark:invert dark:brightness-0 dark:contrast-100" />
                     </div>
                     <div className="text-lg font-bold text-foreground">
                       {item.value}<span className="text-[10px] ml-0.5">{item.unit}</span>

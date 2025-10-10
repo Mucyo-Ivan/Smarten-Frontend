@@ -200,7 +200,7 @@ const LeakageDetailModal = ({ notification, onClose }: LeakageDetailModalProps) 
                   <img 
                     src={getProvinceIcon(leakageData ? leakageData.location : notification.location)} 
                     alt="Province" 
-                    className="w-8 h-8"
+                    className="w-8 h-8 dark:invert dark:brightness-0 dark:contrast-100"
                   />
                   <p className="text-lg text-gray-900">
                     {leakageData ? leakageData.location : (notification.location || 'Location not available')}

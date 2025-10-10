@@ -270,7 +270,7 @@ const UsersDetail = () => {
             {/* Users Count */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center">
-                <img src={UsersIcon} alt="Users" className="w-8 h-8" />
+                <img src={UsersIcon} alt="Users" className="w-8 h-8 dark:invert dark:brightness-0 dark:contrast-100" />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-foreground text-2xl font-medium">{currentData.users.toLocaleString()}</span>
@@ -281,7 +281,7 @@ const UsersDetail = () => {
             {/* Total Consumption */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center">
-                <img src={WaterIcon} alt="Water" className="w-8 h-8" />
+                <img src={WaterIcon} alt="Water" className="w-8 h-8 dark:invert dark:brightness-0 dark:contrast-100" />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-foreground text-2xl font-medium">{currentData.consumption.toLocaleString()}</span>

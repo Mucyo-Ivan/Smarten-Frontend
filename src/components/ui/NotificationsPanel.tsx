@@ -18,13 +18,13 @@ interface NotificationsPanelProps {
 const getIcon = (icon: string) => {
   switch (icon) {
     case 'leakage':
-      return <img src={DropletsIcon} alt="Leakage" className="w-7 h-7" />;
+      return <img src={DropletsIcon} alt="Leakage" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     case 'critical':
-      return <img src={LeakageButtonIcon} alt="Critical" className="w-7 h-7" />;
+      return <img src={LeakageButtonIcon} alt="Critical" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     case 'user':
-      return <img src={PeopleIcon} alt="User" className="w-7 h-7" />;
+      return <img src={PeopleIcon} alt="User" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     case 'action':
-      return <img src={ToggleRightIcon} alt="Action" className="w-7 h-7" />;
+      return <img src={ToggleRightIcon} alt="Action" className="w-7 h-7 dark:invert dark:brightness-0 dark:contrast-100" />;
     default:
       return null;
   }

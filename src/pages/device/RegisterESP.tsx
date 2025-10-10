@@ -108,7 +108,7 @@ const RegisterESP = () => {
               {/* Location Section */}
               <div>
                  <div className="flex items-center gap-2 mb-4">
-                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6" />
+                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6 dark:invert dark:brightness-0 dark:contrast-100" />
                    <h3 className="text-lg font-bold text-foreground">Location</h3>
                  </div>
                 
@@ -211,7 +211,7 @@ const RegisterESP = () => {
               {/* ESP32 Section */}
               <div>
                  <div className="flex items-center gap-2 mb-4">
-                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6" />
+                   <img src="/assets/star-frame.svg" alt="star" className="w-6 h-6 dark:invert dark:brightness-0 dark:contrast-100" />
                    <h3 className="text-lg font-bold text-foreground">ESP32</h3>
                  </div>
                 
