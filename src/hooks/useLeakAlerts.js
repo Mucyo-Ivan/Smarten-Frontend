@@ -8,11 +8,11 @@ export const useLeakAlerts = () => {
   const reconnectInterval = 5000; // 5 seconds
 
   const connectWebSocket = () => {
-    const socket = new WebSocket("ws://127.0.0.1:8000/ws/leak-alerts/");
+    const socket = new WebSocket("ws://localhost:5173/ws/leak-alerts/");
     socketRef.current = socket;
 
     socket.onopen = () => {
-      console.log("✅ WebSocket connected: ws://127.0.0.1:8000/ws/leak-alerts/");
+      console.log("✅ WebSocket connected: ws://localhost:5173/ws/leak-alerts/");
       reconnectAttempts.current = 0; // Reset reconnect attempts on successful connection
     };
 

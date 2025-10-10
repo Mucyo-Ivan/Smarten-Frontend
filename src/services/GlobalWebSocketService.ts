@@ -1,3 +1,6 @@
+
+import { refreshAccessToken } from './api'; // Adjust path to your api.js
+
 interface WaterReadingData {
   flow_rate_lph: number;
   status: string;
@@ -44,35 +47,39 @@ class GlobalWebSocketService {
     this.startGlobalReconnectMonitoring();
   }
 
+  // Get access token from localStorage (fallback if cookies fail)
+  private getAccessToken(): string | null {
+    return localStorage.getItem('accessToken') || null;
+  }
+
   // Subscribe to data for a specific province
   subscribe(province: string, callback: (data: WaterReadingData) => void): () => void {
-    if (!this.subscribers.has(province)) {
-      this.subscribers.set(province, new Set());
+    const normalizedProvince = province.charAt(0).toUpperCase() + province.slice(1).toLowerCase();
+    if (!this.subscribers.has(normalizedProvince)) {
+      this.subscribers.set(normalizedProvince, new Set());
     }
-    
-    this.subscribers.get(province)!.add(callback);
-    
+
+    this.subscribers.get(normalizedProvince)!.add(callback);
+
     // Ensure connection exists for this province
-    this.ensureConnection(province);
-    
+    this.ensureConnection(normalizedProvince);
+
     // Return unsubscribe function
     return () => {
-      const provinceSubscribers = this.subscribers.get(province);
+      const provinceSubscribers = this.subscribers.get(normalizedProvince);
       if (provinceSubscribers) {
         provinceSubscribers.delete(callback);
-        
-        // If no more subscribers, we can close the connection
         if (provinceSubscribers.size === 0) {
-          this.closeConnection(province);
+          this.closeConnection(normalizedProvince);
         }
       }
     };
   }
 
   // Ensure a WebSocket connection exists for the given province
-  private ensureConnection(province: string): void {
+  private async ensureConnection(province: string): Promise<void> {
     const normalizedProvince = province.charAt(0).toUpperCase() + province.slice(1).toLowerCase();
-    
+
     if (this.connections.has(normalizedProvince)) {
       const connection = this.connections.get(normalizedProvince)!;
       if (connection.isConnected) {
@@ -80,14 +87,22 @@ class GlobalWebSocketService {
       }
     }
 
-    this.createConnection(normalizedProvince);
+    await this.createConnection(normalizedProvince);
   }
 
   // Create a new WebSocket connection for a province
-  private createConnection(province: string): void {
-    const wsUrl = `ws://127.0.0.1:8000/ws/water-readings/${province}`;
-    console.log(`🌐 Creating global WebSocket connection: ${wsUrl}`);
+  private async createConnection(province: string): Promise<void> {
+    // Prefer cookies, fallback to query parameter if token is available
+    let wsUrl = `ws://localhost:5173/ws/water-readings/${province}`;
+    const accessToken = this.getAccessToken();
+    if (accessToken) {
+      wsUrl = `ws://localhost:5173/ws/water-readings/${province}?token=${encodeURIComponent(accessToken)}`;
+      console.log(`Using query parameter for token: ${accessToken.slice(0, 10)}...`);
+    } else {
+      console.log(`Relying on HTTP-only cookie for ${wsUrl}`);
+    }
 
+    console.log(`🌐 Creating global WebSocket connection: ${wsUrl}`);
     const socket = new WebSocket(wsUrl);
     const connection: WebSocketConnection = {
       socket,
@@ -109,7 +124,7 @@ class GlobalWebSocketService {
       try {
         const data: WaterReadingData = JSON.parse(event.data);
         connection.lastMessageTime = Date.now();
-        
+
         // Notify all subscribers for this province
         const provinceSubscribers = this.subscribers.get(province);
         if (provinceSubscribers) {
@@ -131,10 +146,24 @@ class GlobalWebSocketService {
       connection.isConnected = false;
     };
 
-    socket.onclose = (event) => {
+    socket.onclose = async (event) => {
       console.log(`⚠️ Global WebSocket closed for ${province}: Code ${event.code}, Reason: ${event.reason}`);
       connection.isConnected = false;
-      
+
+      // Handle token expiration (code 4001 from backend)
+      if (event.code === 4001 && event.reason.includes('expired')) {
+        console.log('Access token expired, attempting to refresh');
+        try {
+          await refreshAccessToken();
+          console.log('Token refresh successful, retrying WebSocket connection');
+          await this.createConnection(province);
+          return;
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+          window.location.href = '/login';
+        }
+      }
+
       // Attempt to reconnect if we have subscribers
       const provinceSubscribers = this.subscribers.get(province);
       if (provinceSubscribers && provinceSubscribers.size > 0) {
@@ -155,9 +184,9 @@ class GlobalWebSocketService {
 
     connection.reconnectAttempts++;
     const delay = this.reconnectDelay * connection.reconnectAttempts;
-    
+
     console.log(`🔄 Scheduling reconnect for ${province} in ${delay}ms (attempt ${connection.reconnectAttempts}/${this.maxReconnectAttempts})`);
-    
+
     setTimeout(() => {
       this.createConnection(province);
     }, delay);
@@ -181,8 +210,7 @@ class GlobalWebSocketService {
 
       this.connections.forEach((connection, province) => {
         const timeSinceLastMessage = now - connection.lastMessageTime;
-        
-        // If connection is stale and we have subscribers, reconnect
+
         if (timeSinceLastMessage > staleThreshold && this.subscribers.has(province)) {
           const provinceSubscribers = this.subscribers.get(province);
           if (provinceSubscribers && provinceSubscribers.size > 0) {
@@ -197,14 +225,14 @@ class GlobalWebSocketService {
   // Get connection status for all provinces
   getConnectionStatus(): Record<string, { isConnected: boolean; lastMessageTime: number }> {
     const status: Record<string, { isConnected: boolean; lastMessageTime: number }> = {};
-    
+
     this.connections.forEach((connection, province) => {
       status[province] = {
         isConnected: connection.isConnected,
         lastMessageTime: connection.lastMessageTime,
       };
     });
-    
+
     return status;
   }
 
@@ -212,14 +240,14 @@ class GlobalWebSocketService {
   getProvinceConnectionStatus(province: string): { isConnected: boolean; lastMessageTime: number } | null {
     const connection = this.connections.get(province);
     if (!connection) return null;
-    
+
     return {
       isConnected: connection.isConnected,
       lastMessageTime: connection.lastMessageTime,
     };
   }
 
-  // Initialize connections for all provinces (for preemptive connection)
+  // Initialize connections for all provinces
   initializeAllConnections(): void {
     this.provinces.forEach(province => {
       this.ensureConnection(province);
@@ -231,11 +259,11 @@ class GlobalWebSocketService {
     if (this.reconnectInterval) {
       clearInterval(this.reconnectInterval);
     }
-    
+
     this.connections.forEach((connection, province) => {
       connection.socket.close();
     });
-    
+
     this.connections.clear();
     this.subscribers.clear();
   }

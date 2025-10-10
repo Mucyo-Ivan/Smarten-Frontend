@@ -94,7 +94,7 @@ function onRefreshed() {
   pendingRequests = [];
 }
 
-async function refreshAccessToken() {
+export async function refreshAccessToken() {
   if (!isRefreshing) {
     isRefreshing = true;
     refreshPromise = noAuthApi
