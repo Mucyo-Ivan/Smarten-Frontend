@@ -315,4 +315,8 @@ export const getLeakageById = async (leakageId) => {
   }
 };
 
+//Profile 
+export const getUserDetails = () => api.get("/get-user-details/");
+export const updateUserDetails = (data) => api.post("/update-user-details/", data);
+
 export default api;
