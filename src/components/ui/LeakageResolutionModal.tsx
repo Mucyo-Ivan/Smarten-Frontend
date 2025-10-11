@@ -158,10 +158,10 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       // Call the callback to refresh data
       onResolved();
       
-      // Close modal after a short delay
+      // Close modal after a longer delay to show resolved data
       setTimeout(() => {
         onClose();
-      }, 1000);
+      }, 3000);
       
     } catch (error: any) {
       console.error('Resolution error:', error);
@@ -373,37 +373,27 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 </div>
               )}
               {resolvedData && (
-                <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in overflow-hidden" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
-                  {/* Edit Icon */}
-                  <Edit3 size={20} className="text-white absolute top-4 right-4 cursor-pointer hover:text-blue-200 transition-colors" />
-                  
-                  {/* Success Watermark */}
-                  <div className="absolute bottom-2 right-2 text-white opacity-20 text-6xl font-bold pointer-events-none">
-                    Success
+                <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in overflow-hidden" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white text-base font-semibold">Resolved leakage</span>
+                    <Edit3 size={20} className="text-white cursor-pointer hover:text-blue-200 transition-colors" />
                   </div>
-                  
-                  <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
-                  <div className="flex flex-col w-full gap-4 items-center">
-                    <div className="flex w-full gap-4">
-                      <div className="flex flex-col flex-1">
-                        <label className="text-white text-sm mb-1">Date</label>
-                        <div className="bg-white rounded-lg px-3 py-2 text-black">
-                          {resolvedData.date}
-                        </div>
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <label className="text-white text-sm mb-1">Plumber</label>
-                        <div className="bg-white rounded-lg px-3 py-2 text-black">
-                          {resolvedData.plumber}
-                        </div>
-                      </div>
+                  <div className="flex flex-row gap-8 mb-4">
+                    <div>
+                      <div className="text-xs text-white font-semibold">Date</div>
+                      <div className="text-base text-white/80">{resolvedData.date}</div>
                     </div>
-                    <div className="flex flex-col w-full">
-                      <label className="text-white text-sm mb-1">Resolved note</label>
-                      <div className="bg-white rounded-lg px-3 py-2 text-black min-h-[80px]">
-                        <div className="text-sm leading-snug text-blue-600 font-medium">{resolvedData.note}</div>
-                      </div>
+                    <div>
+                      <div className="text-xs text-white font-semibold">Plumber</div>
+                      <div className="text-base text-white/80">{resolvedData.plumber}</div>
                     </div>
+                  </div>
+                  <div className="mb-6">
+                    <div className="text-xs text-white font-semibold mb-1">Resolved note</div>
+                    <div className="text-sm leading-snug text-blue-600 font-medium">{resolvedData.note}</div>
+                  </div>
+                  <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-25 select-none pointer-events-none">
+                    <span className="text-white text-4xl font-extrabold tracking-wide">Success</span>
                   </div>
                 </div>
               )}
