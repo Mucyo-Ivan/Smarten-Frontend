@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { useTheme } from '@/hooks/use-theme';
+
 import { 
   User, 
   Bell, 
@@ -32,6 +33,8 @@ import WestIcon from '../../../Smarten Assets/assets/West.svg';
 import KigaliIcon from '../../../Smarten Assets/assets/Kigali.svg';
 import WasacLogo from '../../../Smarten Assets/assets/WASAC 1.png';
 import SuccessImage from '../../../Smarten Assets/assets/Success.png';
+import { getUserDetails } from '@/services/api';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const [name, setName] = useState('WASAC Admin');
@@ -44,7 +47,39 @@ const Settings = () => {
   // Profile avatar local preview
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+
+  // User profile fetched from backend
+const [user, setUser] = useState<null | {
+  name: string;
+  email: string;
+  phone: string | null;
+  profile_image: string | null;
+}>(null);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
   
+useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await getUserDetails();
+        if (mounted) setUser(res.data);
+      } catch (e: any) {
+        setError(e?.response?.data?.error || 'Failed to load profile');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const initial = user?.name?.trim()?.charAt(0)?.toUpperCase() || 'U';
+
+
   // Notification settings`
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
@@ -702,6 +737,7 @@ const Settings = () => {
                 <User className="w-4 h-4" />
                 Profile
               </TabsTrigger>
+
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="w-4 h-4" />
                 Notifications
@@ -739,32 +775,51 @@ const Settings = () => {
                   <CardDescription>View your personal information</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-6 mb-6">
-                      <div className="w-24 h-24 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">W</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <div className="text-xs text-gray-500">Full Name</div>
-                        <div className="text-sm font-medium">{name}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">Email</div>
-                        <div className="text-sm font-medium">{email}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">Phone</div>
-                        <div className="text-sm font-medium">{phone}</div>
-                    </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button onClick={() => window.location.assign('/profile')}>Open Profile Page</Button>
-                    </div>
-                  </div>
+                {loading ? (
+                                <div className="text-sm text-gray-500">Loading...</div>
+                              ) : error ? (
+                                <div className="text-sm text-red-600">{error}</div>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-6 mb-6">
+                                    <div className="w-24 h-24 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center">
+                                      {user?.profile_image ? (
+                                        <img
+                                          src={user.profile_image}
+                                          alt={user.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <span className="text-white text-2xl font-bold">{initial}</span>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="text-xl font-semibold">{user?.name}</div>
+                                      <div className="text-sm text-gray-600">{user?.email}</div>
+                                    </div>
+                                  </div>
+                
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                      <div className="text-xs text-gray-500">Full Name</div>
+                                      <div className="text-sm font-medium">{user?.name}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-xs text-gray-500">Email</div>
+                                      <div className="text-sm font-medium">{user?.email}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-xs text-gray-500">Phone</div>
+                                      <div className="text-sm font-medium">{user?.phone || '—'}</div>
+                                    </div>
+                                 
+                                  </div>
+                
+                                  <div className="mt-6 flex justify-end">
+                                    <Button onClick={() => navigate('/profile')}>View your Profile</Button>
+                                  </div>
+                                </>
+                              )}
                 </CardContent>
               </Card>
             </TabsContent>
