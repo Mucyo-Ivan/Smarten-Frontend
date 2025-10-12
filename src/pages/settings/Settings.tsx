@@ -781,7 +781,7 @@ useEffect(() => {
                                 <div className="text-sm text-red-600">{error}</div>
                               ) : (
                                 <>
-                                  <div className="flex items-center gap-6 mb-6">
+                    <div className="flex items-center gap-6 mb-6">
                                     <div className="w-24 h-24 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center">
                                       {user?.profile_image ? (
                                         <img
@@ -792,32 +792,32 @@ useEffect(() => {
                                       ) : (
                                         <span className="text-white text-2xl font-bold">{initial}</span>
                                       )}
-                                    </div>
-                                    <div>
+                      </div>
+                      <div>
                                       <div className="text-xl font-semibold">{user?.name}</div>
                                       <div className="text-sm text-gray-600">{user?.email}</div>
-                                    </div>
-                                  </div>
-                
+                      </div>
+                    </div>
+
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
                                       <div className="text-xs text-gray-500">Full Name</div>
                                       <div className="text-sm font-medium">{user?.name}</div>
-                                    </div>
+                      </div>
                                     <div>
                                       <div className="text-xs text-gray-500">Email</div>
                                       <div className="text-sm font-medium">{user?.email}</div>
-                                    </div>
+                      </div>
                                     <div>
                                       <div className="text-xs text-gray-500">Phone</div>
                                       <div className="text-sm font-medium">{user?.phone || '—'}</div>
-                                    </div>
-                                 
-                                  </div>
-                
+                    </div>
+
+                      </div>
+                      
                                   <div className="mt-6 flex justify-end">
                                     <Button onClick={() => navigate('/profile')}>View your Profile</Button>
-                                  </div>
+                      </div>
                                 </>
                               )}
                 </CardContent>

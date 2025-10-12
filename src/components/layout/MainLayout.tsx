@@ -7,23 +7,26 @@ import Header from './Header';
 import Footer from './Footer';
 import NotificationsPanel from '../ui/NotificationsPanel';
 import { useNotificationContext } from '@/pages/NotificationContext';
+import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 
 interface MainLayoutProps {
   children: ReactNode;
   title?: string;
 }
 
-const MainLayout = ({ children, title }: MainLayoutProps) => {
+const MainLayoutInner = ({ children, title }: MainLayoutProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const { unreadCount } = useNotificationContext();
+  const { isCollapsed } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
   const defaultRootPaths = ['/dashboard', '/monitor', '/device', '/control', '/leakage', '/users', '/settings', '/'];
   const hideBackButton = defaultRootPaths.includes(location.pathname);
+  
   return (
     <div className="flex h-screen bg-background dark-mode-transition">
       <SidebarNav />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300">
         <Header title={title} unreadCount={unreadCount} onShowNotifications={() => setShowNotifications(true)} />
         {/* Unified horizontal line */}
         <div className="h-px bg-border w-full"></div>
@@ -43,6 +46,16 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
         )}
       </div>
     </div>
+  );
+};
+
+const MainLayout = ({ children, title }: MainLayoutProps) => {
+  return (
+    <SidebarProvider>
+      <MainLayoutInner title={title}>
+        {children}
+      </MainLayoutInner>
+    </SidebarProvider>
   );
 };
 

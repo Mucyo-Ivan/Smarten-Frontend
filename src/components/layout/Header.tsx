@@ -1,5 +1,5 @@
 
-import { Bell, Search, User, ChevronDown, Settings as SettingsIcon } from 'lucide-react';
+import { Bell, Search, User, ChevronDown, Settings as SettingsIcon, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
 interface HeaderProps {
@@ -22,6 +23,7 @@ interface HeaderProps {
 const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { toggleSidebar } = useSidebar();
 
   const handleLogout = async () => {
     await logout();
@@ -29,9 +31,17 @@ const Header = ({ title, onShowNotifications, unreadCount = 0 }: HeaderProps) =>
   };
 
   return (
-    <header className="h-16 bg-background flex items-center justify-end px-6 dark-mode-transition">
-      {/* Empty div to remove logo from header */}
-      <div></div>
+    <header className="h-16 bg-background flex items-center justify-between px-6 dark-mode-transition">
+      {/* Hamburger menu button */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={toggleSidebar}
+        className="hover:bg-accent transition-colors"
+        aria-label="Toggle sidebar"
+      >
+        <Menu className="w-5 h-5" />
+      </Button>
       
       <div className="flex items-center gap-3">
         <div className="relative">
