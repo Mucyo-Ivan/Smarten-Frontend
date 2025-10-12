@@ -1340,13 +1340,19 @@ const Leakage = () => {
         isOpen={showResolvePopup}
         onClose={() => setShowResolvePopup(false)}
         leakageData={selectedLeakForResolve}
-        onResolved={() => {
+        onResolved={(resolvedLeakageId) => {
+          console.log('Modal onResolved called with ID:', resolvedLeakageId);
           // Add the resolved leakage ID to the set
-          if (selectedLeakForResolve?.id) {
-            setResolvedLeakageIds(prev => new Set([...prev, selectedLeakForResolve.id]));
+          if (resolvedLeakageId) {
+            console.log('Adding resolved leakage ID:', resolvedLeakageId);
+            setResolvedLeakageIds(prev => {
+              const newSet = new Set([...prev, resolvedLeakageId]);
+              console.log('Updated resolvedLeakageIds:', newSet);
+              return newSet;
+            });
           }
-          // Refresh the investigating leaks data
-          fetchInvestigatingLeaks();
+          // Don't refresh the investigating leaks data immediately to avoid state conflicts
+          // fetchInvestigatingLeaks();
           // Reset form
           setResolvedForm({ date: getTodayDate(), plumber: '', note: '' });
           setResolvedErrors({ date: '', plumber: '', note: '' });

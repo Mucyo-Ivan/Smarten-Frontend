@@ -9,7 +9,7 @@ interface LeakageResolutionModalProps {
   isOpen: boolean;
   onClose: () => void;
   leakageData: any;
-  onResolved: () => void;
+  onResolved: (leakageId: number) => void; // Updated to pass leakage ID
 }
 
 const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
@@ -156,7 +156,8 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       setShowResolvedForm(false);
       
       // Call the callback to refresh data
-      onResolved();
+      console.log('Modal calling onResolved with leakageData:', leakageData);
+      onResolved(leakageData.id);
       
       // Don't auto-close modal - let user dismiss it manually
       
@@ -370,7 +371,7 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 </div>
               )}
               {resolvedData && (
-                <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in overflow-hidden" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
+                <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in overflow-hidden" style={{minHeight: 240, margin: '20px'}}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-white text-base font-semibold">Resolved leakage</span>
                     <Edit3 size={20} className="text-white cursor-pointer hover:text-blue-200 transition-colors" />
