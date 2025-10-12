@@ -13,10 +13,26 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Always default to light mode on app load
-    return 'light';
+    // Try to get theme from localStorage, fallback to light mode
+    try {
+      const savedTheme = localStorage.getItem('theme') as Theme;
+      return savedTheme === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
   });
 
+  // Apply theme immediately on mount
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, []); // Run only on mount
+
+  // Save theme to localStorage and apply changes
   useEffect(() => {
     localStorage.setItem('theme', theme);
     
