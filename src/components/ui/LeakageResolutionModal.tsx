@@ -81,6 +81,13 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
   const handleResolvedFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Debug form values before validation
+    console.log('Form values before validation:', {
+      date: resolvedForm.date,
+      plumber: resolvedForm.plumber,
+      note: resolvedForm.note,
+    });
+    
     // Validation
     const errors = { date: '', plumber: '', note: '' };
     if (!resolvedForm.date) {
@@ -145,6 +152,11 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       setSelectedStatus('resolved');
       
       // Save resolved data to display
+      console.log('Saving resolved data:', {
+        date: resolvedForm.date,
+        plumber: resolvedForm.plumber,
+        note: resolvedForm.note,
+      });
       setResolvedData({
         date: resolvedForm.date,
         plumber: resolvedForm.plumber,
@@ -229,11 +241,6 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
           {/* Left side - Leakage Detection Details (exact copy from main page) */}
           <div className="flex-1 flex flex-col justify-center px-8 py-8 gap-1" style={{ minWidth: 0 }}>
             <span className="text-lg font-semibold mb-2">Leakage Detection</span>
-            {/* Date and time centered - show structure always */}
-            <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
-              <div className="text-xs font-semibold text-foreground">{dateTime.date || '--'}</div>
-              <div className="text-xs text-gray-400 -mt-1 mb-2">{dateTime.time || '--'}</div>
-            </div>
             {/* Water loss centered */}
             <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
               <div className="flex items-end gap-1">
@@ -244,6 +251,16 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 <span className="text-sm text-gray-500 mb-1">cm³</span>
               </div>
               <div className="text-xs text-gray-500">water lost</div>
+            </div>
+            
+            {/* Date and Time */}
+            <div className="flex flex-col items-center justify-center mb-2" style={{margin: '0 auto'}}>
+              <div className="text-lg font-bold text-foreground">
+                {dateTime.date}
+              </div>
+              <div className="text-sm text-gray-500">
+                {dateTime.time}
+              </div>
             </div>
             
             {/* Separator line */}
@@ -322,7 +339,7 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 </div>
               )}
             </div>
-            <div className={`w-full h-full transition-all duration-300 ${(showResolvedForm || resolvedData) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+            <div className={`w-full h-full transition-all duration-300 flex items-center justify-center ${(showResolvedForm || resolvedData) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
               style={{ position: (showResolvedForm || resolvedData) ? 'relative' : 'absolute' }}>
               {showResolvedForm && !resolvedData && (
                 <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
@@ -371,7 +388,8 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 </div>
               )}
               {resolvedData && (
-                <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in overflow-hidden" style={{minHeight: 240, margin: '20px'}}>
+                <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in overflow-hidden" style={{minHeight: 240, margin: '20px 40px 20px 20px'}}>
+                  {console.log('Displaying resolved data:', resolvedData)}
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-white text-base font-semibold">Resolved leakage</span>
                     <Edit3 size={20} className="text-white cursor-pointer hover:text-blue-200 transition-colors" />

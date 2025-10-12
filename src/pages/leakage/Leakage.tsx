@@ -608,6 +608,13 @@ const Leakage = () => {
   const handleResolvedFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Debug form values before validation
+    console.log('Main page form values before validation:', {
+      date: resolvedForm.date,
+      plumber: resolvedForm.plumber,
+      note: resolvedForm.note,
+    });
+    
     // Validation
     const errors = { date: '', plumber: '', note: '' };
     if (!resolvedForm.date) {
@@ -658,6 +665,11 @@ const Leakage = () => {
       console.log('Resolved leak response', res.data);
 
       // Update UI immediately
+      console.log('Main page saving resolved data:', {
+        date: payload.resolved_date,
+        plumber: payload.plumber_name,
+        note: payload.resolved_note,
+      });
       setResolvedData({
         date: payload.resolved_date,
         plumber: payload.plumber_name,
@@ -969,6 +981,7 @@ const Leakage = () => {
                     )}
                     {((status === 'Resolved' && mainLeakageData.date && !showResolvedForm && !editResolved) || (isLeakResolved && !showResolvedForm && !editResolved)) && (
                       <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
+                        {console.log('Main page displaying resolved data:', resolvedData)}
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white text-base font-semibold">Resolved leakage</span>
                           <button
