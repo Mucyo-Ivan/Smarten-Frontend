@@ -26,7 +26,7 @@ const MainLayoutInner = ({ children, title }: MainLayoutProps) => {
   return (
     <div className="flex h-screen bg-background dark-mode-transition">
       <SidebarNav />
-      <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300">
+      <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
         <Header title={title} unreadCount={unreadCount} onShowNotifications={() => setShowNotifications(true)} />
         {/* Unified horizontal line */}
         <div className="h-px bg-border w-full"></div>

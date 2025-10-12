@@ -18,21 +18,21 @@ const NavItem = ({ to, icon, label, isActive, isCollapsed }: NavItemProps) => {
     <Link 
       to={to} 
       className={cn(
-        'flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-primary hover:bg-accent rounded-lg transition-all duration-200 group dark-mode-transition',
+        'flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-primary hover:bg-accent rounded-lg transition-all duration-300 ease-in-out group dark-mode-transition',
         isActive && 'text-primary bg-accent font-medium',
-        isCollapsed && 'justify-center px-2'
+        isCollapsed && 'justify-center px-3'
       )}
       title={isCollapsed ? label : undefined}
     >
       <div className={cn(
-        'transition-transform duration-200 group-hover:scale-110',
+        'transition-transform duration-300 ease-in-out group-hover:scale-110 flex-shrink-0',
         isActive && 'scale-110'
       )}>
         {icon}
       </div>
       <span className={cn(
-        'text-sm transition-all duration-200',
-        isCollapsed && 'opacity-0 w-0 overflow-hidden'
+        'text-sm transition-all duration-300 ease-in-out whitespace-nowrap',
+        isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
       )}>
         {label}
       </span>
@@ -53,31 +53,31 @@ const SidebarNav = () => {
 
   return (
     <aside className={cn(
-      "min-h-screen bg-sidebar border-r border-sidebar-border shadow-sm dark-mode-transition transition-all duration-300",
+      "min-h-screen bg-sidebar border-r border-sidebar-border shadow-sm dark-mode-transition transition-all duration-300 ease-in-out",
       isCollapsed ? "w-16" : "w-64"
     )}>
-      <div className={cn("transition-all duration-300", isCollapsed ? "p-2" : "p-6")}>
+      <div className={cn("transition-all duration-300 ease-in-out", isCollapsed ? "p-3" : "p-6")}>
         <Link to="/dashboard" className={cn(
-          "flex items-center transition-all duration-300",
+          "flex items-center transition-all duration-300 ease-in-out",
           isCollapsed ? "justify-center" : ""
         )}>
-          <div className="flex items-center" style={{ marginRight: '0px', position: 'relative', top: '-4px' }}>
+          <div className="flex items-center flex-shrink-0" style={{ marginRight: '0px', position: 'relative', top: '-4px' }}>
             <SmartenLogo className="w-12 h-12" />
           </div>
           <span className={cn(
-            "text-2xl font-extrabold tracking-tight text-[#0052a9] dark:text-blue-400 transition-all duration-300",
-            isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+            "text-2xl font-extrabold tracking-tight text-[#0052a9] dark:text-blue-400 transition-all duration-300 ease-in-out whitespace-nowrap",
+            isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
           )} style={{ fontWeight: 900, position: 'relative', top: '0px', letterSpacing: '-0.5px' }}>
             SMARTEN
           </span>
         </Link>
       </div>
       
-      <div className={cn("transition-all duration-300", isCollapsed ? "p-2" : "p-4")}>
+      <div className={cn("transition-all duration-300 ease-in-out", isCollapsed ? "p-3" : "p-4")}>
         <div className="mb-6">
           <p className={cn(
-            "text-xs font-medium text-gray-400 mb-3 uppercase tracking-wider transition-all duration-300",
-            isCollapsed ? "opacity-0 w-0 overflow-hidden px-2" : "opacity-100 px-4"
+            "text-xs font-medium text-gray-400 mb-3 uppercase tracking-wider transition-all duration-300 ease-in-out whitespace-nowrap",
+            isCollapsed ? "opacity-0 w-0 overflow-hidden px-3" : "opacity-100 w-auto px-4"
           )}>
             MAIN
           </p>
