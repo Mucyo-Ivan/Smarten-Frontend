@@ -158,10 +158,7 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       // Call the callback to refresh data
       onResolved();
       
-      // Close modal after a longer delay to show resolved data
-      setTimeout(() => {
-        onClose();
-      }, 3000);
+      // Don't auto-close modal - let user dismiss it manually
       
     } catch (error: any) {
       console.error('Resolution error:', error);
@@ -324,8 +321,8 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
                 </div>
               )}
             </div>
-            <div className={`w-full h-full transition-all duration-300 ${showResolvedForm ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
-              style={{ position: showResolvedForm ? 'relative' : 'absolute' }}>
+            <div className={`w-full h-full transition-all duration-300 ${(showResolvedForm || resolvedData) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none absolute'}`}
+              style={{ position: (showResolvedForm || resolvedData) ? 'relative' : 'absolute' }}>
               {showResolvedForm && !resolvedData && (
                 <div className="bg-[#3B82F6] rounded-xl flex flex-col items-center justify-center mx-auto my-6 p-6 relative animate-fade-in" style={{maxWidth: 400, minHeight: 260, width: '100%', display: 'flex'}}>
                   <span className="text-white text-lg font-semibold mb-4">Resolved leakage</span>
