@@ -981,7 +981,6 @@ const Leakage = () => {
                     )}
                     {((status === 'Resolved' && mainLeakageData.date && !showResolvedForm && !editResolved) || (isLeakResolved && !showResolvedForm && !editResolved)) && (
                       <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in" style={{minHeight: 240, marginTop: 24, marginBottom: 24}}>
-                        {console.log('Main page displaying resolved data:', resolvedData)}
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white text-base font-semibold">Resolved leakage</span>
                           <button
@@ -1253,7 +1252,7 @@ const Leakage = () => {
                         <p className="text-xs text-gray-700">Location: {item.location}</p>
                         <p className="text-xs text-gray-700">Water Lost: {item.waterLost}L</p>
                       </div>
-                      <div className="flex items-center gap-2 -ml-8">
+                      <div className="flex items-center gap-2 ml-4 mr-4">
                         {resolvedLeakageIds.has(item.id) ? (
                           <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
                             Resolved
