@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -75,7 +76,7 @@ const RegisterESP = () => {
   ];
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative">
       {/* Left Section - Form */}
       <div className="w-1/2 bg-background flex flex-col dark-mode-transition">
         {/* Logo */}
@@ -84,6 +85,16 @@ const RegisterESP = () => {
              <SmartenLogo className="w-8 h-8" />
              <span className="text-2xl font-extrabold" style={{ color: '#0052A9' }}>SMARTEN</span>
            </div>
+           {/* Back Button below logo */}
+           <Button
+             variant="ghost"
+             size="icon"
+             onClick={() => navigate(-1)}
+             className="mt-3"
+             aria-label="Go back"
+           >
+             <ArrowLeft className="w-5 h-5" />
+           </Button>
         </div>
 
         {/* Form Content */}
