@@ -45,7 +45,7 @@ export const useWaterReadings = (province) => {
     checkConnectionStatus();
     
     // Check status periodically
-    const statusInterval = setInterval(checkConnectionStatus, 5000);
+    const statusInterval = setInterval(checkConnectionStatus, 15000);
 
     return () => {
       clearInterval(statusInterval);

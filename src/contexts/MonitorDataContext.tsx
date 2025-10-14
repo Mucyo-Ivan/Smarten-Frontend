@@ -138,17 +138,15 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
         };
         
         setMonitorData(prev => {
-          // Check for duplicates based on timestamp and province
+          // Treat as duplicate only if timestamp, province AND values are identical.
+          // This allows multiple readings in the same minute if values change.
           const isDuplicate = prev.waterData.some(existingPoint => 
             existingPoint.timestamp === waterDataPoint.timestamp && 
-            existingPoint.province === waterDataPoint.province
+            existingPoint.province === waterDataPoint.province &&
+            existingPoint.flow_rate_lph === waterDataPoint.flow_rate_lph &&
+            existingPoint.status === waterDataPoint.status
           );
-          
-          if (isDuplicate) {
-            console.log(`🚫 Duplicate water data point detected for ${province} at ${waterDataPoint.timestamp}`);
-          }
-          
-          // Only add if it's not a duplicate
+
           if (!isDuplicate) {
             const updatedData = {
               ...prev,
@@ -279,7 +277,7 @@ export const MonitorDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     checkDataFreshness();
-    const interval = setInterval(checkDataFreshness, 60000); // Check every minute
+    const interval = setInterval(checkDataFreshness, 15000); // Check every minute
     return () => clearInterval(interval);
   }, [monitorData.lastUpdated, monitorData.currentDay]);
 

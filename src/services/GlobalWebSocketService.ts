@@ -219,7 +219,7 @@ class GlobalWebSocketService {
           }
         }
       });
-    }, 60000); // Check every minute
+    }, 15000); // Check every minute
   }
 
   // Get connection status for all provinces

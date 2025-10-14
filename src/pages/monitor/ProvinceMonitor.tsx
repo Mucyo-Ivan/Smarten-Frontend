@@ -132,7 +132,7 @@ const ProvinceMonitor = () => {
                      item.timestamp) // Ensure timestamp exists
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) // Strict chronological order
       .filter((item, index, array) => {
-        // Remove duplicates based on timestamp
+        // Remove true duplicates; allow multiple points per minute
         return index === 0 || item.timestamp !== array[index - 1].timestamp;
       })
       .slice(-100); // Increased limit for better trend visualization
@@ -140,8 +140,11 @@ const ProvinceMonitor = () => {
     // Create chart data with proper time formatting and ensure all points are connected
     const chartData = filteredData.map((item, index) => {
       const date = new Date(item.timestamp);
+      const hh = date.getHours().toString().padStart(2, '0');
+      const mm = date.getMinutes().toString().padStart(2, '0');
+      const ss = date.getSeconds().toString().padStart(2, '0');
       return {
-        time: `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`, // Format as 'HH:MM'
+        time: `${hh}:${mm}:${ss}`, // Include seconds to show 15s updates distinctly
         flow: Number(item.flow_rate_lph), // Ensure numeric value for proper line connection
         timestamp: item.timestamp,
         status: item.status,
