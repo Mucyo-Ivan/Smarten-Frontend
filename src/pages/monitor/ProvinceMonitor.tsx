@@ -65,9 +65,6 @@ const ProvinceMonitor = () => {
   const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
   const { clearData, getConnectionStatus } = useMonitorData();
   
-  console.log("ProvinceMonitor - Fetched real time data for", selectedProvince, ":", waterData);
-  console.log("ProvinceMonitor - Number of data points:", waterData.length);
-  
   const provinceData = {
     north: {
       name: 'Northern',

@@ -81,13 +81,6 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
   const handleResolvedFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Debug form values before validation
-    console.log('Form values before validation:', {
-      date: resolvedForm.date,
-      plumber: resolvedForm.plumber,
-      note: resolvedForm.note,
-    });
-    
     // Validation
     const errors = { date: '', plumber: '', note: '' };
     if (!resolvedForm.date) {
@@ -131,17 +124,12 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
         resolved_note: resolvedForm.note
       };
 
-      console.log('Sending resolution data:', resolutionData);
-      console.log('Leakage data ID:', leakageData.id);
-      console.log('Leakage data:', leakageData);
-      
       // Validate leakage ID
       if (!leakageData.id || leakageData.id <= 0) {
         throw new Error('Invalid leakage ID');
       }
 
       const response = await resolveLeakage(resolutionData);
-      console.log('Resolution response:', response);
       
       toast({
         title: "Leakage Resolved",
@@ -152,11 +140,6 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       setSelectedStatus('resolved');
       
       // Save resolved data to display
-      console.log('Saving resolved data:', {
-        date: resolvedForm.date,
-        plumber: resolvedForm.plumber,
-        note: resolvedForm.note,
-      });
       setResolvedData({
         date: resolvedForm.date,
         plumber: resolvedForm.plumber,
@@ -168,7 +151,6 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
       setShowResolvedForm(false);
       
       // Call the callback to refresh data
-      console.log('Modal calling onResolved with leakageData:', leakageData);
       onResolved(leakageData.id);
       
       // Don't auto-close modal - let user dismiss it manually
@@ -389,7 +371,6 @@ const LeakageResolutionModal: React.FC<LeakageResolutionModalProps> = ({
               )}
               {resolvedData && (
                 <div className="bg-[#338CF5] rounded-xl p-6 pb-14 relative flex flex-col gap-3 w-full max-w-md mx-auto animate-fade-in overflow-hidden" style={{minHeight: 240, margin: '20px 40px 20px 20px'}}>
-                  {console.log('Displaying resolved data:', resolvedData)}
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-white text-base font-semibold">Resolved leakage</span>
                     <Edit3 size={20} className="text-white cursor-pointer hover:text-blue-200 transition-colors" />

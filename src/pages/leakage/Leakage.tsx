@@ -213,7 +213,6 @@ const Leakage = () => {
   const loadRecentLeakageData = async () => {
     try {
       const response = await getRecentLeakageProvince(getProvinceName(selectedRegion));
-      console.log("Received Recent Leakage Province Data ", response.data);
       
       if (response.data && response.data.leak) {
         const leak = response.data.leak;
@@ -296,7 +295,6 @@ const Leakage = () => {
       setInvestigatingLoading(true);
       setInvestigatingError('');
       const res = await getInvestigatingLeaks(getProvinceName(selectedRegion));
-      console.log("Received Investigating Leaks Data ", res.data);
       
       if (res.data.leaks) {
         // Process the data to match frontend format
@@ -333,7 +331,6 @@ const Leakage = () => {
         setDataLoading(true);
         setError('');
         const res = await getAllLeaks(getProvinceName(selectedRegion));
-        console.log("Received Leakage Data ", res.data);
         
         // Process the data to match frontend format
         const processedData = res.data.leaks.map(leak => ({
@@ -372,13 +369,12 @@ const Leakage = () => {
     const ws = new WebSocket('ws://127.0.0.1:8000/ws/leak-alerts/');
     
     ws.onopen = () => {
-      console.log('WebSocket connected');
+      // WebSocket connected
     };
     
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
         handleNotificationReceived(data);
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
@@ -386,7 +382,7 @@ const Leakage = () => {
     };
     
     ws.onclose = () => {
-      console.log('WebSocket disconnected');
+      // WebSocket disconnected
     };
     
     ws.onerror = (error) => {
@@ -500,7 +496,6 @@ const Leakage = () => {
     // Fetch recent leakage for main card
     try {
       const res = await getRecentLeakageProvince(getProvinceName(selectedRegion));
-      console.log("Refetch - Received Recent Leakage Province Data ", res.data);
       
       if (res.data.leak) {
         const leak = res.data.leak;
@@ -608,13 +603,6 @@ const Leakage = () => {
   const handleResolvedFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Debug form values before validation
-    console.log('Main page form values before validation:', {
-      date: resolvedForm.date,
-      plumber: resolvedForm.plumber,
-      note: resolvedForm.note,
-    });
-    
     // Validation
     const errors = { date: '', plumber: '', note: '' };
     if (!resolvedForm.date) {
@@ -660,16 +648,9 @@ const Leakage = () => {
         resolved_note: resolvedForm.note,
       };
       
-      console.log('Sending resolution data:', payload);
       const res = await resolveLeakage(payload);
-      console.log('Resolved leak response', res.data);
 
       // Update UI immediately
-      console.log('Main page saving resolved data:', {
-        date: payload.resolved_date,
-        plumber: payload.plumber_name,
-        note: payload.resolved_note,
-      });
       setResolvedData({
         date: payload.resolved_date,
         plumber: payload.plumber_name,
@@ -1353,13 +1334,10 @@ const Leakage = () => {
         onClose={() => setShowResolvePopup(false)}
         leakageData={selectedLeakForResolve}
         onResolved={(resolvedLeakageId) => {
-          console.log('Modal onResolved called with ID:', resolvedLeakageId);
           // Add the resolved leakage ID to the set
           if (resolvedLeakageId) {
-            console.log('Adding resolved leakage ID:', resolvedLeakageId);
             setResolvedLeakageIds(prev => {
               const newSet = new Set([...prev, resolvedLeakageId]);
-              console.log('Updated resolvedLeakageIds:', newSet);
               return newSet;
             });
           }

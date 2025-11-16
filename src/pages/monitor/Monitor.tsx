@@ -111,9 +111,6 @@ const Monitor = () => {
   const { waterData, districtData, criticalReadings, pastHour, dailyAverage, connectionStatus, errorMessage, isDataStale } = useWaterReadings(selectedProvince);
   const { clearData, getConnectionStatus } = useMonitorData();
   
-  console.log("Fetched real time data for", selectedProvince, ":", waterData);
-  console.log("Number of data points:", waterData.length);
-  
   
   useEffect(() => {
     // Update the current time every minute
@@ -190,8 +187,6 @@ const getLatestDistrictData = () => {
 };
 
 const latestDistrictData = getLatestDistrictData();  
-console.log(latestDistrictData)
-
 // Pagination logic for history data
 const totalHistoryPages = Math.max(1, Math.ceil(latestDistrictData.length / HISTORY_PAGE_SIZE));
 const historyStartIndex = (historyPage - 1) * HISTORY_PAGE_SIZE;
