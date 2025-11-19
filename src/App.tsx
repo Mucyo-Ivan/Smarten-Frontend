@@ -42,6 +42,7 @@ import ToastModalProvider from './components/ToastModalProvider';
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import EmailVerified from "./pages/auth/EmailVerified";
+import AppAI from './smarten-ai'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -66,6 +67,7 @@ const App = () => (
             <Sonner />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/ai" element={<AppAI /> } />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -75,6 +75,10 @@ const Login = () => {
         <ThemeToggle />
       </div>
       
+      <Link to="/ai" className="text-xs text-blue-500 hover:text-blue-600">
+        Smarten AI
+      </Link>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-start mb-6">
